@@ -1,0 +1,53 @@
+<div class="container">
+  <div class="left-side">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmitLoginForm()">
+      <div class="content-sign flex justify-content-center align-content-center text-align-center">
+        <p-card styleClass="mt-10 mb-10 custom-card" header="Login" subheader="Faça login com sua conta existente">
+
+          <div class="flex justify-content-center align-content-center text-align-center">
+            <input
+              type="text"
+              pInputText
+              placeholder="Usuario"
+              formControlName="name"/>
+          </div>
+
+          <div class="flex justify-content-center align-content-center text-align-center">
+            <input
+              type="email"
+              pInputText
+              placeholder="Email"
+              formControlName="email"/>
+          </div>
+
+          <div class="flex justify-content-center align-content-center text-align-center mt-3">
+            <input
+              type="password"
+              pInputText
+              placeholder="Senha"
+              formControlName="password"/>
+          </div>
+
+          <div class="flex justify-content-center align-content-center text-align-center mt-3">
+            <p-button
+              type="submit"
+              pRipple
+              label="Entrar"
+              [disabled]="!this.loginForm.valid">
+            </p-button>
+            </div>
+
+          <div class="card flex justify-content-center align-content-center text-align-center mt-3">
+            <a href="#" id="forget-password">Esqueceu a senha?</a>
+          </div>
+        </p-card>
+      </div>
+    </form>
+  </div>
+
+  <div class="right-side">
+    <div>
+      <img src="" alt="">
+    </div>
+  </div>
+</div>
