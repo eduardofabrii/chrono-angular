@@ -3,11 +3,14 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { CookieService } from "ngx-cookie-service";
 
 import { UserService } from './../../../services/user/user.service';
+import { AuthRequest } from "../../../models/interfaces/auth/AuthRequest";
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
+  providers: [MessageService]
 })
 export class LoginComponent {
   loginCard = true;
@@ -15,6 +18,7 @@ export class LoginComponent {
   formBuilder = inject(FormBuilder);
   userService = inject(UserService);
   cookieService = inject(CookieService);
+  messageService = inject(MessageService);
 
   loginForm = this.formBuilder.group({
     name: ['', Validators.required],
@@ -24,9 +28,20 @@ export class LoginComponent {
 
   onSubmitLoginForm() {
     if (this.loginForm.valid) {
-      console.log("Dados de login: ", this.loginForm.value);
-    } else {
-      console.log("Formulário inválido!");
+      this.userService.auth(this.loginForm.value as AuthRequest)
+        .subscribe({
+          next: (response) => {
+            if (response) {
+              this.cookieService.set('auth_token', response.token);
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Bem vindo ${this.loginForm.value.name}` });
+              this.loginForm.reset();
+            }
+          },
+          error: (error) => {
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas :(' });
+            console.log('Login falhou', error);
+          }
+        });
     }
   }
 }
