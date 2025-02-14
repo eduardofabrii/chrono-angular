@@ -33,12 +33,12 @@ export class LoginComponent {
           next: (response) => {
             if (response) {
               this.cookieService.set('auth_token', response.token);
-              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Bem vindo ${this.loginForm.value.name}` });
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Bem-vindo ${this.loginForm.value.name}!` });
               this.loginForm.reset();
             }
           },
           error: (error) => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas :(' });
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: `${this.loginForm.value.name}, não encontramos seu login ` });
             console.log('Login falhou', error);
           }
         });
