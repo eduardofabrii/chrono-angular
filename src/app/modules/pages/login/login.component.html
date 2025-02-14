@@ -20,7 +20,7 @@
               formControlName="email"/>
           </div>
 
-          <div class="flex justify-content-center align-content-center text-align-center mt-3">
+          <div class="flex justify-content-center align-content-center text-align-center">
             <input
               type="password"
               pInputText
@@ -28,16 +28,17 @@
               formControlName="password"/>
           </div>
 
-          <div class="flex justify-content-center align-content-center text-align-center mt-3">
-            <p-button
+          <div class="flex justify-content-center align-content-center text-align-center mt-2">
+            <button
               type="submit"
+              pButton
               pRipple
               label="Entrar"
               [disabled]="!this.loginForm.valid">
-            </p-button>
+            </button>
             </div>
 
-          <div class="card flex justify-content-center align-content-center text-align-center mt-3">
+          <div class="card flex justify-content-center align-content-center text-align-center mt-2">
             <a href="#" id="forget-password">Esqueceu a senha?</a>
           </div>
         </p-card>
