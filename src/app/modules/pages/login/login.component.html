@@ -36,7 +36,15 @@
               label="Entrar"
               [disabled]="!this.loginForm.valid">
             </button>
-            </div>
+          </div>
+
+          <p-toast
+            position="top-right"
+            [showTransformOptions]="'translateY(100%)'"
+            [showTransitionOptions]="'1000ms'"
+            [hideTransitionOptions]="'1000ms'"
+            [breakpoints]="{'920px': {width: 'auto', right: '1em', left: 'auto'}}">
+          </p-toast>
 
           <div class="card flex justify-content-center align-content-center text-align-center mt-2">
             <a href="#" id="forget-password">Esqueceu a senha?</a>
