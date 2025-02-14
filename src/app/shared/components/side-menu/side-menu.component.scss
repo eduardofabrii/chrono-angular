@@ -1,0 +1,67 @@
+::ng-deep body {
+  margin: 0;
+  padding: 0;
+}
+
+::ng-deep a {
+  text-decoration: none;
+}
+
+::ng-deep .p-menu {
+  height: 100vh;
+  border-radius: 0;
+}
+
+.side-menu-bar-full {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.side-menu-bar-main {
+  height: 100vh;
+  overflow-x: auto;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 95vh;
+  width: 60px;
+  margin: 0;
+}
+
+.p-component {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: #F0A800;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.12);
+}
+
+.p-component:hover {
+  background-color: #F0C300;
+}
+
+.p-component-extra {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  color: black;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+.p-button-icon-extra {
+  font-size: 21px;
+}
+
+
