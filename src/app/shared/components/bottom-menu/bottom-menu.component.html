@@ -1,0 +1,19 @@
+<p-menubar [model]="bottomMenuItems">
+
+  <ng-template pTemplate="start">
+    <div class="play" pTooltip="Contador de horas" tooltipPosition="top">
+      <button pButton class="play-button" (click)="toggleTimer()">
+        <i class="pi pi-play"></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="end">
+    <div class="focus" pTooltip="Modo foco" tooltipPosition="top">
+      <button pButton class="p-button" (click)="toggleFocus()">
+        <span>FOCO</span>
+      </button>
+    </div>
+  </ng-template>
+
+</p-menubar>
