@@ -32,7 +32,7 @@ export class LoginComponent {
         .subscribe({
           next: (response) => {
             if (response) {
-              this.cookieService.set('auth_token', response.token);
+              this.cookieService.set('token', response.token);
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Bem-vindo ${this.loginForm.value.name}!` });
               this.loginForm.reset();
             }
