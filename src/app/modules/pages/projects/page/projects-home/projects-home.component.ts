@@ -1,12 +1,14 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
-import { ProjectsService } from '../../../../../services/projects/projects.service';
 import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { PutProjectRequest } from '../../../../../models/interfaces/projects/request/PutProjectRequest';
+import { ProjectsService } from '../../../../../services/projects/projects.service';
+import { UserService } from '../../../../../services/user/user.service';
+
 import { MessageService } from 'primeng/api';
 import { DatePipe } from '@angular/common';
-import { PutProjectRequest } from '../../../../../models/interfaces/projects/request/PutProjectRequest';
 
 @Component({
   selector: 'app-projects-home',
@@ -20,14 +22,13 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public selectedProject!: GetProjectResponse;
   public isVisibleShowMoreDialog: boolean = false;
   public isVisibleNewProjectDialog: boolean = false;
-
   public name: string = '';
 
   projectsService = inject(ProjectsService);
+  userService = inject(UserService);
   formBuilder = inject(FormBuilder);
   messageService = inject(MessageService);
   datePipe = inject(DatePipe);
-
 
   public priorityOptions = [
     { label: 'Baixa', value: 'BAIXA' },
@@ -42,9 +43,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     { label: 'Cancelado', value: 'CANCELADO' }
   ];
 
-  public responsibleOptions = [
-    { id: '1', name: 'Rodrigo Quisen', email: 'rodrigoquisen@wise.com' },
-  ]
+  public responsibleOptions: any[] = [];
 
   public addProjectForm: FormGroup = this.formBuilder.group({
     id: [''],
@@ -64,6 +63,19 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getProjects();
+    this.getUsers();
+  }
+
+  private getUsers(): void {
+    this.userService.getUsers()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((users: any[]) => {
+      this.responsibleOptions = users.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }));
+    });
   }
 
   private getProjects(): void {
@@ -155,7 +167,6 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       life: 2500,
     });
   }
-
 
   public onCloseDialog(dialogType: "showMore" | "newProject"): void {
     if (dialogType === "showMore") this.isVisibleShowMoreDialog = false;

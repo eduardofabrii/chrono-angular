@@ -15,9 +15,14 @@ export class UserService {
   private readonly http = inject(HttpClient);
   private readonly cookie = inject(CookieService);
 
-
   auth(authRequest: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, authRequest);
+  }
+
+  // TODO: Implementar rota ou guma maneira de pegar a role de admin :)
+  getUsers(): Observable<{ id: number, name: string, email: string }[]> {
+    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
+    return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user`, { headers });
   }
 
   isAuthenticated(): boolean {
