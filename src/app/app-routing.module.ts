@@ -1,11 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ProjectsHomeComponent } from './modules/pages/projects/components/projects-home/projects-home.component';
-import { ActivitiesComponent } from './modules/pages/activities/components/activities.component';
 import { LoginComponent } from './modules/pages/login/login.component';
 import { LayoutComponent } from './shared/layout/layout.component';
 import { authGuard } from './guards/auth.guard';
+import { ProjectsHomeComponent } from './modules/pages/projects/projects-home/projects-home.component';
 
 const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -14,8 +13,7 @@ const routes: Routes = [
     component: LayoutComponent,
     canMatch: [authGuard],
     children: [
-      { path: 'projects', component: ProjectsHomeComponent },
-      { path: 'activities', component: ActivitiesComponent }
+      { path: 'projects', component: ProjectsHomeComponent }
     ]
   }
 ];
