@@ -34,6 +34,16 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     );
   }
 
+  public filterProjectsByName(name: string): void {
+    if (name.trim()) {
+      this.filteredProjects = this.projects.filter(project =>
+        project.name.toLowerCase().includes(name.toLowerCase())
+      );
+    } else {
+      this.filteredProjects = this.projects;
+    }
+  }
+
   public openShowMore(project: GetProjectResponse): void {
     this.selectedProject = project;
     this.isVisibleShowMoreDialog = true;
