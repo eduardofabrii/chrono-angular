@@ -1,0 +1,61 @@
+<p-toolbar>
+  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
+    <i class="pi pi-folder-open"></i>
+    <span style="font-weight: bold; font-size: 1.2rem;">
+      Projetos
+    </span>
+  </div>
+
+  <div class="p-toolbar-group-center">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        placeholder="Pesquisar projeto"
+        [(ngModel)]="name"
+      />
+    </span>
+  </div>
+
+  <div class="flex p-toolbar-group-end" style="gap: 1rem;">
+    <p-button icon="pi pi-plus" styleClass="p-button-primary"></p-button>
+    <p-button icon="pi pi-pencil" styleClass="p-button-info"></p-button>
+    <p-button icon="pi pi-trash" styleClass="p-button-danger"></p-button>
+  </div>
+</p-toolbar>
+
+<div class="cards">
+  <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
+    <div>
+      <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
+      <p><strong>Descrição:</strong> {{ project.description | shorten: 20 }}</p>
+      <p><strong>Responsável:</strong> {{ project.responsible.name | shorten: 20 }}</p>
+      <p><strong>Data de Início:</strong> {{ project.startDate }}</p>
+      <p><strong>Status:</strong> {{ project.status }}</p>
+    </div>
+    <ng-template pTemplate="footer">
+      <div class="flex btn gap-3 mt-1 justify-content-center">
+        <p-button label="Ver Mais" class="w-full show-more" (onClick)="openShowMore(this.project)"></p-button>
+      </div>
+    </ng-template>
+  </p-card>
+</div>
+
+<p-dialog
+  header="Detalhes do Projeto"
+  [modal]="true"
+  [(visible)]="isVisibleShowMoreDialog"
+  [style]="{ width: '50rem', 'max-height': '90vh' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  (onHide)="onCloseDialog('showMore')">
+
+  <div *ngIf="selectedProject" class="project-details">
+    <div class="detail-item"><strong>Nome:</strong> {{ selectedProject.name }}</div>
+    <div class="detail-item"><strong>Descrição:</strong> {{ selectedProject.description }}</div>
+    <div class="detail-item"><strong>Data de Início:</strong> {{ selectedProject.startDate }}</div>
+    <div class="detail-item"><strong>Data de Fim:</strong> {{ selectedProject.endDate }}</div>
+    <div class="detail-item"><strong>Status:</strong> {{ selectedProject.status }}</div>
+    <div class="detail-item"><strong>Responsável:</strong> {{ selectedProject.responsible.name }}</div>
+    <div class="detail-item"><strong>Prioridade:</strong> {{ selectedProject.priority }}</div>
+  </div>
+</p-dialog>
