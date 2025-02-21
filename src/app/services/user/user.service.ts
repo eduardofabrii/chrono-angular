@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { AuthResponse } from '../../models/interfaces/auth/AuthResponse';
 import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
@@ -58,6 +58,11 @@ export class UserService {
       }
     }
     return null;
+  }
+
+  getUsersAdmin(): Observable<{ id: number, name: string, email: string }[]> {
+    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
+    return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user/admin_users`, { headers });
   }
 
   isAuthenticated(): boolean {

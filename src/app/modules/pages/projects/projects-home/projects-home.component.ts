@@ -87,12 +87,12 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getProjects();
-    this.getUsers();
+    this.getUsersAdmin();
     this.role = this.userService.getRole();
   }
 
-  private getUsers(): void {
-    this.userService.getUsers()
+  private getUsersAdmin(): void {
+    this.userService.getUsersAdmin()
     .pipe(takeUntil(this.destroy$))
     .subscribe((users: any[]) => {
       this.responsibleOptions = users.map(user => ({
