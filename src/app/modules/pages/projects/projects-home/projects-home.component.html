@@ -22,7 +22,7 @@
   <div class="flex p-toolbar-group-end" style="gap: 1rem;">
     <p-button icon="pi pi-plus" (onClick)="openNewProjectDialog()" styleClass="p-button-primary"></p-button>
     <p-button icon="pi pi-pencil" (onClick)="openEditProjectDialog()" styleClass="p-button-info"></p-button>
-    <p-button icon="pi pi-trash" styleClass="p-button-danger"></p-button>
+    <p-button icon="pi pi-trash" (onClick)="openDeleteProjectDialog()" styleClass="p-button-danger"></p-button>
   </div>
 </p-toolbar>
 
@@ -80,12 +80,12 @@
 
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="dataInicio">Data de Início</label>
-        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="dataFim">Data de Fim</label>
-        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -195,5 +195,72 @@
   <p-footer>
     <button pButton label="Salvar" (click)="updateProject()" icon="pi pi-check"></button>
     <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editProject')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>
+
+<!-- Modal/Dialog para excluir um projeto -->
+<p-dialog
+  header="Excluir Projeto"
+  [(visible)]="isVisibleDeleteProjectDialog"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  (onHide)="onCloseDialog('deleteProject')">
+  <div class="p-fluid">
+    <div class="p-field">
+      <label for="selectProject">Selecionar Projeto</label>
+      <p-dropdown
+        id="selectProject"
+        [options]="filteredProjects"
+        formControlName="selectedProject"
+        optionLabel="name"
+        (onChange)="onProjectSelect($event)"
+        appendTo="body">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <p-footer>
+    <button pButton label="Excluir" (click)="openConfirmDeleteProject()" icon="pi pi-trash" styleClass="p-button-danger"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteProject')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>
+
+<!-- Modal/Dialog para confirmar exclusão de um projeto -->
+<p-dialog
+  header="Confirmar Exclusão"
+  [(visible)]="isVisibleConfirmDeleteDialog"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  (onHide)="onCloseDialog('confirmDelete')">
+  <div class="p-fluid">
+    <div class="p-field">
+      <p>Tem certeza de que deseja excluir este projeto?</p>
+    </div>
+  </div>
+
+  <p-footer>
+    <button pButton label="Excluir" (click)="selectedProject ? deleteProject() : openDeleteErrorDialog()" icon="pi pi-trash" styleClass="p-button-danger"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('confirmDelete')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>
+
+<!-- Modal/Dialog erro ao excluir  -->
+<p-dialog
+  header="Erro ao Excluir"
+  [(visible)]="isVisibleDeleteErrorDialog"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  (onHide)="onCloseDialog('deleteError')">
+  <div class="p-fluid">
+    <div class="p-field">
+      <p class="error-message">{{ deleteError }}</p>
+    </div>
+  </div>
+
+  <p-footer>
+    <p-button label="Fechar" icon="pi pi-times" (onClick)="onCloseDialog('deleteError')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
