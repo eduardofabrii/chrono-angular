@@ -25,7 +25,12 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public isVisibleNewProjectDialog: boolean = false;
   public isVisibleEditProjectDialog: boolean = false;
   public isEditingProject: boolean = false;
+  public isVisibleDeleteProjectDialog: boolean = false;
+  public isVisibleConfirmDeleteDialog: boolean = false;
+  public isVisibleDeleteErrorDialog: boolean = false;
   public name: string = '';
+  public deleteError: string = 'Não é possível excluir um projeto que possui tarefas associadas.';
+
 
   projectsService = inject(ProjectsService);
   userService = inject(UserService);
@@ -127,6 +132,18 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
 
   public openEditProjectDialog(): void {
     this.isVisibleEditProjectDialog = true;
+  }
+
+  public openDeleteProjectDialog(): void {
+    this.isVisibleDeleteProjectDialog = true;
+  }
+
+  public openConfirmDeleteProject(): void {
+    this.isVisibleConfirmDeleteDialog = true;
+  }
+
+  public openDeleteErrorDialog(): void {
+    this.isVisibleDeleteErrorDialog = true;
   }
 
   public onProjectSelect(event: any): void {
@@ -241,6 +258,33 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  public deleteProject(): void {
+    try {
+      if (!this.selectedProject) return;
+
+      this.projectsService.deleteProject(this.selectedProject.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showSuccessMessage('Sucesso', 'Projeto excluído com sucesso!');
+            this.onCloseDialog('deleteProject');
+            this.onCloseDialog('confirmDelete');
+            this.getProjects();
+          },
+          error: (err) => {
+            console.error("Erro ao excluir projeto:", err);
+            this.showErrorMessage('Erro', 'Erro ao excluir projeto!');
+            this.openDeleteErrorDialog();
+          }
+        });
+
+    } catch (error) {
+      console.error("Erro inesperado:", error);
+      this.showErrorMessage('Erro', 'Erro inesperado ao excluir o projeto!');
+      this.openDeleteErrorDialog();
+    }
+  }
+
   private showSuccessMessage(summary: string, detail: string): void {
     this.messageService.add({
       severity: 'success',
@@ -259,12 +303,21 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onCloseDialog(dialogType: "showMore" | "newProject" | "editProject"): void {
+  public onCloseDialog(dialogType: "showMore" | "newProject" | "editProject" | "deleteProject" | "confirmDelete" | "deleteError" ): void {
     if (dialogType === "showMore") this.isVisibleShowMoreDialog = false;
     if (dialogType === "newProject") this.isVisibleNewProjectDialog = false;
     if (dialogType === "editProject") {
       this.isVisibleEditProjectDialog = false;
       this.isEditingProject = false;
+    }
+    if (dialogType === "confirmDelete") {
+      this.isVisibleConfirmDeleteDialog = false;
+      this.isVisibleDeleteProjectDialog = false;
+    }
+    if (dialogType === "deleteError") {
+      this.isVisibleDeleteErrorDialog = false;
+      this.isVisibleConfirmDeleteDialog = false;
+      this.isVisibleDeleteProjectDialog = false;
     }
   }
 
