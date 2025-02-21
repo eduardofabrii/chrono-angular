@@ -22,7 +22,6 @@ export class LoginComponent {
 
   loginForm = this.formBuilder.group({
     name: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required]
   });
 
@@ -35,6 +34,7 @@ export class LoginComponent {
               this.cookieService.set('token', response.token);
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Bem-vindo ${this.loginForm.value.name}!` });
               this.loginForm.reset();
+              window.location.href = '/dashboard';
             }
           },
           error: (error) => {

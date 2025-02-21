@@ -312,6 +312,9 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       this.isVisibleEditProjectDialog = false;
       this.isEditingProject = false;
     }
+    if (dialogType === "deleteProject") {
+      this.isVisibleDeleteProjectDialog = false;
+    }
     if (dialogType === "confirmDelete") {
       this.isVisibleConfirmDeleteDialog = false;
       this.isVisibleDeleteProjectDialog = false;
