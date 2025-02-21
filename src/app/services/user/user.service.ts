@@ -10,6 +10,8 @@ import { CookieService } from 'ngx-cookie-service';
 import jwt_decode from 'jwt-decode';
 
 interface DecodedToken {
+  sub: string;
+  role: string;
   [key: string]: any;
 }
 
@@ -25,7 +27,6 @@ export class UserService {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, authRequest);
   }
 
-  // TODO: Implementar rota ou guma maneira de pegar a role de admin :)
   getUsers(): Observable<{ id: number, name: string, email: string }[]> {
     const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
     return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user`, { headers });
@@ -42,6 +43,21 @@ export class UserService {
       console.error('Erro ao decodificar o token:', error);
       return null;
     }
+  }
+
+   // TODO: Implementar rota ou guma maneira de pegar a role de admin :)
+  getRole(): string | null {
+    const token = this.cookie.get('token');
+    if (token) {
+      try {
+        const decodedToken = jwt_decode<DecodedToken>(token);
+        return decodedToken['role'];
+      } catch (error) {
+        console.error('Erro ao decodificar o token:', error);
+        return null;
+      }
+    }
+    return null;
   }
 
   isAuthenticated(): boolean {

@@ -19,7 +19,7 @@
     </span>
   </div>
 
-  <div class="flex p-toolbar-group-end" style="gap: 1rem;">
+  <div *ngIf="role === 'ADMIN'" class="flex p-toolbar-group-end" style="gap: 1rem;">
     <p-button icon="pi pi-plus" (onClick)="openNewProjectDialog()" styleClass="p-button-primary"></p-button>
     <p-button icon="pi pi-pencil" (onClick)="openEditProjectDialog()" styleClass="p-button-info"></p-button>
     <p-button icon="pi pi-trash" (onClick)="openDeleteProjectDialog()" styleClass="p-button-danger"></p-button>
@@ -28,20 +28,22 @@
 
 <!-- Cards -->
 <div class="cards">
-  <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
-    <div>
-      <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
-      <p><strong>Descrição:</strong> {{ project.description | shorten: 20 }}</p>
-      <p><strong>Responsável:</strong> {{ project.responsible.name | shorten: 20 }}</p>
-      <p><strong>Data de Início:</strong> {{ project.startDate }}</p>
-      <p><strong>Status:</strong> {{ project.status }}</p>
-    </div>
-    <ng-template pTemplate="footer">
-      <div class="flex btn gap-3 mt-1 justify-content-center">
-        <p-button label="Ver Mais" class="w-full show-more" (onClick)="openShowMore(project)"></p-button>
+  <ng-container>
+    <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
+      <div>
+        <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
+        <p><strong>Descrição:</strong> {{ project.description | shorten: 20 }}</p>
+        <p><strong>Responsável:</strong> {{ project.responsible.name | shorten: 20 }}</p>
+        <p><strong>Data de Início:</strong> {{ project.startDate }}</p>
+        <p><strong>Status:</strong> {{ project.status }}</p>
       </div>
-    </ng-template>
-  </p-card>
+      <ng-template pTemplate="footer">
+        <div class="flex btn gap-3 mt-1 justify-content-center">
+          <p-button label="Ver mais" class="w-full show-more" (onClick)="openShowMore(project)"></p-button>
+        </div>
+      </ng-template>
+    </p-card>
+  </ng-container>
 </div>
 
 <!-- Modal/Dialog de ver mais (detalhes dos projetos) -->
@@ -65,7 +67,7 @@
 </p-dialog>
 
 <!-- Modal/Dialog de criar projeto -->
-<p-dialog header="Novo Projeto" [(visible)]="isVisibleNewProjectDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
+<p-dialog *ngIf="role === 'ADMIN'" header="Novo Projeto" [(visible)]="isVisibleNewProjectDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
   <div class="p-fluid">
     <form [formGroup]="addProjectForm">
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -126,7 +128,7 @@
 </p-dialog>
 
 <!-- Modal/Dialog de editar projeto -->
-<p-dialog
+<p-dialog *ngIf="role === 'ADMIN'"
   header="Editar Projeto"
   [(visible)]="isVisibleEditProjectDialog"
   [modal]="true"
@@ -199,7 +201,7 @@
 </p-dialog>
 
 <!-- Modal/Dialog para excluir um projeto -->
-<p-dialog
+<p-dialog *ngIf="role === 'ADMIN'"
   header="Excluir Projeto"
   [(visible)]="isVisibleDeleteProjectDialog"
   [modal]="true"
@@ -227,7 +229,7 @@
 </p-dialog>
 
 <!-- Modal/Dialog para confirmar exclusão de um projeto -->
-<p-dialog
+<p-dialog *ngIf="role === 'ADMIN'"
   header="Confirmar Exclusão"
   [(visible)]="isVisibleConfirmDeleteDialog"
   [modal]="true"

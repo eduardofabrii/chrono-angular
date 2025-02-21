@@ -29,6 +29,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public isVisibleConfirmDeleteDialog: boolean = false;
   public isVisibleDeleteErrorDialog: boolean = false;
   public name: string = '';
+  public role: string | null = '';
   public deleteError: string = 'Não é possível excluir um projeto que possui tarefas associadas.';
 
 
@@ -87,6 +88,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.getProjects();
     this.getUsers();
+    this.role = this.userService.getRole();
   }
 
   private getUsers(): void {
