@@ -1,3 +1,4 @@
+<!-- Toolbar -->
 <p-toolbar>
   <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
     <i class="pi pi-folder-open"></i>
@@ -20,12 +21,12 @@
 
   <div class="flex p-toolbar-group-end" style="gap: 1rem;">
     <p-button icon="pi pi-plus" (onClick)="openNewProjectDialog()" styleClass="p-button-primary"></p-button>
-    <p-button icon="pi pi-pencil" styleClass="p-button-info"></p-button>
+    <p-button icon="pi pi-pencil" (onClick)="openEditProjectDialog()" styleClass="p-button-info"></p-button>
     <p-button icon="pi pi-trash" styleClass="p-button-danger"></p-button>
   </div>
 </p-toolbar>
 
-
+<!-- Cards -->
 <div class="cards">
   <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
     <div>
@@ -37,12 +38,13 @@
     </div>
     <ng-template pTemplate="footer">
       <div class="flex btn gap-3 mt-1 justify-content-center">
-        <p-button label="Ver Mais" class="w-full show-more" (onClick)="openShowMore(this.project)"></p-button>
+        <p-button label="Ver Mais" class="w-full show-more" (onClick)="openShowMore(project)"></p-button>
       </div>
     </ng-template>
   </p-card>
 </div>
 
+<!-- Modal/Dialog de ver mais (detalhes dos projetos) -->
 <p-dialog
   header="Detalhes do Projeto"
   [modal]="true"
@@ -62,6 +64,7 @@
   </div>
 </p-dialog>
 
+<!-- Modal/Dialog de criar projeto -->
 <p-dialog header="Novo Projeto" [(visible)]="isVisibleNewProjectDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
   <div class="p-fluid">
     <form [formGroup]="addProjectForm">
@@ -87,7 +90,14 @@
 
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="status">Status</label>
-        <p-dropdown id="status" [options]="statusOptions" formControlName="status" appendTo="body"></p-dropdown>
+        <p-dropdown
+          id="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="status"
+          appendTo="body">
+        </p-dropdown>
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -96,8 +106,15 @@
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="prioridade">Prioridade</label>
-        <p-dropdown id="prioridade" [options]="priorityOptions" formControlName="priority" appendTo="body"></p-dropdown>
+        <label for="priority">Prioridade</label>
+        <p-dropdown
+          id="priority"
+          [options]="priorityOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="priority"
+          appendTo="body">
+        </p-dropdown>
       </div>
     </form>
   </div>
@@ -108,3 +125,75 @@
   </p-footer>
 </p-dialog>
 
+<!-- Modal/Dialog de editar projeto -->
+<p-dialog
+  header="Editar Projeto"
+  [(visible)]="isVisibleEditProjectDialog"
+  [modal]="true"
+  [style]="{ width: '50rem', 'max-height': '90vh' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  (onHide)="onCloseDialog('editProject')">
+  <div class="p-fluid">
+    <form [formGroup]="editProjectForm">
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="selectProject">Selecionar Projeto</label>
+        <p-dropdown
+          id="selectProject"
+          [options]="filteredProjects"
+          formControlName="selectedProject"
+          optionLabel="name"
+          (onChange)="onProjectSelect($event)"
+          appendTo="body">
+        </p-dropdown>
+      </div>
+
+      <div *ngIf="isEditingProject" class="p-fluid">
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editNome">Nome do Projeto</label>
+          <input id="editNome" type="text" pInputText formControlName="name" />
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editDescricao">Descrição</label>
+          <input id="editDescricao" type="text" pInputText formControlName="description" />
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editDataInicio">Data de Início</label>
+          <p-calendar id="editDataInicio" formControlName="startDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editDataFim">Data de Fim</label>
+          <p-calendar id="editDataFim" formControlName="endDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editStatus">Status</label>
+          <p-dropdown id="editStatus" [options]="statusOptions" formControlName="status" appendTo="body"></p-dropdown>
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editResponsavel">Responsável</label>
+          <p-dropdown
+            id="editResponsavel"
+            [options]="responsibleOptions"
+            formControlName="responsible"
+            optionLabel="name"
+            appendTo="body">
+          </p-dropdown>
+        </div>
+
+        <div class="p-field" style="margin-bottom: 1rem;">
+          <label for="editPrioridade">Prioridade</label>
+          <p-dropdown id="editPrioridade" [options]="priorityOptions" formControlName="priority" appendTo="body"></p-dropdown>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <p-footer>
+    <button pButton label="Salvar" (click)="updateProject()" icon="pi pi-check"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editProject')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>

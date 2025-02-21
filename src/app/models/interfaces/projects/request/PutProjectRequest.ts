@@ -7,5 +7,4 @@ export interface PutProjectRequest {
   status: string;
   responsible: { id: string; name: string; email: string };
   priority: string;
-  createdDate: string;
 }
