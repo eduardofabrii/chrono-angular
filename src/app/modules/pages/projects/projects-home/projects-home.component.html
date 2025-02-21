@@ -28,7 +28,7 @@
 
 <!-- Cards -->
 <div class="cards">
-  <ng-container>
+  <ng-container *ngIf="filteredProjects.length > 0; else noProjects">
     <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
       <div>
         <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
@@ -44,6 +44,11 @@
       </ng-template>
     </p-card>
   </ng-container>
+  <ng-template #noProjects>
+    <div class="no-projects">
+      <p>Nenhum projeto encontrado.</p>
+    </div>
+  </ng-template>
 </div>
 
 <!-- Modal/Dialog de ver mais (detalhes dos projetos) -->
