@@ -7,6 +7,12 @@ import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
 import { environment } from '../../../environments/environment.prod';
 import { CookieService } from 'ngx-cookie-service';
 
+import jwt_decode from 'jwt-decode';
+
+interface DecodedToken {
+  [key: string]: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,6 +29,19 @@ export class UserService {
   getUsers(): Observable<{ id: number, name: string, email: string }[]> {
     const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
     return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user`, { headers });
+  }
+
+  getUsername(): string | null {
+    const token = this.cookie.get('token');
+    if (!token) return null;
+
+    try {
+      const decodedToken = jwt_decode<DecodedToken>(token);
+      return decodedToken['sub'] || null;
+    } catch (error) {
+      console.error('Erro ao decodificar o token:', error);
+      return null;
+    }
   }
 
   isAuthenticated(): boolean {
