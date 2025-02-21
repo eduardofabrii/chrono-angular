@@ -2,13 +2,14 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
-import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
-import { PutProjectRequest } from '../../../../../models/interfaces/projects/request/PutProjectRequest';
-import { ProjectsService } from '../../../../../services/projects/projects.service';
-import { UserService } from '../../../../../services/user/user.service';
-
 import { MessageService } from 'primeng/api';
 import { DatePipe } from '@angular/common';
+
+import { GetProjectResponse } from '../../../../models/interfaces/projects/response/GetProjectResponse';
+import { PostProjectRequest } from '../../../../models/interfaces/projects/request/PostProjectRequest';
+import { PutProjectRequest } from '../../../../models/interfaces/projects/request/PutProjectRequest';
+import { ProjectsService } from '../../../../services/projects/projects.service';
+import { UserService } from '../../../../services/user/user.service';
 
 @Component({
   selector: 'app-projects-home',
@@ -22,6 +23,8 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public selectedProject!: GetProjectResponse;
   public isVisibleShowMoreDialog: boolean = false;
   public isVisibleNewProjectDialog: boolean = false;
+  public isVisibleEditProjectDialog: boolean = false;
+  public isEditingProject: boolean = false;
   public name: string = '';
 
   projectsService = inject(ProjectsService);
@@ -58,6 +61,21 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       email: ['']
     }),
     creationDate: [''],
+    priority: ['']
+  });
+
+  public editProjectForm: FormGroup = this.formBuilder.group({
+    id: [''],
+    name: [''],
+    description: [''],
+    startDate: [''],
+    endDate: [''],
+    status: [''],
+    responsible: this.formBuilder.group({
+      id: [''],
+      name: [''],
+      email: ['']
+    }),
     priority: ['']
   });
 
@@ -104,8 +122,23 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   }
 
   public openNewProjectDialog(): void {
-    console.log("openNewProjectDialog")
     this.isVisibleNewProjectDialog = true;
+  }
+
+  public openEditProjectDialog(): void {
+    this.isVisibleEditProjectDialog = true;
+  }
+
+  public onProjectSelect(event: any): void {
+    this.selectedProject = event.value;
+    if (!this.selectedProject) return;
+
+    this.editProjectForm.patchValue({
+      ...this.selectedProject,
+      responsible: this.responsibleOptions.find(user => user.id === this.selectedProject.responsible.id) || { id: '', name: '', email: '' }
+    });
+
+    this.isEditingProject = true;
   }
 
   public createProject(): void {
@@ -115,8 +148,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       const formattedEndDate = this.datePipe.transform(this.addProjectForm.value.endDate, 'dd/MM/yyyy');
       const formattedCreatedDate = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm:ss');
 
-      const requestCreateProject: PutProjectRequest = {
-        id: this.addProjectForm.value.id!,
+      const requestCreateProject: PostProjectRequest = {
         name: this.addProjectForm.value.name!,
         description: this.addProjectForm.value.description!,
         startDate: formattedStartDate!,
@@ -139,7 +171,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
               this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
               this.addProjectForm.reset();
               this.onCloseDialog('newProject');
-              this.getProjects();
+              this.getProjects()
             }
           },
           error: (err) => {
@@ -148,6 +180,65 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
           },
         });
     }
+  }
+
+  public updateProject(): void {
+    if (this.editProjectForm.invalid) return;
+
+    const { id, name, description, startDate, endDate, status, priority, responsible } = this.editProjectForm.value;
+    const formattedStartDate = this.datePipe.transform(this.parseDate(startDate), 'dd/MM/yyyy');
+    const formattedEndDate = this.datePipe.transform(this.parseDate(endDate), 'dd/MM/yyyy');
+
+    const requestPutProject: PutProjectRequest = {
+      id: id!,
+      name: name!,
+      description: description!,
+      startDate: formattedStartDate!,
+      endDate: formattedEndDate!,
+      status: status!,
+      responsible: {
+        id: responsible?.id ?? '',
+        name: responsible?.name ?? '',
+        email: responsible?.email ?? ''
+      },
+      priority: priority!,
+    };
+
+    this.projectsService.putProject(requestPutProject.id, requestPutProject)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccessMessage('Sucesso', 'Projeto atualizado com sucesso!');
+          this.editProjectForm.reset();
+          this.isEditingProject = false;
+          this.onCloseDialog('editProject');
+          this.getProjects();
+        },
+        error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
+      });
+  }
+
+  private parseDate(dateValue: string | Date): Date | null {
+    if (!dateValue) return null;
+
+    // Se o valor já for um objeto Date, retorne-o diretamente
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+
+    // Se for uma string no formato "dd/MM/yyyy", converta para Date
+    if (typeof dateValue === 'string' && dateValue.includes('/')) {
+      const [day, month, year] = dateValue.split('/');
+      return new Date(+year, +month - 1, +day);
+    }
+
+    // Se for uma string no formato ISO ("yyyy-MM-dd"), converta para Date
+    if (typeof dateValue === 'string' && dateValue.includes('-')) {
+      return new Date(dateValue);
+    }
+
+    // Caso o formato não seja reconhecido, retorne null
+    return null;
   }
 
   private showSuccessMessage(summary: string, detail: string): void {
@@ -168,9 +259,13 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onCloseDialog(dialogType: "showMore" | "newProject"): void {
+  public onCloseDialog(dialogType: "showMore" | "newProject" | "editProject"): void {
     if (dialogType === "showMore") this.isVisibleShowMoreDialog = false;
     if (dialogType === "newProject") this.isVisibleNewProjectDialog = false;
+    if (dialogType === "editProject") {
+      this.isVisibleEditProjectDialog = false;
+      this.isEditingProject = false;
+    }
   }
 
   public ngOnDestroy(): void {
