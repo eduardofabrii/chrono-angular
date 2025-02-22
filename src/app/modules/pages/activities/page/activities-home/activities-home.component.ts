@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 
-
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
@@ -16,9 +15,10 @@ import { ActivitiesService } from '../../../../../services/activities/activities
 })
 export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject();
-  public project!: GetProjectResponse;
+  public filteredActivities: GetActivityResponse[] = [];
   public activities: GetActivityResponse[] = [];
   private readonly ref!: DynamicDialogRef;
+  public project!: GetProjectResponse;
 
   private projectIdSubscription!: Subscription;
 
@@ -54,8 +54,17 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((activities) => {
         this.activities = activities;
+        this.filterActivities();
       }
     );
+  }
+
+  private filterActivities(): void {
+    if (this.project && this.activities) {
+      this.filteredActivities = this.activities.filter(
+        (activity) => activity.project.id === this.project.id // Filtra as atividades pelo project.id
+      );
+    }
   }
 
   getProjectName(): string | undefined {

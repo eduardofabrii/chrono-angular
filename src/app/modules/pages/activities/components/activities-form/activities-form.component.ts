@@ -18,8 +18,6 @@ import { DatePipe } from '@angular/common';
 export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   public isVisibleNewActivityDialog = false;
-  public filteredActivities: Array<GetActivityResponse> = [];
-  public activitySelected: GetActivityResponse | null = null;
 
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
@@ -55,7 +53,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
 
   ngOnChanges() {
     this.getUsers();
-    this.filterActivities();
   }
 
   public openNewActivityDialog(): void {
@@ -79,9 +76,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (this.addActivityForm.valid) {
       const formattedStartDate = this.datePipe.transform(this.addActivityForm.value.startDate, 'dd/MM/yyyy');
       const formattedEndDate = this.datePipe.transform(this.addActivityForm.value.endDate, 'dd/MM/yyyy');
-
-      console.log(formattedStartDate);
-      console.log(formattedEndDate);
 
       const requestCreateActivity: PostActivityRequest = {
         project: {
@@ -108,7 +102,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
               this.addActivityForm.reset();
               this.onCloseDialog('newActivity');
               this.activities.push(response);
-              this.filterActivities();
             }
           },
           error: (err: any) => {
@@ -135,12 +128,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
       detail,
       life: 2500,
     });
-  }
-
-  private filterActivities() {
-    this.filteredActivities = this.activities.filter(
-      (activity) => activity.project.id === this.projectId // Compração com activity.project.id
-    );
   }
 
   public onCloseDialog(dialogType: "newActivity" ): void {
