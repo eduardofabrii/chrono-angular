@@ -98,7 +98,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         .subscribe({
           next: (response: any) => {
             if (response) {
-              this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
+              this.showSuccessMessage('Sucesso', 'Atividade criada com sucesso!');
               this.addActivityForm.reset();
               this.onCloseDialog('newActivity');
               this.activities.push(response);
@@ -106,7 +106,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
           },
           error: (err: any) => {
             console.log(err);
-            this.showErrorMessage('Erro', 'Erro ao adicionar projeto!');
+            this.showErrorMessage('Erro', 'Erro ao adicionar atividade!');
           },
         });
     }

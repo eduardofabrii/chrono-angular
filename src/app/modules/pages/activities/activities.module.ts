@@ -1,3 +1,4 @@
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
   declarations: [
@@ -39,6 +41,8 @@ import { CardModule } from 'primeng/card';
     DialogModule,
     CalendarModule,
     TieredMenuModule,
+    BrowserAnimationsModule,
+    ToastModule,
   ]
 })
 export class ActivitiesModule { }
