@@ -6,5 +6,4 @@ export interface PostActivityRequest {
   endDate: string;
   status: string;
   responsible: { id: string; name: string; email: string };
-  createdDate: string;
 }
