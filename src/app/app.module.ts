@@ -14,6 +14,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { ProjectsModule } from './modules/pages/projects/projects.module';
+import { ActivitiesModule } from './modules/pages/activities/activities.module';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { ProjectsModule } from './modules/pages/projects/projects.module';
     CardModule,
 
     ProjectsModule,
+    ActivitiesModule,
 ],
   providers: [
     CookieService,
