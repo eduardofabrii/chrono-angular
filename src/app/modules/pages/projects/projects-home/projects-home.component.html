@@ -39,7 +39,8 @@
       </div>
       <ng-template pTemplate="footer">
         <div class="flex btn gap-3 mt-1 justify-content-center">
-          <p-button label="Ver mais" class="w-full show-more" (onClick)="openShowMore(project)"></p-button>
+          <p-button label="Ver detalhes" class="w-full show-more" (onClick)="openShowMoreDialog(project)"></p-button>
+          <p-button label="Atividades" class="w-full show-more" (onClick)="goToActivities(project)"></p-button>
         </div>
       </ng-template>
     </p-card>

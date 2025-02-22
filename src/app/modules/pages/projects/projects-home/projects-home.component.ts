@@ -10,6 +10,7 @@ import { PostProjectRequest } from '../../../../models/interfaces/projects/reque
 import { PutProjectRequest } from '../../../../models/interfaces/projects/request/PutProjectRequest';
 import { ProjectsService } from '../../../../services/projects/projects.service';
 import { UserService } from '../../../../services/user/user.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-projects-home',
@@ -38,6 +39,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   formBuilder = inject(FormBuilder);
   messageService = inject(MessageService);
   datePipe = inject(DatePipe);
+  router = inject(Router);
 
   public priorityOptions = [
     { label: 'Baixa', value: 'BAIXA' },
@@ -91,6 +93,15 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     this.role = this.userService.getRole();
   }
 
+  goToActivities(project: GetProjectResponse) {
+    if (!project?.id) {
+      return;
+    }
+
+    const navigateUrl = `/projects/${project.id}/activities`;
+    this.router.navigate([navigateUrl]);
+  }
+
   private getUsersAdmin(): void {
     this.userService.getUsersAdmin()
     .pipe(takeUntil(this.destroy$))
@@ -123,7 +134,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  public openShowMore(project: GetProjectResponse): void {
+  public openShowMoreDialog(project: GetProjectResponse): void {
     this.selectedProject = project;
     this.isVisibleShowMoreDialog = true;
   }
