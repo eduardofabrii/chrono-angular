@@ -2,11 +2,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
+import { ActivitiesTableComponent } from './components/activities-table/activities-table.component';
 import { ActivitiesFormComponent } from './components/activities-form/activities-form.component';
 import { ActivitiesHomeComponent } from './page/activities-home/activities-home.component';
 import { SharedModule } from '../../../shared/shared.module';
 
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { TieredMenuModule } from 'primeng/tieredmenu';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { TabViewModule } from 'primeng/tabview';
@@ -20,6 +22,7 @@ import { CardModule } from 'primeng/card';
   declarations: [
     ActivitiesHomeComponent,
     ActivitiesFormComponent,
+    ActivitiesTableComponent,
   ],
   imports: [
     CommonModule,
@@ -35,6 +38,7 @@ import { CardModule } from 'primeng/card';
     DropdownModule,
     DialogModule,
     CalendarModule,
+    TieredMenuModule,
   ]
 })
 export class ActivitiesModule { }
