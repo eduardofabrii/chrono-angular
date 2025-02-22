@@ -12,12 +12,14 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { SidebarModule } from 'primeng/sidebar';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ShortenPipe } from './pipes/shorten/shorten.pipe';
 
 @NgModule({
   declarations: [
     SideMenuComponent,
     BottomMenuComponent,
     LayoutComponent,
+    ShortenPipe,
   ],
   imports: [
     CommonModule,
@@ -31,7 +33,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SidebarModule,
   ],
   exports: [
-    LayoutComponent,
+    LayoutComponent, ShortenPipe
   ],
   providers: [],
 })

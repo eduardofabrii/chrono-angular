@@ -10,21 +10,24 @@ import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { SharedModule } from '../../../shared/shared.module';
 
 @NgModule({
   declarations: [
     ActivitiesHomeComponent,
-    ActivitiesFormComponent
+    ActivitiesFormComponent,
   ],
   imports: [
     CommonModule,
-    // PrimeNg
+    SharedModule,    // PrimeNg
     ToolbarModule,
     TabViewModule,
     CardModule,
     TableModule,
     ButtonModule,
     DynamicDialogModule,
+    DropdownModule,
   ]
 })
 export class ActivitiesModule { }

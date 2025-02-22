@@ -1,6 +1,11 @@
 <div class="cards">
   <p-card styleClass="shadow-3 mt-5">
     <div style="max-width: 100%; overflow-x: auto;">
+    <div class="flex justify-content-between mb-2 flex-wrap">
+      <p-dropdown [options]="filterOptions" placeholder="Selecione um filtro" class="mb-2"></p-dropdown>
+      <button pButton type="button" label="Criar" icon="pi pi-plus" class="p-button-primary mb-2"></button>
+    </div>
+
       <p-table
         #activitiesTable
         [value]="filteredActivities"
@@ -132,12 +137,12 @@
         <!-- Corpo da tabela -->
         <ng-template pTemplate="body" let-activity>
           <tr>
-            <td>{{ activity.name }}</td>
-            <td>{{ activity.description }}</td>
+            <td>{{ activity.name | shorten: 15 }}</td>
+            <td>{{ activity.description | shorten: 20 }}</td>
             <td>{{ activity.startDate }}</td>
             <td>{{ activity.endDate }}</td>
             <td>{{ activity.status }}</td>
-            <td>{{ activity.responsible.name }}</td>
+            <td>{{ activity.responsible.name | shorten: 15}}</td>
           </tr>
         </ng-template>
 
