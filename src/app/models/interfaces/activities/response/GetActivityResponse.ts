@@ -1,4 +1,5 @@
 export interface GetActivityResponse {
+  id: string;
   project: { id: string };
   name: string;
   description: string;
