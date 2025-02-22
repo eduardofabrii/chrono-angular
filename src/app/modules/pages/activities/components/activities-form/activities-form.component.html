@@ -2,8 +2,8 @@
   <p-card styleClass="shadow-3 mt-5">
     <div style="max-width: 100%; overflow-x: auto;">
     <div class="flex justify-content-between mb-2 flex-wrap">
-      <p-dropdown [options]="filterOptions" placeholder="Selecione um filtro" class="mb-2"></p-dropdown>
-      <button pButton type="button" label="Criar" icon="pi pi-plus" class="p-button-primary mb-2"></button>
+      <p-dropdown [options]="statusOptions" placeholder="Selecione um filtro" class="mb-2"></p-dropdown>
+      <button pButton (click)="openNewActivityDialog()" type="button" label="Criar" icon="pi pi-plus" class="p-button-primary mb-2"></button>
     </div>
 
       <p-table
@@ -156,3 +156,52 @@
     </div>
   </p-card>
 </div>
+
+<!-- Modal/Dialog de criar atividade -->
+<p-dialog header="Nova Atividade" [(visible)]="isVisibleNewActivityDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
+  <div class="p-fluid">
+    <form [formGroup]="addActivityForm">
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="nome">Nome da Atividade</label>
+        <input id="nome" type="text" pInputText formControlName="name" class="p-inputtext p-component" />
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="descricao">Descrição</label>
+        <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="dataInicio">Data de Início</label>
+        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="dataFim">Data de Fim</label>
+        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="status">Status</label>
+        <p-dropdown
+          id="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="status"
+          appendTo="body">
+        </p-dropdown>
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="responsavel">Responsável</label>
+        <p-dropdown id="responsavel" [options]="responsibleOptions" formControlName="responsible" optionLabel="name" appendTo="body"></p-dropdown>
+      </div>
+    </form>
+  </div>
+
+  <p-footer>
+    <button pButton label="Salvar" (click)="createActivity()" icon="pi pi-check"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('newActivity')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>
