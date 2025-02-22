@@ -4,7 +4,6 @@ import { NgModule } from '@angular/core';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProjectsService } from '../../../services/projects/projects.service';
-import { ShortenPipe } from '../../../shared/pipes/shorten/shorten.pipe';
 import { UserService } from '../../../services/user/user.service';
 import { SharedModule } from '../../../shared/shared.module';
 
@@ -21,7 +20,6 @@ import { ProjectsHomeComponent } from './projects-home/projects-home.component';
 @NgModule({
   declarations: [
     ProjectsHomeComponent,
-    ShortenPipe,
   ],
   imports: [
     CommonModule,
