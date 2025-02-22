@@ -2,7 +2,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProjectsService } from '../../../services/projects/projects.service';
 import { UserService } from '../../../services/user/user.service';
 import { SharedModule } from '../../../shared/shared.module';
@@ -16,6 +15,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { CardModule } from 'primeng/card';
 import { ProjectsHomeComponent } from './projects-home/projects-home.component';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
   declarations: [
@@ -35,7 +35,7 @@ import { ProjectsHomeComponent } from './projects-home/projects-home.component';
     MessageModule,
     InputTextModule,
     SharedModule,
-    BrowserAnimationsModule
+    ToastModule,
   ],
   providers: [ProjectsService, UserService, DatePipe],
   exports: [],
