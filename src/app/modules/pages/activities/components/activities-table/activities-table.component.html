@@ -135,7 +135,7 @@
       <td>{{ activity.status }}</td>
       <td>{{ activity.responsible.name | shorten: 15}}</td>
       <td>
-        <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success"></button>
+        <button pButton (click)="openEditActivityDialog(activity)" type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success"></button>
       </td>
     </tr>
   </ng-template>

@@ -1,5 +1,4 @@
 export interface PutActivityRequest {
-  id: string;
   project: { id: string };
   name: string;
   description: string;
