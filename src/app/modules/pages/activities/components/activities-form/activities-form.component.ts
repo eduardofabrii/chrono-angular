@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnChanges, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, OnDestroy, Output } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -22,6 +22,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
 
+  @Output() activityCreated = new EventEmitter<GetActivityResponse>();
+
   formBuilder = inject(FormBuilder);
   userService = inject(UserService);
   messageService = inject(MessageService);
@@ -38,26 +40,35 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   public responsibleOptions: any[] = [];
 
   public addActivityForm: FormGroup = this.formBuilder.group({
+    id: [''],
+    name: [''],
+    description: [''],
+    startDate: [''],
+    endDate: [''],
+    status: [''],
+    responsible: this.formBuilder.group({
       id: [''],
       name: [''],
-      description: [''],
-      startDate: [''],
-      endDate: [''],
-      status: [''],
-      responsible: this.formBuilder.group({
-        id: [''],
-        name: [''],
-        email: ['']
-      }),
-    });
+      email: ['']
+    }),
+  });
+
+  public editActivityForm: FormGroup = this.formBuilder.group({
+    id: [''],
+    name: [''],
+    description: [''],
+    startDate: [''],
+    endDate: [''],
+    status: [''],
+    responsible: this.formBuilder.group({
+      id: [''],
+      name: [''],
+      email: ['']
+    }),
+  });
 
   ngOnChanges() {
     this.getUsers();
-  }
-
-  public openNewActivityDialog(): void {
-    this.isVisibleNewActivityDialog = true;
-    console.log('openNewActivityDialog');
   }
 
   private getUsers(): void {
@@ -70,6 +81,10 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         email: user.email
       }));
     });
+  }
+
+  public openNewActivityDialog(): void {
+    this.isVisibleNewActivityDialog = true;
   }
 
   public createActivity(): void {
@@ -101,7 +116,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
               this.showSuccessMessage('Sucesso', 'Atividade criada com sucesso!');
               this.addActivityForm.reset();
               this.onCloseDialog('newActivity');
-              this.activities.push(response);
+              this.activityCreated.emit(response);
             }
           },
           error: (err: any) => {
@@ -131,9 +146,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   }
 
   public onCloseDialog(dialogType: "newActivity" ): void {
-    if (dialogType === 'newActivity') {
-      this.isVisibleNewActivityDialog = false;
-    }
+    if (dialogType === 'newActivity') this.isVisibleNewActivityDialog = false;
   }
 
   public ngOnDestroy(): void {

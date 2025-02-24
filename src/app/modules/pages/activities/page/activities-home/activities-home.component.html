@@ -16,5 +16,12 @@
   </div>
 </p-toolbar>
 
-<app-activities-table [activities]="filteredActivities" [project]="project"></app-activities-table>
+<div class="cards">
+  <p-card styleClass="shadow-3 mt-5">
+    <div style="max-width: 100%; overflow-x: auto;">
+      <app-activities-form [activities]="activities" [projectId]="project.id" (activityCreated)="handleActivityCreated()"></app-activities-form>
+      <app-activities-table [activities]="filteredActivities" [project]="project"></app-activities-table>
+    </div>
+  </p-card>
+</div>
 

@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
 import { ProjectsService } from '../../../../../services/projects/projects.service';
@@ -17,9 +16,7 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject();
   public filteredActivities: GetActivityResponse[] = [];
   public activities: GetActivityResponse[] = [];
-  private readonly ref!: DynamicDialogRef;
   public project!: GetProjectResponse;
-
   private projectIdSubscription!: Subscription;
 
   private readonly route = inject(ActivatedRoute);
@@ -69,6 +66,10 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
 
   getProjectName(): string | undefined {
     return this.project?.name;
+  }
+
+  handleActivityCreated(): void {
+    this.getActivities();
   }
 
   ngOnDestroy(): void {

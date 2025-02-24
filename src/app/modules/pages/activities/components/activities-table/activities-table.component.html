@@ -1,153 +1,148 @@
-<div class="cards">
-  <p-card styleClass="shadow-3 mt-5">
-    <div style="max-width: 100%; overflow-x: auto;">
-      <app-activities-form [activities]="activities" [projectId]="project.id"></app-activities-form>
+<p-table
+  #activitiesTable
+  [value]="activities"
+  [rows]="10"
+  [paginator]="true"
+  [responsive]="true"
+  [globalFilterFields]="['name', 'description', 'startDate', 'endDate', 'status', 'responsible.name', 'createdDate']"
+  [rowHover]="true"
+  [showCurrentPageReport]="true"
+  dataKey="id"
+  currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} atividades"
+  [ngStyle]="{ 'width': '100%' }">
 
-      <p-table
-        #activitiesTable
-        [value]="activities"
-        [rows]="10"
-        [paginator]="true"
-        [responsive]="true"
-        [globalFilterFields]="['name', 'description', 'startDate', 'endDate', 'status', 'responsible.name', 'createdDate']"
-        [rowHover]="true"
-        [showCurrentPageReport]="true"
-        dataKey="id"
-        currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} atividades"
-        [ngStyle]="{ 'width': '100%' }">
+  <ng-template pTemplate="header">
+    <tr>
+      <th pSortableColumn="name" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Nome</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="name"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="name"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="name" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Nome</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="name"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="name"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th pSortableColumn="description" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Descrição</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="description"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="description"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-            <th pSortableColumn="description" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Descrição</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="description"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="description"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th pSortableColumn="startDate" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Data de Início</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="startDate"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="startDate"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-            <th pSortableColumn="startDate" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Data de Início</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="startDate"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="startDate"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th pSortableColumn="endDate" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Data de Término</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="endDate"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="endDate"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-            <th pSortableColumn="endDate" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Data de Término</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="endDate"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="endDate"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th pSortableColumn="status" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Status</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="status"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="status"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-            <th pSortableColumn="status" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Status</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="status"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="status"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th pSortableColumn="responsible.name" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Responsável</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="responsible.name"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="responsible.name"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
 
-            <th pSortableColumn="responsible.name" scope="col">
-              <div class="flex justify-content-between align-items-center">
-                <span>Responsável</span>
-                <div class="flex align-items-center">
-                  <p-sortIcon field="responsible.name"></p-sortIcon>
-                  <p-columnFilter
-                    type="text"
-                    field="responsible.name"
-                    display="menu"
-                    matchMode="contains"
-                    [showMatchModes]="false"
-                    [showOperator]="false"
-                    [showAddButton]="false"
-                  ></p-columnFilter>
-                </div>
-              </div>
-            </th>
+      <th scope="col">Ações</th>
 
-          </tr>
-        </ng-template>
+    </tr>
+  </ng-template>
 
-        <!-- Corpo da tabela -->
-        <ng-template pTemplate="body" let-activity>
-          <tr>
-            <td>{{ activity.name | shorten: 15 }}</td>
-            <td>{{ activity.description | shorten: 20 }}</td>
-            <td>{{ activity.startDate }}</td>
-            <td>{{ activity.endDate }}</td>
-            <td>{{ activity.status }}</td>
-            <td>{{ activity.responsible.name | shorten: 15}}</td>
-          </tr>
-        </ng-template>
+  <ng-template pTemplate="body" let-activity>
+    <tr>
+      <td>{{ activity.name | shorten: 15 }}</td>
+      <td>{{ activity.description | shorten: 20 }}</td>
+      <td>{{ activity.startDate }}</td>
+      <td>{{ activity.endDate }}</td>
+      <td>{{ activity.status }}</td>
+      <td>{{ activity.responsible.name | shorten: 15}}</td>
+      <td>
+        <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success"></button>
+      </td>
+    </tr>
+  </ng-template>
 
-        <!-- Rodapé opcional -->
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="7" class="text-center">Nenhuma atividade encontrada.</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </p-card>
-</div>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="7" class="text-center">Nenhuma atividade encontrada.</td>
+    </tr>
+  </ng-template>
+</p-table>
