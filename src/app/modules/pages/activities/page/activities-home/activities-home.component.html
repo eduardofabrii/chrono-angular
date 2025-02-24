@@ -23,13 +23,15 @@
         [activities]="activities"
         [projectId]="project.id"
         (activityCreated)="handleActivityCreated()"
-        (activityUpdated)="handleActivityUpdated()">>
+        (activityUpdated)="handleActivityUpdated()"
+        (activityDeleted)="handleActivityDeleted()">
       </app-activities-form>
 
       <app-activities-table
         [activities]="filteredActivities"
         [project]="project"
-        (editActivity)="openEditActivityDialog($event)">
+        (editActivity)="openEditActivityDialog($event)"
+        (deleteActivity)="openDeleteActivityDialog($event)">
       </app-activities-table>
     </div>
   </p-card>

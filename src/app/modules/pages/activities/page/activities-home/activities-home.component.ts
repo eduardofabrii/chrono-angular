@@ -81,9 +81,17 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
     this.getActivities();
   }
 
+  handleActivityDeleted(): void {
+    this.getActivities();
+  }
+
   openEditActivityDialog(activity: GetActivityResponse): void {
     this.activitiesFormComponent.openEditActivityDialog(activity);
-}
+  }
+
+  openDeleteActivityDialog(activity: GetActivityResponse): void {
+    this.activitiesFormComponent.openDeleteActivityDialog(activity);
+  }
 
   ngOnDestroy(): void {
     if (this.projectIdSubscription) {
