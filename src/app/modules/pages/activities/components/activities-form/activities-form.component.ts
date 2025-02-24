@@ -6,10 +6,10 @@ import { UserService } from '../../../../../services/user/user.service';
 import { ActivitiesService } from './../../../../../services/activities/activities.service';
 import { PostActivityRequest } from '../../../../../models/interfaces/activities/request/PostActivityRequest';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
+import { PutActivityRequest } from '../../../../../models/interfaces/activities/request/PutActivityRequest';
 
 import { MessageService } from 'primeng/api';
 import { DatePipe } from '@angular/common';
-import { PutActivityRequest } from '../../../../../models/interfaces/activities/request/PutActivityRequest';
 
 @Component({
   selector: 'app-activities-form',
@@ -20,12 +20,15 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   public isVisibleNewActivityDialog = false;
   public isVisibleEditActivityDialog = false;
+  public isVisibleDeleteActivityDialog = false;
+  public activityToDelete: GetActivityResponse | null = null;
 
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
 
   @Output() activityCreated = new EventEmitter<GetActivityResponse>();
   @Output() activityUpdated = new EventEmitter<GetActivityResponse>();
+  @Output() activityDeleted = new EventEmitter<GetActivityResponse>();
 
   formBuilder = inject(FormBuilder);
   userService = inject(UserService);
@@ -104,6 +107,11 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
       endDate: endDate,
       responsible: responsible || null
     });
+  }
+
+  public openDeleteActivityDialog(activity: GetActivityResponse): void {
+    this.activityToDelete = activity;
+    this.isVisibleDeleteActivityDialog = true;
   }
 
   public createActivity(): void {
@@ -186,6 +194,25 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     }
   }
 
+  public deleteActivity(): void {
+    if (this.activityToDelete) {
+      this.activitiesService.deleteActivity(this.activityToDelete.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showSuccessMessage('Sucesso', 'Atividade deletada com sucesso!');
+            this.activityDeleted.emit(this.activityToDelete!);
+            this.onCloseDialog('deleteActivity');
+            this.activityToDelete = null;
+          },
+          error: (err: any) => {
+            console.log(err);
+            this.showErrorMessage('Erro', 'Erro ao deletar atividade!');
+          },
+        });
+    }
+  }
+
   private showSuccessMessage(summary: string, detail: string): void {
     this.messageService.add({
       severity: 'success',
@@ -204,9 +231,10 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     });
   }
 
-  public onCloseDialog(dialogType: "newActivity" | "editActivity"): void {
+  public onCloseDialog(dialogType: "newActivity" | "editActivity" | "deleteActivity"): void {
     if (dialogType === 'newActivity') this.isVisibleNewActivityDialog = false;
     if (dialogType === 'editActivity') this.isVisibleEditActivityDialog = false;
+    if (dialogType === 'deleteActivity') this.isVisibleDeleteActivityDialog = false;
   }
 
   private parseDate(dateValue: string | Date): Date | null {
@@ -231,7 +259,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     // Caso o formato não seja reconhecido, retorne null
     return null;
   }
-
 
   public ngOnDestroy(): void {
     this.destroy$.next();

@@ -115,3 +115,15 @@
     <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editActivity')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
+
+<!-- Modal/Dialog para deletar projeto -->
+<p-dialog header="Deletar Atividade" [(visible)]="isVisibleDeleteActivityDialog" [modal]="true" [style]="{ width: '30rem', 'max-height': '90vh' }">
+  <div class="p-fluid">
+    <p>Tem certeza de que deseja deletar esta atividade?</p>
+  </div>
+
+  <p-footer>
+    <button pButton (click)="deleteActivity()" label="Deletar" icon="pi pi-trash" class="p-button-danger"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteActivity')" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>
