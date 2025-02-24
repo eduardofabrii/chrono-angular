@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
 import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
 
@@ -10,4 +10,10 @@ import { GetProjectResponse } from '../../../../../models/interfaces/projects/re
 export class ActivitiesTableComponent {
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() project!: GetProjectResponse;
+
+  @Output() editActivity = new EventEmitter<GetActivityResponse>(); // Emitir evento de edição
+
+  openEditActivityDialog(activity: GetActivityResponse): void {
+    this.editActivity.emit(activity); // Emitir a atividade para o home
+  }
 }

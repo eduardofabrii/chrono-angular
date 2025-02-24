@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 
@@ -6,6 +6,8 @@ import { GetProjectResponse } from '../../../../../models/interfaces/projects/re
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
 import { ProjectsService } from '../../../../../services/projects/projects.service';
 import { ActivitiesService } from '../../../../../services/activities/activities.service';
+import { ActivitiesFormComponent } from '../../components/activities-form/activities-form.component';
+import { ActivitiesTableComponent } from '../../components/activities-table/activities-table.component';
 
 @Component({
   selector: 'app-activities-home',
@@ -22,6 +24,9 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly projectsService = inject(ProjectsService);
   private readonly activitiesService = inject(ActivitiesService);
+
+  @ViewChild(ActivitiesFormComponent) activitiesFormComponent!: ActivitiesFormComponent;
+  @ViewChild(ActivitiesTableComponent) activitiesTableComponent!: ActivitiesTableComponent;
 
   ngOnInit(): void {
     this.subscribeToProjectId();
@@ -59,7 +64,7 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   private filterActivities(): void {
     if (this.project && this.activities) {
       this.filteredActivities = this.activities.filter(
-        (activity) => activity.project.id === this.project.id // Filtra as atividades pelo project.id
+        (activity) => activity.project.id === this.project.id
       );
     }
   }
@@ -72,9 +77,20 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
     this.getActivities();
   }
 
+  handleActivityUpdated(): void {
+    this.getActivities();
+  }
+
+  openEditActivityDialog(activity: GetActivityResponse): void {
+    this.activitiesFormComponent.openEditActivityDialog(activity);
+}
+
   ngOnDestroy(): void {
     if (this.projectIdSubscription) {
       this.projectIdSubscription.unsubscribe();
     }
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
