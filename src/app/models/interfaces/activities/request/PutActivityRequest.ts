@@ -1,4 +1,5 @@
 export interface PutActivityRequest {
+  id: string;
   project: { id: string };
   name: string;
   description: string;
@@ -6,5 +7,4 @@ export interface PutActivityRequest {
   endDate: string;
   status: string;
   responsible: { id: string; name: string; email: string };
-  createdDate: string;
 }

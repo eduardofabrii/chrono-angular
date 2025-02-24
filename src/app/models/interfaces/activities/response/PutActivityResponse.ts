@@ -1,4 +1,5 @@
 export interface PutActivityResponse {
+  id: string;
   project: { id: string };
   name: string;
   description: string;
