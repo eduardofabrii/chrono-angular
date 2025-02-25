@@ -10,6 +10,7 @@ import { PutActivityRequest } from '../../../../../models/interfaces/activities/
 
 import { MessageService } from 'primeng/api';
 import { DatePipe } from '@angular/common';
+import { ProjectsService } from '../../../../../services/projects/projects.service';
 
 @Component({
   selector: 'app-activities-form',
@@ -22,6 +23,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   public isVisibleEditActivityDialog = false;
   public isVisibleDeleteActivityDialog = false;
   public activityToDelete: GetActivityResponse | null = null;
+  public role = '';
 
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
@@ -35,6 +37,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   messageService = inject(MessageService);
   activitiesService = inject(ActivitiesService);
   datePipe = inject(DatePipe);
+  projectsService = inject(ProjectsService);
 
   public statusOptions = [
     { label: 'Aberta', value: 'ABERTA' },
@@ -74,6 +77,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   });
 
   ngOnChanges() {
+    this.role = this.userService.getRole() ?? '';
     this.getUsers();
   }
 
