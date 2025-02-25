@@ -121,7 +121,7 @@
         </div>
       </th>
 
-      <th scope="col">Ações</th>
+      <th *ngIf="role === 'ADMIN'" scope="col">Ações</th>
 
     </tr>
   </ng-template>
@@ -134,7 +134,7 @@
       <td>{{ activity.endDate }}</td>
       <td>{{ activity.status }}</td>
       <td>{{ activity.responsible.name | shorten: 15}}</td>
-      <td>
+      <td *ngIf="role === 'ADMIN'">
         <div class="flex">
           <button pButton (click)="openEditActivityDialog(activity)" type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-3"></button>
           <button pButton (click)="openDeleteActivityDialog(activity)" type="button" icon="pi pi-trash" class="p-button-rounded p-button-danger"></button>
