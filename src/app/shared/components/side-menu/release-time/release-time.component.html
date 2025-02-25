@@ -1,0 +1,25 @@
+<p-dialog header="Lançar Horas" [(visible)]="isVisibleReleaseTimeDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
+  <div class="p-fluid">
+    <form [formGroup]="releaseTimeForm">
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="data">Data</label>
+        <p-calendar id="data" formControlName="date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="horas">Horas</label>
+        <input id="horas" type="number" pInputText formControlName="hours" class="p-inputtext p-component" />
+      </div>
+
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <label for="descricao">Descrição</label>
+        <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
+      </div>
+    </form>
+  </div>
+
+  <p-footer>
+    <button pButton label="Salvar" (click)="releaseTime()" icon="pi pi-check"></button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog()" styleClass="p-button-secondary"></p-button>
+  </p-footer>
+</p-dialog>

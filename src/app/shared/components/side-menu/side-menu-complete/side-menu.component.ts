@@ -1,8 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { UserService } from '../../../services/user/user.service';
+import { UserService } from '../../../../services/user/user.service';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
+import { ReleaseTimeComponent } from '../release-time/release-time.component';
 
 @Component({
   selector: 'app-side-menu',
@@ -10,6 +11,7 @@ import { CookieService } from 'ngx-cookie-service';
   styleUrl: './side-menu.component.scss'
 })
 export class SideMenuComponent implements OnInit {
+  @ViewChild(ReleaseTimeComponent) releaseTimeComponent!: ReleaseTimeComponent;
   username: string | null = null;
   items: MenuItem[] | undefined;
   isCollapsed = true;
@@ -29,5 +31,9 @@ export class SideMenuComponent implements OnInit {
   logout() {
     this.cookie.delete('token');
     void this.router.navigate(['']);
+  }
+
+  openReleaseTimeDialog() {
+    this.releaseTimeComponent.openDialog();
   }
 }
