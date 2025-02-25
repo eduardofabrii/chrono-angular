@@ -1,6 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { UserService } from '../../../services/user/user.service';
+import { Router } from '@angular/router';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-side-menu',
@@ -13,6 +15,8 @@ export class SideMenuComponent implements OnInit {
   isCollapsed = true;
 
   private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
+  private readonly cookie = inject(CookieService);
 
   ngOnInit(): void {
     this.username = this.userService.getUsername();
@@ -20,5 +24,10 @@ export class SideMenuComponent implements OnInit {
 
   toggleMenu() {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  logout() {
+    this.cookie.delete('token');
+    void this.router.navigate(['']);
   }
 }
