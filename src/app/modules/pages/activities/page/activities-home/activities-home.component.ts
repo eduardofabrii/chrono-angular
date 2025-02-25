@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 import { GetProjectResponse } from '../../../../../models/interfaces/projects/response/GetProjectResponse';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
@@ -19,7 +19,6 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   public filteredActivities: GetActivityResponse[] = [];
   public activities: GetActivityResponse[] = [];
   public project!: GetProjectResponse;
-  private projectIdSubscription!: Subscription;
 
   private readonly route = inject(ActivatedRoute);
   private readonly projectsService = inject(ProjectsService);
@@ -30,14 +29,14 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscribeToProjectId();
-    this.getActivities();
   }
 
   private subscribeToProjectId(): void {
-    this.projectIdSubscription = this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe(params => {
       const projectId = params.get('id');
       if (projectId) {
         this.loadProject(projectId);
+        this.getActivitiesByProjectId(projectId);
       } else {
         console.error('ID do projeto não encontrado');
       }
@@ -51,22 +50,12 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getActivities(): void {
-    this.activitiesService.getAllActivities()
+  private getActivitiesByProjectId(projectId: string): void {
+    this.activitiesService.getActivitiesByProjectId(projectId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((activities) => {
-        this.activities = activities;
-        this.filterActivities();
-      }
-    );
-  }
-
-  private filterActivities(): void {
-    if (this.project && this.activities) {
-      this.filteredActivities = this.activities.filter(
-        (activity) => activity.project.id === this.project.id
-      );
-    }
+        this.filteredActivities = activities;
+      });
   }
 
   getProjectName(): string | undefined {
@@ -74,15 +63,15 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   }
 
   handleActivityCreated(): void {
-    this.getActivities();
+    this.subscribeToProjectId();
   }
 
   handleActivityUpdated(): void {
-    this.getActivities();
+    this.subscribeToProjectId();
   }
 
   handleActivityDeleted(): void {
-    this.getActivities();
+    this.subscribeToProjectId();
   }
 
   openEditActivityDialog(activity: GetActivityResponse): void {
@@ -94,10 +83,6 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.projectIdSubscription) {
-      this.projectIdSubscription.unsubscribe();
-    }
-
     this.destroy$.next();
     this.destroy$.complete();
   }

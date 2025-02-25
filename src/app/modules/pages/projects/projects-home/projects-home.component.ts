@@ -98,7 +98,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const navigateUrl = `/projects/${project.id}/activities`;
+    const navigateUrl = `/projects/activities/${project.id}`;
     this.router.navigate([navigateUrl]);
   }
 

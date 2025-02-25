@@ -15,7 +15,7 @@ const routes: Routes = [
     canMatch: [authGuard],
     children: [
       { path: 'projects', component: ProjectsHomeComponent },
-      { path: 'projects/:id/activities', component: ActivitiesHomeComponent },
+      { path: 'projects/activities/:id', component: ActivitiesHomeComponent },
     ]
   }
 ];
