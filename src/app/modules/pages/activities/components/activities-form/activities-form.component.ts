@@ -3,14 +3,14 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
 import { UserService } from '../../../../../services/user/user.service';
+import { ProjectsService } from '../../../../../services/projects/projects.service';
+import { DateUtilsService } from '../../../../../shared/services/date-utils.service';
 import { ActivitiesService } from './../../../../../services/activities/activities.service';
 import { PostActivityRequest } from '../../../../../models/interfaces/activities/request/PostActivityRequest';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
 import { PutActivityRequest } from '../../../../../models/interfaces/activities/request/PutActivityRequest';
 
 import { MessageService } from 'primeng/api';
-import { DatePipe } from '@angular/common';
-import { ProjectsService } from '../../../../../services/projects/projects.service';
 
 @Component({
   selector: 'app-activities-form',
@@ -36,7 +36,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   userService = inject(UserService);
   messageService = inject(MessageService);
   activitiesService = inject(ActivitiesService);
-  datePipe = inject(DatePipe);
+  dateUtils = inject(DateUtilsService);
   projectsService = inject(ProjectsService);
 
   public statusOptions = [
@@ -100,8 +100,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   public openEditActivityDialog(activity: GetActivityResponse): void {
     this.isVisibleEditActivityDialog = true;
 
-    const startDate = this.parseDate(activity.startDate);
-    const endDate = this.parseDate(activity.endDate);
+    const startDate = this.dateUtils.parseDate(activity.startDate);
+    const endDate = this.dateUtils.parseDate(activity.endDate);
 
     const responsible = this.responsibleOptions.find(user => user.id === activity.responsible.id);
 
@@ -120,8 +120,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
 
   public createActivity(): void {
     if (this.addActivityForm.valid) {
-      const formattedStartDate = this.datePipe.transform(this.addActivityForm.value.startDate, 'dd/MM/yyyy');
-      const formattedEndDate = this.datePipe.transform(this.addActivityForm.value.endDate, 'dd/MM/yyyy');
+      const formattedStartDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.startDate);
+      const formattedEndDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.endDate);
 
       const requestCreateActivity: PostActivityRequest = {
         project: {
@@ -129,8 +129,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         },
         name: this.addActivityForm.value.name!,
         description: this.addActivityForm.value.description!,
-        startDate: formattedStartDate!,
-        endDate: formattedEndDate!,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         status: this.addActivityForm.value.status!,
         responsible: {
           id: this.addActivityForm.value.responsible?.id ?? '',
@@ -160,8 +160,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
 
   public updateActivity(): void {
     if (this.editActivityForm.valid) {
-      const formattedStartDate = this.datePipe.transform(this.editActivityForm.value.startDate, 'dd/MM/yyyy');
-      const formattedEndDate = this.datePipe.transform(this.editActivityForm.value.endDate, 'dd/MM/yyyy');
+      const formattedStartDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.startDate);
+      const formattedEndDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.endDate);
 
       const requestPutActivity: PutActivityRequest = {
         project: {
@@ -169,8 +169,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         },
         name: this.editActivityForm.value.name!,
         description: this.editActivityForm.value.description!,
-        startDate: formattedStartDate!,
-        endDate: formattedEndDate!,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         status: this.editActivityForm.value.status!,
         responsible: {
           id: this.editActivityForm.value.responsible?.id ?? '',
@@ -239,29 +239,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (dialogType === 'newActivity') this.isVisibleNewActivityDialog = false;
     if (dialogType === 'editActivity') this.isVisibleEditActivityDialog = false;
     if (dialogType === 'deleteActivity') this.isVisibleDeleteActivityDialog = false;
-  }
-
-  private parseDate(dateValue: string | Date): Date | null {
-    if (!dateValue) return null;
-
-    // Se o valor já for um objeto Date, retorne-o diretamente
-    if (dateValue instanceof Date) {
-      return dateValue;
-    }
-
-    // Se for uma string no formato "dd/MM/yyyy", converta para Date
-    if (typeof dateValue === 'string' && dateValue.includes('/')) {
-      const [day, month, year] = dateValue.split('/');
-      return new Date(+year, +month - 1, +day);
-    }
-
-    // Se for uma string no formato ISO ("yyyy-MM-dd"), converta para Date
-    if (typeof dateValue === 'string' && dateValue.includes('-')) {
-      return new Date(dateValue);
-    }
-
-    // Caso o formato não seja reconhecido, retorne null
-    return null;
   }
 
   public ngOnDestroy(): void {
