@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import { AuthResponse } from '../../models/interfaces/auth/AuthResponse';
 import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
@@ -10,9 +10,11 @@ import { CookieService } from 'ngx-cookie-service';
 import jwt_decode from 'jwt-decode';
 
 interface DecodedToken {
+  iss: string;
   sub: string;
   role: string;
-  [key: string]: any;
+  id: string;
+  exp: number;
 }
 
 @Injectable({
@@ -68,5 +70,25 @@ export class UserService {
   isAuthenticated(): boolean {
     const jwtToken = this.cookie.get('token');
     return Boolean(jwtToken);
+  }
+
+  getCurrentUserId(): string | null {
+    const token = this.cookie.get('token');
+
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const decodedToken = jwt_decode<DecodedToken>(token);
+
+      if (decodedToken.id) {
+        return decodedToken.id;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      return null;
+    }
   }
 }
