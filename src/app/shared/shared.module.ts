@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 
 import { SideMenuComponent } from './components/side-menu/side-menu-complete/side-menu.component';
 import { BottomMenuComponent } from './components/bottom-menu/bottom-menu.component';
@@ -10,7 +11,6 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { SidebarModule } from 'primeng/sidebar';
-import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ShortenPipe } from './pipes/shorten/shorten.pipe';
 import { ReleaseTimeComponent } from './components/side-menu/release-time/release-time.component';
@@ -20,6 +20,9 @@ import { CalendarModule } from 'primeng/calendar';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ReactiveFormsModule } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { BrDateFormatPipe, BrDateOnlyPipe } from './pipes/date-format.pipe';
+import { DateUtilsService } from './services/date-utils.service';
 
 @NgModule({
   declarations: [
@@ -27,7 +30,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     BottomMenuComponent,
     LayoutComponent,
     ShortenPipe,
-    ReleaseTimeComponent
+    ReleaseTimeComponent,
+    BrDateFormatPipe,
+    BrDateOnlyPipe
   ],
   imports: [
     CommonModule,
@@ -44,10 +49,14 @@ import { ReactiveFormsModule } from '@angular/forms';
     InputTextModule,
     ButtonModule,
     ReactiveFormsModule,
+    DropdownModule,
   ],
   exports: [
-    LayoutComponent, ShortenPipe
+    LayoutComponent, ShortenPipe, BrDateFormatPipe, BrDateOnlyPipe
   ],
-  providers: [],
+  providers: [
+    DateUtilsService,
+    DatePipe
+  ],
 })
-export class SharedModule {}
+export class SharedModule { }
