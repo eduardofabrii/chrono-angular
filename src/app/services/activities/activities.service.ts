@@ -46,6 +46,10 @@ export class ActivitiesService {
     });
   }
 
+  getActivityByResponsibleId(userId: string): Observable<GetActivityResponse[]> {
+      return this.http.get<GetActivityResponse[]>(`${this.API_URL}/v1/activity/responsible/${userId}`, this.getHttpOptions());
+  }
+
   postActivity(activity: PostActivityRequest): Observable<PostActivityResponse> {
     return this.http.post<PostActivityResponse>(`${this.API_URL}/v1/activity`, activity, this.getHttpOptions());
   }
