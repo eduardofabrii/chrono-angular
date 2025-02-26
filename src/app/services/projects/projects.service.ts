@@ -42,6 +42,10 @@ export class ProjectsService {
     });
   }
 
+  findProjectsByActivityUserId(userId: string): Observable<GetProjectResponse[]> {
+    return this.http.get<GetProjectResponse[]>(`${this.API_URL}/v1/project/user/${userId}`, this.getHttpOptions());
+  }
+
   postProject(project: PostProjectRequest): Observable<PostProjectResponse> {
     return this.http.post<PostProjectResponse>(`${this.API_URL}/v1/project`, project, this.getHttpOptions());
   }

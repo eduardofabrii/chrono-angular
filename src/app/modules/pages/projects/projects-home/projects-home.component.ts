@@ -88,9 +88,14 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.getProjects();
-    this.getUsersAdmin();
     this.role = this.userService.getRole();
+    this.getUsersAdmin();
+
+    if (this.role === 'ADMIN') {
+      this.getAllProjects();
+    } else {
+      this.getProjectsByActivityUserId();
+    }
   }
 
   goToActivities(project: GetProjectResponse) {
@@ -114,14 +119,37 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getProjects(): void {
+  private getAllProjects(): void {
     this.projectsService.getAllProjects()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((projects) => {
-        this.projects = projects;
-        this.filteredProjects = projects;
-      }
-    );
+      .subscribe({
+        next: (projects) => {
+          this.projects = projects;
+          this.filteredProjects = projects;
+        },
+        error: (error) => {
+          console.error('Error fetching all projects:', error);
+          this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
+        }
+      });
+  }
+
+  private getProjectsByActivityUserId(): void {
+    const userId = this.userService.getCurrentUserId();
+    if (userId) {
+      this.projectsService.findProjectsByActivityUserId(userId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (projects) => {
+            this.projects = projects;
+            this.filteredProjects = projects;
+          },
+          error: (error) => {
+            console.error('Error fetching user projects:', error);
+            this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
+          }
+        });
+    }
   }
 
   public filterProjectsByName(name: string): void {
@@ -201,7 +229,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
               this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
               this.addProjectForm.reset();
               this.onCloseDialog('newProject');
-              this.getProjects()
+              this.getProjectsByActivityUserId()
             }
           },
           error: (err) => {
@@ -242,7 +270,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
           this.editProjectForm.reset();
           this.isEditingProject = false;
           this.onCloseDialog('editProject');
-          this.getProjects();
+          this.getProjectsByActivityUserId();
         },
         error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
       });
@@ -259,7 +287,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
             this.showSuccessMessage('Sucesso', 'Projeto excluído com sucesso!');
             this.onCloseDialog('deleteProject');
             this.onCloseDialog('confirmDelete');
-            this.getProjects();
+            this.getProjectsByActivityUserId();
           },
           error: (err) => {
             console.error("Erro ao excluir projeto:", err);
