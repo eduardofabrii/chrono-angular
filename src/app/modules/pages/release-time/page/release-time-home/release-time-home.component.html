@@ -1,0 +1,27 @@
+<!-- Toolbar -->
+<p-toolbar>
+  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
+    <i class="pi pi-clock"></i>
+    <span style="font-weight: bold; font-size: 1.2rem;">
+      Horas lançadas
+    </span>
+  </div>
+
+  <div class="p-toolbar-group-center">
+
+  </div>
+
+  <div class="flex p-toolbar-group-end" style="gap: 1rem;">
+  <span style="font-weight: bold; font-size: 1rem;"></span>
+  </div>
+</p-toolbar>
+
+<div class="cards">
+  <p-card styleClass="shadow-3 mt-5">
+    <div style="max-width: 100%; overflow-x: auto;">
+      <app-release-time-form></app-release-time-form>
+
+      <app-release-time-table></app-release-time-table>
+    </div>
+  </p-card>
+</div>
