@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { ProjectsModule } from './modules/pages/projects/projects.module';
 import { ActivitiesModule } from './modules/pages/activities/activities.module';
+import { ReleaseTimeModule } from './modules/pages/release-time/release-time.module';
 
 // Registrar o locale pt-BR
 registerLocaleData(localePt, 'pt-BR');
@@ -40,6 +41,7 @@ registerLocaleData(localePt, 'pt-BR');
 
     ProjectsModule,
     ActivitiesModule,
+    ReleaseTimeModule,
 ],
   providers: [
     CookieService,

@@ -6,6 +6,7 @@ import { LayoutComponent } from './shared/layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { ProjectsHomeComponent } from './modules/pages/projects/projects-home/projects-home.component';
 import { ActivitiesHomeComponent } from './modules/pages/activities/page/activities-home/activities-home.component';
+import { ReleaseTimeHomeComponent } from './modules/pages/release-time/page/release-time-home/release-time-home.component';
 
 const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -16,6 +17,7 @@ const routes: Routes = [
     children: [
       { path: 'projects', component: ProjectsHomeComponent },
       { path: 'projects/activities/:id', component: ActivitiesHomeComponent },
+      { path: 'hours', component: ReleaseTimeHomeComponent },
     ]
   }
 ];
