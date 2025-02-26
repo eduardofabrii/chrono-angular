@@ -40,17 +40,21 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
     this.loadActivities();
   }
 
-  // TODO/FIX: Fazer com que o usuario so veja a atividade na qual ele tem responsabilidade
   loadActivities(): void {
-    this.activitiesService.getAllActivities()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((activities: GetActivityResponse[]) => {
-        this.activities = activities;
-        this.mappedActivities = activities.map(activity => ({
-          label: activity.name,
-          value: activity.id
-        }));
-      });
+    const userId = this.userService.getCurrentUserId();
+    if (userId) {
+      this.activitiesService.getActivityByResponsibleId(userId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((activities: GetActivityResponse[]) => {
+          this.activities = activities;
+          this.mappedActivities = activities.map(activity => ({
+            label: activity.name,
+            value: activity.id
+          }));
+        });
+    } else {
+      console.error('User ID not found');
+    }
   }
 
   openDialog() {
