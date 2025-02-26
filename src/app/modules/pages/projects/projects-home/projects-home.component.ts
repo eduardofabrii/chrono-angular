@@ -3,14 +3,14 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
 import { MessageService } from 'primeng/api';
-import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { GetProjectResponse } from '../../../../models/interfaces/projects/response/GetProjectResponse';
 import { PostProjectRequest } from '../../../../models/interfaces/projects/request/PostProjectRequest';
 import { PutProjectRequest } from '../../../../models/interfaces/projects/request/PutProjectRequest';
+import { DateUtilsService } from '../../../../shared/services/date-utils.service';
 import { ProjectsService } from '../../../../services/projects/projects.service';
 import { UserService } from '../../../../services/user/user.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-projects-home',
@@ -38,7 +38,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   userService = inject(UserService);
   formBuilder = inject(FormBuilder);
   messageService = inject(MessageService);
-  datePipe = inject(DatePipe);
+  dateUtils = inject(DateUtilsService);
   router = inject(Router);
 
   public priorityOptions = [
@@ -174,15 +174,15 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public createProject(): void {
     console.log(this.addProjectForm.value);
     if (this.addProjectForm.valid) {
-      const formattedStartDate = this.datePipe.transform(this.addProjectForm.value.startDate, 'dd/MM/yyyy');
-      const formattedEndDate = this.datePipe.transform(this.addProjectForm.value.endDate, 'dd/MM/yyyy');
-      const formattedCreatedDate = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm:ss');
+      const formattedStartDate = this.dateUtils.formatDateOnly(this.addProjectForm.value.startDate);
+      const formattedEndDate = this.dateUtils.formatDateOnly(this.addProjectForm.value.endDate);
+      const formattedCreatedDate = this.dateUtils.formatDateTime(new Date());
 
       const requestCreateProject: PostProjectRequest = {
         name: this.addProjectForm.value.name!,
         description: this.addProjectForm.value.description!,
-        startDate: formattedStartDate!,
-        endDate: formattedEndDate!,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         status: this.addProjectForm.value.status!,
         responsible: {
           id: this.addProjectForm.value.responsible?.id ?? '',
@@ -190,7 +190,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
           email: this.addProjectForm.value.responsible?.email ?? ''
         },
         priority: this.addProjectForm.value.priority!,
-        createdDate: formattedCreatedDate!,
+        createdDate: formattedCreatedDate,
       };
 
       this.projectsService.postProject(requestCreateProject)
@@ -216,15 +216,15 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     if (this.editProjectForm.invalid) return;
 
     const { id, name, description, startDate, endDate, status, priority, responsible } = this.editProjectForm.value;
-    const formattedStartDate = this.datePipe.transform(this.parseDate(startDate), 'dd/MM/yyyy');
-    const formattedEndDate = this.datePipe.transform(this.parseDate(endDate), 'dd/MM/yyyy');
+    const formattedStartDate = this.dateUtils.formatDateOnly(this.dateUtils.parseDate(startDate));
+    const formattedEndDate = this.dateUtils.formatDateOnly(this.dateUtils.parseDate(endDate));
 
     const requestPutProject: PutProjectRequest = {
       id: id!,
       name: name!,
       description: description!,
-      startDate: formattedStartDate!,
-      endDate: formattedEndDate!,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
       status: status!,
       responsible: {
         id: responsible?.id ?? '',
@@ -246,29 +246,6 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
         },
         error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
       });
-  }
-
-  private parseDate(dateValue: string | Date): Date | null {
-    if (!dateValue) return null;
-
-    // Se o valor já for um objeto Date, retorne-o diretamente
-    if (dateValue instanceof Date) {
-      return dateValue;
-    }
-
-    // Se for uma string no formato "dd/MM/yyyy", converta para Date
-    if (typeof dateValue === 'string' && dateValue.includes('/')) {
-      const [day, month, year] = dateValue.split('/');
-      return new Date(+year, +month - 1, +day);
-    }
-
-    // Se for uma string no formato ISO ("yyyy-MM-dd"), converta para Date
-    if (typeof dateValue === 'string' && dateValue.includes('-')) {
-      return new Date(dateValue);
-    }
-
-    // Caso o formato não seja reconhecido, retorne null
-    return null;
   }
 
   public deleteProject(): void {
