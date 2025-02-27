@@ -31,6 +31,10 @@ export class ReleaseTimeService {
     return this.http.get<GetReleaseTimeResponse[]>(`${this.API_URL}/v1/hours`, this.getHttpOptions());
   }
 
+  getReleaseTimesByUserId(userId: string): Observable<GetReleaseTimeResponse[]> {
+    return this.http.get<GetReleaseTimeResponse[]>(`${this.API_URL}/v1/hours/user/${userId}`, this.getHttpOptions());
+  }
+
   getReleaseTimeById(id: string): Observable<GetReleaseTimeResponse> {
     return this.http.get<GetReleaseTimeResponse>(`${this.API_URL}/v1/hours/${id}`, this.getHttpOptions());
   }
