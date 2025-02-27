@@ -1,0 +1,7 @@
+::ng-deep .p-datatable .p-datatable-thead > tr > th:first-child {
+  border-top-left-radius: 20px;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th:last-child {
+  border-top-right-radius: 20px;
+}
