@@ -1,1 +1,145 @@
-<p>release-time-table works!</p>
+<p-table
+  #releaseTimeTable
+  [value]="releaseTimes"
+  [rows]="10"
+  [paginator]="true"
+  [responsive]="true"
+  [globalFilterFields]="['activity.name', 'hours', 'date', 'description', 'status', 'user.name']"
+  [rowHover]="true"
+  [showCurrentPageReport]="true"
+  dataKey="id"
+  currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} lançamentos"
+  [ngStyle]="{ 'width': '100%' }">
+
+  <ng-template pTemplate="header">
+    <tr>
+      <th pSortableColumn="activity.name" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Atividade</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="activity.name"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="activity.name"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
+
+      <th pSortableColumn="startDate" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Data Início</span>
+          <div class="flex align-items-center">
+        <p-sortIcon field="startDate"></p-sortIcon>
+        <p-columnFilter
+          type="date"
+          field="startDate"
+          display="menu"
+          [showMatchModes]="false"
+          [showOperator]="false"
+          [showAddButton]="false"
+        ></p-columnFilter>
+          </div>
+        </div>
+      </th>
+
+      <th pSortableColumn="endDate" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Data Fim</span>
+          <div class="flex align-items-center">
+        <p-sortIcon field="endDate"></p-sortIcon>
+        <p-columnFilter
+          type="date"
+          field="endDate"
+          display="menu"
+          [showMatchModes]="false"
+          [showOperator]="false"
+          [showAddButton]="false"
+        ></p-columnFilter>
+          </div>
+        </div>
+      </th>
+
+      <th pSortableColumn="description" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Descrição</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="description"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="description"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
+
+      <th pSortableColumn="user.name" scope="col">
+        <div class="flex justify-content-between align-items-center">
+          <span>Usuário</span>
+          <div class="flex align-items-center">
+            <p-sortIcon field="user.name"></p-sortIcon>
+            <p-columnFilter
+              type="text"
+              field="user.name"
+              display="menu"
+              matchMode="contains"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+            ></p-columnFilter>
+          </div>
+        </div>
+      </th>
+
+      <th scope="col" *ngIf="role === 'ADMIN'">Ações</th>
+      <th scope="col" *ngIf="role === 'USER'"></th>
+
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-releaseTime>
+    <tr>
+      <td>{{ releaseTime.activity.name}}</td>
+      <td>{{ releaseTime.startDate }}</td>
+      <td>{{ releaseTime.endDate }}</td>
+      <td>{{ releaseTime.description }}</td>
+      <td>{{ releaseTime.user.name }}</td>
+      <td>
+        <div class="flex">
+          <button
+            *ngIf="canEditReleaseTime(releaseTime)"
+            pButton
+            pRipple
+            icon="pi pi-pencil"
+            class="p-button-rounded p-button-warning mr-2"
+            (click)="onEditReleaseTime(releaseTime)">
+          </button>
+          <button
+            *ngIf="canDeleteReleaseTime(releaseTime)"
+            pButton
+            pRipple
+            icon="pi pi-trash"
+            class="p-button-rounded p-button-danger"
+            (click)="onDeleteReleaseTime(releaseTime)">
+          </button>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="7" class="text-center">Nenhum lançamento de horas encontrado.</td>
+    </tr>
+  </ng-template>
+</p-table>
