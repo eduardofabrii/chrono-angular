@@ -136,8 +136,8 @@
       <td>{{ activity.responsible.name | shorten: 15}}</td>
       <td *ngIf="role === 'ADMIN'">
         <div class="flex">
-          <button pButton (click)="openEditActivityDialog(activity)" type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-3"></button>
-          <button pButton (click)="openDeleteActivityDialog(activity)" type="button" icon="pi pi-trash" class="p-button-rounded p-button-danger"></button>
+            <button pButton (click)="openEditActivityDialog(activity)" type="button" icon="pi pi-pencil" class="p-button-text p-button-secondary mr-3"></button>
+            <button pButton (click)="openDeleteActivityDialog(activity)" type="button" icon="pi pi-trash" class="p-button-text p-button-danger"></button>
         </div>
       </td>
     </tr>

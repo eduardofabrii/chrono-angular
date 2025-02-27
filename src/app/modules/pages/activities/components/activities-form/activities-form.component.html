@@ -25,14 +25,16 @@
         <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
       </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataInicio">Data de Início</label>
-        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
-      </div>
+      <div class="flex flex-row gap-3 align-items-center">
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataInicio">Data de Início</label>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataFim">Data de Fim</label>
-        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataFim">Data de Fim</label>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        </div>
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -55,8 +57,8 @@
   </div>
 
   <p-footer>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('newActivity')" [text]="true"></p-button>
     <button pButton label="Salvar" (click)="createActivity()" icon="pi pi-check"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('newActivity')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
 
@@ -75,14 +77,16 @@
         <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
       </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataInicio">Data de Início</label>
-        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
-      </div>
+      <div class="flex flex-row gap-3 align-items-center">
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataInicio">Data de Início</label>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataFim">Data de Fim</label>
-        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataFim">Data de Fim</label>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+        </div>
       </div>
 
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -111,8 +115,8 @@
   </div>
 
   <p-footer>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editActivity')" [text]="true"></p-button>
     <button pButton (click)="updateActivity()" label="Salvar" icon="pi pi-check"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editActivity')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
 
@@ -123,7 +127,7 @@
   </div>
 
   <p-footer>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteActivity')" [text]="true" styleClass="text-gray-500"></p-button>
     <button pButton (click)="deleteActivity()" label="Deletar" icon="pi pi-trash" class="p-button-danger"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteActivity')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
