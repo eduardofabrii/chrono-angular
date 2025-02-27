@@ -19,9 +19,18 @@
 <div class="cards">
   <p-card styleClass="shadow-3 mt-5">
     <div style="max-width: 100%; overflow-x: auto;">
-      <app-release-time-form></app-release-time-form>
+      <app-release-time-form
+        [releaseTimes]="releaseTimeEntries"
+        (releaseTimeCreated)="handleReleaseTimeCreated()"
+        (releaseTimeUpdated)="handleReleaseTimeUpdated()"
+        (releaseTimeDeleted)="handleReleaseTimeDeleted()">
+      </app-release-time-form>
 
-      <app-release-time-table></app-release-time-table>
+      <app-release-time-table
+        [releaseTimes]="releaseTimeEntries"
+        (editReleaseTime)="openEditReleaseTimeDialog($event)"
+        (deleteReleaseTime)="openDeleteReleaseTimeDialog($event)">
+      </app-release-time-table>
     </div>
   </p-card>
 </div>
