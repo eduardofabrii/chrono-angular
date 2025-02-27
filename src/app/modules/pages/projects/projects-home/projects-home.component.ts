@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -33,13 +33,13 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public role: string | null = '';
   public deleteError: string = 'Não é possível excluir um projeto que possui tarefas associadas.';
 
-
   projectsService = inject(ProjectsService);
   userService = inject(UserService);
   formBuilder = inject(FormBuilder);
   messageService = inject(MessageService);
   dateUtils = inject(DateUtilsService);
   router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   public priorityOptions = [
     { label: 'Baixa', value: 'BAIXA' },
@@ -90,7 +90,10 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.role = this.userService.getRole();
     this.getUsersAdmin();
+    this.loadProjectsBasedOnRole();
+  }
 
+  private loadProjectsBasedOnRole(): void {
     if (this.role === 'ADMIN') {
       this.getAllProjects();
     } else {
@@ -124,8 +127,10 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (projects) => {
-          this.projects = projects;
-          this.filteredProjects = projects;
+          this.projects = [...projects]; // Cria uma nova referência de array
+          this.filteredProjects = [...projects]; // Cria uma nova referência de array
+          // Aguarda receber uma promise para atualizar a view
+          setTimeout(() => this.cdr.detectChanges(), 0);
         },
         error: (error) => {
           console.error('Error fetching all projects:', error);
@@ -141,8 +146,10 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (projects) => {
-            this.projects = projects;
-            this.filteredProjects = projects;
+            this.projects = [...projects]; // Cria uma nova referência de array
+            this.filteredProjects = [...projects]; // Cria uma nova referência de array
+            // Aguarda receber uma promise para atualizar a view
+            setTimeout(() => this.cdr.detectChanges(), 0);
           },
           error: (error) => {
             console.error('Error fetching user projects:', error);
@@ -229,7 +236,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
               this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
               this.addProjectForm.reset();
               this.onCloseDialog('newProject');
-              this.getProjectsByActivityUserId()
+              this.loadProjectsBasedOnRole();
             }
           },
           error: (err) => {
@@ -270,7 +277,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
           this.editProjectForm.reset();
           this.isEditingProject = false;
           this.onCloseDialog('editProject');
-          this.getProjectsByActivityUserId();
+          this.loadProjectsBasedOnRole();
         },
         error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
       });
@@ -287,7 +294,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
             this.showSuccessMessage('Sucesso', 'Projeto excluído com sucesso!');
             this.onCloseDialog('deleteProject');
             this.onCloseDialog('confirmDelete');
-            this.getProjectsByActivityUserId();
+            this.loadProjectsBasedOnRole();
           },
           error: (err) => {
             console.error("Erro ao excluir projeto:", err);
