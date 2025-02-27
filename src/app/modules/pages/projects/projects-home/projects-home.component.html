@@ -34,7 +34,7 @@
         <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
         <p><strong>Descrição:</strong> {{ project.description | shorten: 20 }}</p>
         <p><strong>Responsável:</strong> {{ project.responsible.name | shorten: 20 }}</p>
-        <p><strong>Data de Início:</strong> {{ project.startDate }}</p>
+        <p><strong>Data de Início:</strong> {{ project.startDate | brDateOnly }}
         <p><strong>Status:</strong> {{ project.status }}</p>
       </div>
       <ng-template pTemplate="footer">

@@ -1,6 +1,6 @@
 export interface PutReleaseTimeRequest {
   id: string;
-  activityId: { id: string };
+  activity: { id: string };
   user: { id: string };
   description: string;
   startDate: string;

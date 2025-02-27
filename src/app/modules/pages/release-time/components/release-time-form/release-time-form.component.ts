@@ -141,21 +141,27 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((updatedReleaseTime: any) => {
         this.releaseTimeUpdated.emit(updatedReleaseTime);
-        this.showSuccessMessage('Sucesso', 'Apontamento atualizado com sucesso!');
+        this.showSuccessMessage('Sucesso', 'Lançamento de hora atualizado com sucesso!');
         this.editReleaseTimeForm.reset();
         this.onCloseDialog('editRelease');
       });
     } else {
-      this.showErrorMessage('Erro', 'Preencha todos os campos obrigatórios!');
+      this.showErrorMessage('Erro', 'Erro ao atualizar lançamento de hora.');
     }
   }
 
   public deleteReleaseTime(): void {
     if (this.releaseTimeToDelete) {
-    // IMPLEMENTAR A CHAMADA DO SERVICE
-      this.showSuccessMessage('Sucesso', 'Apontamento deletado com sucesso!');
-      this.onCloseDialog('deleteRelease');
-      this.releaseTimeToDelete = null;
+      this.releaseTimeService.deleteReleaseTime(this.releaseTimeToDelete.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.releaseTimeDeleted.emit(this.releaseTimeToDelete);
+        this.showSuccessMessage('Sucesso', 'Lançamento de hora deletado com sucesso!');
+        this.onCloseDialog('deleteRelease');
+        this.releaseTimeToDelete = null;
+      });
+    } else {
+      this.showErrorMessage('Erro', 'Não foi possível deletar o lançamento de hora!');
     }
   }
 
