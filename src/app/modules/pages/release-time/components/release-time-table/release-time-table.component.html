@@ -116,22 +116,8 @@
       <td>{{ releaseTime.user.name }}</td>
       <td>
         <div class="flex">
-          <button
-            *ngIf="canEditReleaseTime(releaseTime)"
-            pButton
-            pRipple
-            icon="pi pi-pencil"
-            class="p-button-rounded p-button-warning mr-2"
-            (click)="onEditReleaseTime(releaseTime)">
-          </button>
-          <button
-            *ngIf="canDeleteReleaseTime(releaseTime)"
-            pButton
-            pRipple
-            icon="pi pi-trash"
-            class="p-button-rounded p-button-danger"
-            (click)="onDeleteReleaseTime(releaseTime)">
-          </button>
+            <button *ngIf="canEditReleaseTime(releaseTime)" pButton pRipple icon="pi pi-pencil" class="p-button-text p-button-secondary mr-3" (click)="onEditReleaseTime(releaseTime)"></button>
+            <button *ngIf="canDeleteReleaseTime(releaseTime)" pButton pRipple icon="pi pi-trash" class="p-button-text p-button-danger" (click)="onDeleteReleaseTime(releaseTime)"></button>
         </div>
       </td>
     </tr>

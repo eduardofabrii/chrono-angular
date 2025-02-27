@@ -1,37 +1,46 @@
 <p-dialog header="Lançar Horas" [(visible)]="isVisibleReleaseTimeDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
   <div class="p-fluid">
-    <form [formGroup]="addReleaseTime">
-      <div formGroupName="activity">
-        <div class="p-field" style="margin-bottom: 1rem;">
+    <form [formGroup]="addReleaseTime" class="flex flex-column">
+      <div class="col-12 mb-3">
+        <div formGroupName="activity" class="p-field">
           <label for="atividade">Atividade</label>
           <p-dropdown id="atividade" [options]="mappedActivities" optionLabel="label" optionValue="value" formControlName="id" placeholder="Selecione uma atividade"></p-dropdown>
         </div>
       </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="descricaoLancamento">Descrição do Lançamento</label>
-        <textarea id="descricaoLancamento" pInputTextarea formControlName="description" class="p-inputtext p-component" rows="3"></textarea>
+      <div class="col-12 mb-3">
+        <div class="p-field">
+          <label for="descricaoLancamento">Descrição do Lançamento</label>
+          <textarea id="descricaoLancamento" pInputTextarea formControlName="description" class="p-inputtext p-component" rows="3" style="resize: none;"></textarea>
+        </div>
       </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataInicio">Data de Início</label>
-        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showTime]="true" (onSelect)="updateHours()"></p-calendar>
-      </div>
+      <div class="col-12 mb-3 flex flex-row gap-3 align-items-center">
+        <div class="p-field flex-1">
+          <label for="dataInicio">Data de Início</label>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy"
+                      [showIcon]="true" [showTime]="true" timeFormat="HH:mm"
+                      [appendTo]="'body'" (onSelect)="updateHours()"></p-calendar>
+        </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataFim">Data de Fim</label>
-        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showTime]="true" (onSelect)="updateHours()"></p-calendar>
-      </div>
+        <div class="p-field flex-1">
+          <label for="dataFim">Data de Fim</label>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy"
+                      [showIcon]="true" [showTime]="true" timeFormat="HH:mm"
+                      [appendTo]="'body'"(onSelect)="updateHours()"></p-calendar>
+        </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="horas">Horas</label>
-        <input id="horas" type="number" pInputText formControlName="hours" class="p-inputtext p-component" />
+        <div class="p-field flex-1">
+            <label for="horas">Horas</label>
+            <input id="horas" type="number" pInputText formControlName="hours" class="p-inputtext p-component"
+             readonly style="background-color: #f5f5f5;" />
+        </div>
       </div>
     </form>
   </div>
 
   <p-footer>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog()" [text]="true"></p-button>
     <button pButton label="Salvar" (click)="releaseTime()" icon="pi pi-check"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog()" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>

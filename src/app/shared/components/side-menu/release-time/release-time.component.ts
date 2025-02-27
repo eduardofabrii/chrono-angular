@@ -118,9 +118,8 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
     const endDate = this.addReleaseTime.get('endDate')?.value;
 
     if (startDate && endDate) {
-      const diff = (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60);
-      const roundedDiff = Math.round(diff * 100) / 100;
-      this.addReleaseTime.get('hours')?.setValue(roundedDiff.toString());
+      const diff = Math.floor((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60));
+      this.addReleaseTime.get('hours')?.setValue(diff.toString());
     }
   }
 
