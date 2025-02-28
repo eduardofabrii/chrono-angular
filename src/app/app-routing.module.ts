@@ -7,6 +7,7 @@ import { authGuard } from './guards/auth.guard';
 import { ProjectsHomeComponent } from './modules/pages/projects/projects-home/projects-home.component';
 import { ActivitiesHomeComponent } from './modules/pages/activities/page/activities-home/activities-home.component';
 import { ReleaseTimeHomeComponent } from './modules/pages/release-time/page/release-time-home/release-time-home.component';
+import { DashboardHomeComponent } from './modules/pages/dashboard/page/dashboard-home/dashboard-home.component';
 
 const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -15,6 +16,7 @@ const routes: Routes = [
     component: LayoutComponent,
     canMatch: [authGuard],
     children: [
+      { path: 'dashboard', component: DashboardHomeComponent },
       { path: 'projects', component: ProjectsHomeComponent },
       { path: 'projects/activities/:id', component: ActivitiesHomeComponent },
       { path: 'hours', component: ReleaseTimeHomeComponent },
