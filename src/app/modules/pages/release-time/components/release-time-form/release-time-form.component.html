@@ -54,8 +54,8 @@
   </div>
 
   <p-footer>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editRelease')" [text]="true"></p-button>
     <button pButton (click)="updateReleaseTime()" label="Salvar" icon="pi pi-check"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editRelease')" styleClass="p-button-secondary"></p-button>
   </p-footer>
 </p-dialog>
 
@@ -68,7 +68,7 @@
   </div>
 
   <p-footer>
-    <button pButton (click)="deleteReleaseTime()" label="Deletar" icon="pi pi-trash"></button>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteRelease')" styleClass="p-button-secondary"></p-button>
+    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteRelease')" [text]="true" styleClass="p-button-secondary"></p-button>
+    <p-button label="Deletar" icon="pi pi-trash" (onClick)="deleteReleaseTime()" styleClass="p-button-danger"></p-button>
   </p-footer>
 </p-dialog>
