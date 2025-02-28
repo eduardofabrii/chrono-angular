@@ -24,6 +24,8 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   public isVisibleDeleteActivityDialog = false;
   public activityToDelete: GetActivityResponse | null = null;
   public role = '';
+  public projectStartDate: string | null = null;
+  public projectEndDate: string | null = null;
 
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
@@ -79,6 +81,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   ngOnChanges() {
     this.role = this.userService.getRole() ?? '';
     this.getUsers();
+    this.getProjectDates();
   }
 
   private getUsers(): void {
@@ -91,6 +94,15 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         email: user.email
       }));
     });
+  }
+
+  private getProjectDates(): void {
+    this.projectsService.getProjectById(this.projectId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((project: any) => {
+        this.projectStartDate = project.startDate;
+        this.projectEndDate = project.endDate;
+      });
   }
 
   public openNewActivityDialog(): void {
