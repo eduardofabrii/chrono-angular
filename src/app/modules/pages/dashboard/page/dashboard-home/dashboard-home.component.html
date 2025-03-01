@@ -82,6 +82,41 @@
         </div>
       </p-card>
     </div>
+
+    <!-- Horas por projeto -->
+    <div class="col-12 lg:col-6">
+      <p-card header="Horas por Projeto" styleClass="chart-card">
+        <div class="projects-hours-container">
+          <div *ngFor="let project of topProjects" class="project-item">
+            <div class="project-info">
+              <div class="project-name">{{project.name}}</div>
+              <div class="project-hours">{{project.hours}}h</div>
+            </div>
+            <p-progressBar [value]="getProjectHoursPercentage(project.hours)" [showValue]="false"></p-progressBar>
+            <p-tag [value]="getProjectStatus(project.status)" [severity]="getProjectSeverity(project.status)" [style]="{ 'margin-top': '5px' }"></p-tag>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Horas por usuário -->
+    <div class="col-12 lg:col-6">
+      <p-card header="Horas por Usuário" styleClass="chart-card">
+        <div class="user-hours-container">
+          <div *ngFor="let user of topUsers" class="user-item">
+            <div class="user-avatar" [style.background-color]="user.color">
+              {{user.initials}}
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{user.name}}</div>
+              <p-progressBar [value]="getUserHoursPercentage(user.hours)" [showValue]="false"></p-progressBar>
+              <div class="user-hours">{{user.hours}}h</div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
 </div>
 
 <!-- Toast para notifcações -->
