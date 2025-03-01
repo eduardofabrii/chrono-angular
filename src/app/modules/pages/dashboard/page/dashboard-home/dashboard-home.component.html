@@ -7,11 +7,52 @@
     </span>
   </div>
 
-  <div class="p-toolbar-group-center">
-
-  </div>
+  <div class="p-toolbar-group-center"></div>
 
   <div class="flex p-toolbar-group-end">
-
+    <p-button icon="pi pi-refresh" styleClass="p-button-text" (onClick)="refreshData()" [loading]="isLoading"></p-button>
   </div>
 </p-toolbar>
+
+<!-- Cards de Resumo -->
+<div class="grid mt-3">
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="summary-card bg-blue-50">
+      <div class="card-content">
+        <span class="title">Total de Projetos</span>
+        <span class="value">{{ totalProjects }}</span>
+      </div>
+      <i class="pi pi-briefcase icon blue-icon"></i>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="summary-card bg-green-50">
+      <div class="card-content">
+        <span class="title">Projetos Ativos</span>
+        <span class="value">{{ activeProjects }}</span>
+      </div>
+      <i class="pi pi-bolt icon green-icon"></i>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="summary-card bg-yellow-50">
+      <div class="card-content">
+        <span class="title">Total de Atividades</span>
+        <span class="value">{{ totalActivities }}</span>
+      </div>
+      <i class="pi pi-calendar icon yellow-icon"></i>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="summary-card bg-purple-50">
+      <div class="card-content">
+        <span class="title">Horas Totais</span>
+        <span class="value">{{ totalHours }}</span>
+      </div>
+      <i class="pi pi-clock icon purple-icon"></i>
+    </div>
+  </div>
+</div>

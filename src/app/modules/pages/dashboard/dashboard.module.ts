@@ -1,9 +1,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ToolbarModule } from 'primeng/toolbar';
 import { DashboardHomeComponent } from './page/dashboard-home/dashboard-home.component';
-
-
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
+import { ChartModule } from 'primeng/chart';
+import { CardModule } from 'primeng/card';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TagModule } from 'primeng/tag';
 
 @NgModule({
   declarations: [
@@ -11,7 +14,12 @@ import { DashboardHomeComponent } from './page/dashboard-home/dashboard-home.com
   ],
   imports: [
     CommonModule,
-    ToolbarModule
+    ToolbarModule,
+    ButtonModule,
+    ChartModule,
+    CardModule,
+    ProgressBarModule,
+    TagModule
   ]
 })
 export class DashboardModule { }

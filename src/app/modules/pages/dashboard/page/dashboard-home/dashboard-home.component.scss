@@ -1,5 +1,49 @@
+// Toolbar
 .pi-home {
     font-size: 1.2em;
     font-weight: bold;
     margin-right: 10px;
+}
+
+::ng-deep .p-card {
+  display: block;
+}
+
+// Summary cards
+.summary-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1rem;
+  height: 100%;
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .title {
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #212529;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+  }
+
+  .blue-icon { color: var(--blue-600); }
+  .green-icon { color: var(--green-600); }
+  .yellow-icon { color: var(--yellow-600); }
+  .purple-icon { color: var(--purple-600); }
 }
