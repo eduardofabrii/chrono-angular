@@ -27,6 +27,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   maxProjectHours = 0;
   maxUserHours = 0;
 
+  // Configurações do gráfico de status dos projetos
   chartOptions = {
     plugins: { legend: { position: 'bottom', display: true } },
     responsive: true,
@@ -36,7 +37,10 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   isLoading = true;
 
+  private readonly userColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#D946EF', '#F97316', '#0EA5E9'];
+
   private readonly dashboardService = inject(DashboardService);
+  private readonly messageService = inject(MessageService);
 
   ngOnInit() {
     this.loadDashboardData();
@@ -53,7 +57,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => this.processApiResponse(response),
-        error: () => console.log("erro")
+        error: () => this.handleError()
       });
   }
 
@@ -66,17 +70,22 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     this.totalActivities = data.totalActivities || 0;
     this.totalHours = data.totalHours || 0;
 
+    // Calcula a porcentagem de projetos em andamento
     const inProgressStatus = data.projectStatusCounts?.find((s: any) => ['in-progress', 'em andamento', 'em_andamento'].includes(s?.status?.toLowerCase()));
     this.activeProjects = inProgressStatus?.count || 0;
 
+    // Calcula a porcentagem de projetos em andamento em relação ao total de projetos
     const totalStatusCount = data.projectStatusCounts?.reduce((sum: number, status: any) => sum + (status?.count || 0), 0) || 0;
     this.projectInProgressPercentage = totalStatusCount > 0 ? Math.round((this.activeProjects / totalStatusCount) * 100) : 0;
 
     this.processProjectHoursData(data.projectHoursData || []);
+    this.processUserHoursData(data.userHoursData || []);
 
+    this.initCharts(data.projectStatusCounts || []);
     this.isLoading = false;
   }
 
+  // Processa os dados dos projetos para exibição no gráfico de horas dos projetos
   processProjectHoursData(projectsData: any[]) {
     this.topProjects = projectsData
       .filter(project => project?.projectName && project.totalHours >= 0)
@@ -88,6 +97,166 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
       }));
 
     this.maxProjectHours = this.topProjects.length > 0 ? Math.max(...this.topProjects.map(project => project.hours), 1) : 1;
+  }
+
+  getProjectSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' {
+    if (!status) return 'secondary';
+
+    const statusLower = status.toLowerCase();
+
+    switch(statusLower) {
+      case 'in-progress':
+      case 'em andamento':
+      case 'em_andamento': return 'info';
+
+      case 'completed':
+      case 'concluido':
+      case 'concluído': return 'success';
+
+      case 'delayed':
+      case 'atrasado': return 'danger';
+
+      case 'not-started':
+      case 'não iniciado':
+      case 'nao_iniciado': return 'warning';
+
+      case 'cancelado':
+      case 'canceled': return 'danger';
+
+      default: return 'secondary';
+    }
+  }
+
+  getProjectHoursPercentage(hours: number): number {
+    return Math.round((hours / this.maxProjectHours) * 100);
+  }
+
+  getUserHoursPercentage(hours: number): number {
+    return Math.round((hours / this.maxUserHours) * 100);
+  }
+
+  // Processa os dados dos usuários para exibição no gráfico de horas dos usuários
+  processUserHoursData(usersData: any[]) {
+    this.topUsers = usersData
+      .filter(user => user?.userName && user.totalHours >= 0)
+      .sort((a, b) => b.totalHours - a.totalHours)
+      .slice(0, 5)
+      .map((user, index) => ({
+        name: user.userName || 'Usuário sem nome',
+        hours: user.totalHours || 0,
+        initials: user.initials || this.getInitials(user.userName || ''),
+        color: this.userColors[index % this.userColors.length]
+      }));
+
+    this.maxUserHours = this.topUsers.length > 0 ? Math.max(...this.topUsers.map(user => user.hours), 1) : 1;
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').filter(part => part.length > 0).map(part => part[0].toUpperCase()).slice(0, 2).join('') || 'NA';
+  }
+
+  initCharts(statusCounts: any[]) {
+    this.initProjectStatusChart(statusCounts);
+    this.initProjectHoursChart();
+    this.initUserHoursChart();
+  }
+
+  // Inicializa o gráfico de status dos projetos
+  initProjectStatusChart(statusCounts: any[]) {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const statusColorMap: { [key: string]: [string, string] } = {
+      'in-progress': ['--blue-500', '--blue-400'],
+      'em andamento': ['--blue-500', '--blue-400'],
+      'em_andamento': ['--blue-500', '--blue-400'],
+      'completed': ['--green-500', '--green-400'],
+      'concluido': ['--green-500', '--green-400'],
+      'concluído': ['--green-500', '--green-400'],
+      'delayed': ['--red-500', '--red-400'],
+      'atrasado': ['--red-500', '--red-400'],
+      'not-started': ['--gray-500', '--gray-400'],
+      'não iniciado': ['--gray-500', '--gray-400'],
+      'nao_iniciado': ['--gray-500', '--gray-400'],
+      'cancelado': ['--red-800', '--red-700']
+    };
+
+    const { labels, data, backgroundColors, hoverBackgroundColors } = statusCounts.reduce((acc, statusItem) => {
+      if (!statusItem?.status) return acc;
+
+      const statusKey = statusItem.status.toLowerCase();
+      const [bgColor, hoverColor] = statusColorMap[statusKey] || ['--gray-500', '--gray-400'];
+
+      acc.labels.push(this.getProjectStatus(statusKey));
+      acc.data.push(statusItem.count || 0);
+      acc.backgroundColors.push(documentStyle.getPropertyValue(bgColor));
+      acc.hoverBackgroundColors.push(documentStyle.getPropertyValue(hoverColor));
+
+      return acc;
+    }, { labels: [], data: [], backgroundColors: [], hoverBackgroundColors: [] });
+
+    this.projectStatusData = {
+      labels: labels.length ? labels : ['Sem dados'],
+      datasets: [{
+        data: data.length ? data : [100],
+        backgroundColor: backgroundColors.length ? backgroundColors : [documentStyle.getPropertyValue('--gray-400')],
+        hoverBackgroundColor: hoverBackgroundColors.length ? hoverBackgroundColors : [documentStyle.getPropertyValue('--gray-300')]
+      }]
+    };
+  }
+
+  // Inicializa o gráfico de horas dos projetos
+  initProjectHoursChart() {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const top5Projects = this.topProjects.slice(0, 5);
+
+    this.projectHoursData = {
+      labels: top5Projects.length ? top5Projects.map(project => project.name) : ['Sem dados'],
+      datasets: [{
+        label: 'Horas',
+        data: top5Projects.length ? top5Projects.map(project => project.hours) : [0],
+        backgroundColor: documentStyle.getPropertyValue('--blue-500'),
+        borderColor: documentStyle.getPropertyValue('--blue-500')
+      }]
+    };
+  }
+
+  // Inicializa o gráfico de horas dos usuários
+  initUserHoursChart() {
+    const documentStyle = getComputedStyle(document.documentElement);
+
+    this.userHoursData = {
+      labels: this.topUsers.length ? this.topUsers.map(user => user.name.split(' ')[0]) : ['Sem dados'],
+      datasets: [{
+        label: 'Horas',
+        data: this.topUsers.length ? this.topUsers.map(user => user.hours) : [0],
+        backgroundColor: documentStyle.getPropertyValue('--indigo-500'),
+        borderColor: documentStyle.getPropertyValue('--indigo-500')
+      }]
+    };
+  }
+
+  getProjectStatus(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'in-progress': 'Em andamento',
+      'em andamento': 'Em andamento',
+      'em_andamento': 'Em andamento',
+      'completed': 'Concluído',
+      'concluido': 'Concluído',
+      'concluído': 'Concluído',
+      'delayed': 'Atrasado',
+      'atrasado': 'Atrasado',
+      'not-started': 'Não iniciado',
+      'não iniciado': 'Não iniciado',
+      'nao_iniciado': 'Não iniciado',
+      'cancelado': 'Cancelado',
+      'canceled': 'Cancelado'
+    };
+
+    return statusMap[status.toLowerCase()] || status || 'Não definido';
+  }
+
+  handleError() {
+    this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os dados do dashboard' });
+    this.isLoading = false;
   }
 
   refreshData() {
