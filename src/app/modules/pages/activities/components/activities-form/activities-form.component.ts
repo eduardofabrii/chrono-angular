@@ -26,6 +26,9 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   public role = '';
   public projectStartDate: string | null = null;
   public projectEndDate: string | null = null;
+  public displayProjectStartDate: string | null = null;
+  public displayProjectEndDate: string | null = null;
+  public projectName: string | null = null;
 
   @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
@@ -81,7 +84,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   ngOnChanges() {
     this.role = this.userService.getRole() ?? '';
     this.getUsers();
-    this.getProjectDates();
+    this.getProjectDetails();
   }
 
   private getUsers(): void {
@@ -96,12 +99,29 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     });
   }
 
-  private getProjectDates(): void {
+  private getProjectDetails(): void {
     this.projectsService.getProjectById(this.projectId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((project: any) => {
-        this.projectStartDate = project.startDate;
-        this.projectEndDate = project.endDate;
+      .subscribe({
+        next: (project: any) => {
+          this.projectName = project.name;
+          this.projectStartDate = project.startDate;
+          this.projectEndDate = project.endDate;
+
+          // Formata datas
+          this.displayProjectStartDate = project.startDate ?
+            this.dateUtils.formatDateForDisplay(project.startDate) : null;
+          this.displayProjectEndDate = project.endDate ?
+            this.dateUtils.formatDateForDisplay(project.endDate) : null;
+        },
+        error: (err) => {
+          console.error('Error loading project details:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível carregar os detalhes do projeto'
+          });
+        }
       });
   }
 
@@ -134,6 +154,19 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (this.addActivityForm.valid) {
       const formattedStartDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.startDate);
       const formattedEndDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.endDate);
+
+      // Validar se as datas estão dentro do período do projeto
+      if (this.projectStartDate && this.projectEndDate) {
+        const startDate = new Date(this.addActivityForm.value.startDate);
+        const endDate = new Date(this.addActivityForm.value.endDate);
+        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
+        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
+
+        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
+          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
+          return;
+        }
+      }
 
       const requestCreateActivity: PostActivityRequest = {
         project: {
@@ -174,6 +207,19 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (this.editActivityForm.valid) {
       const formattedStartDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.startDate);
       const formattedEndDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.endDate);
+
+      // Validar se as datas estão dentro do período do projeto
+      if (this.projectStartDate && this.projectEndDate) {
+        const startDate = new Date(this.editActivityForm.value.startDate);
+        const endDate = new Date(this.editActivityForm.value.endDate);
+        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
+        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
+
+        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
+          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
+          return;
+        }
+      }
 
       const requestPutActivity: PutActivityRequest = {
         project: {

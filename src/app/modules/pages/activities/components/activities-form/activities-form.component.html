@@ -1,4 +1,4 @@
-  <div style="max-width: 100%; overflow-x: auto;">
+<div style="max-width: 100%; overflow-x: auto;">
     <div class="flex justify-content-between mb-2 flex-wrap">
       <p-dropdown
         [options]="statusOptions"
@@ -15,6 +15,21 @@
 <p-dialog header="Nova Atividade" [(visible)]="isVisibleNewActivityDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
   <div class="p-fluid">
     <form [formGroup]="addActivityForm">
+      <!-- Projeto associado à atividade -->
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <div class="project-info p-2 bg-primary-50 border-round">
+          <span class="font-bold">Projeto: </span>
+          <span>{{projectName || 'Não especificado'}}</span>
+          <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
+            <span class="font-bold">Período do projeto: </span>
+            <span>{{displayProjectStartDate || 'Não definido'}} até {{displayProjectEndDate || 'Não definido'}}</span>
+          </div>
+          <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
+            <span class="text-yellow-500">O projeto não possui datas definidas</span>
+          </div>
+        </div>
+      </div>
+
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="nome">Nome da Atividade</label>
         <input id="nome" type="text" pInputText formControlName="name" class="p-inputtext p-component" />
@@ -29,11 +44,17 @@
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
           <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
+          </small>
         </div>
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
           <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
+          </small>
         </div>
       </div>
 
@@ -67,6 +88,21 @@
 <p-dialog header="Editar Atividade" [(visible)]="isVisibleEditActivityDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
   <div class="p-fluid">
     <form [formGroup]="editActivityForm">
+      <!-- Projeto associado à atividade -->
+      <div class="p-field" style="margin-bottom: 1rem;">
+        <div class="project-info p-2 bg-primary-50 border-round">
+          <span class="font-bold">Projeto: </span>
+          <span>{{projectName || 'Não especificado'}}</span>
+          <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
+            <span class="font-bold">Período do projeto: </span>
+            <span>{{displayProjectStartDate || 'Não definido'}} até {{displayProjectEndDate || 'Não definido'}}</span>
+          </div>
+          <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
+            <span class="text-yellow-500">O projeto não possui datas definidas</span>
+          </div>
+        </div>
+      </div>
+
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="nome">Nome da Atividade</label>
         <input id="nome" type="text" pInputText formControlName="name" class="p-inputtext p-component" />
@@ -80,13 +116,17 @@
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
           <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
-          <label for="dataFim" style="font-size: 0.75rem;">Deve estar entre a data do projeto {{ projectStartDate }} - {{ projectEndDate }}</label>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
+          </small>
         </div>
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
           <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
-          <label for="dataFim" style="font-size: 0.75rem;">Deve estar entre a data do projeto {{ projectStartDate }} - {{ projectEndDate }}</label>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
+          </small>
         </div>
       </div>
 

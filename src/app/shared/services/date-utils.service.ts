@@ -80,4 +80,23 @@ export class DateUtilsService {
     const factor = Math.pow(10, decimalPlaces);
     return Math.round(diffHours * factor) / factor;
   }
+
+  // Formata Date para string ISO (para API)
+  formatDateTimeForApi(date: Date): string {
+    if (!date) return '';
+    return date.toISOString();
+  }
+
+  // Formata data para exibição no formato DD/MM/YYYY
+  formatDateForDisplay(dateString: string): string {
+    if (!dateString) return '';
+    const date = this.parseDate(dateString);
+    if (!date) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
 }
