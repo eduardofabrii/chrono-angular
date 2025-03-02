@@ -24,6 +24,9 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public responsibleOptions: any[] = [];
   public activities: GetActivityResponse[] = [];
   public role = '';
+  public projectStartDate: string | null = null;
+  public projectEndDate: string | null = null;
+  public selectedActivity: any = null;
 
   @Input() releaseTimes: Array<any> = [];
   @Input() projectId!: string;
@@ -85,8 +88,18 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   loadActivities(): void {
     this.activitiesService.getAllActivities()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((activities: GetActivityResponse[]) => {
-        this.activities = activities;
+      .subscribe({
+        next: (activities: GetActivityResponse[]) => {
+          this.activities = activities;
+        },
+        error: (err) => {
+          console.error('Error loading activities:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível carregar as atividades'
+          });
+        }
       });
   }
 
@@ -95,7 +108,6 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
     const startDate = this.dateUtils.parseDate(releaseTime.startDate);
     const endDate = this.dateUtils.parseDate(releaseTime.endDate);
-    const date = this.dateUtils.parseDate(releaseTime.date);
 
     const selectedActivity = this.activities.find(act => act.id === releaseTime.activity?.id);
     const selectedUser = this.responsibleOptions.find(user => user.id === releaseTime.user?.id);
@@ -106,9 +118,77 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
       user: selectedUser || null,
       description: releaseTime.description,
       startDate: startDate,
-      endDate: endDate,
-      date: date
+      endDate: endDate
     });
+
+    this.selectedActivity = selectedActivity;
+
+    // Buscar as datas do projeto associado à atividade selecionada
+    this.getProjectFromActivity(selectedActivity);
+  }
+
+  private getProjectFromActivity(activity: any): void {
+    if (!activity) {
+      this.projectStartDate = null;
+      this.projectEndDate = null;
+      return;
+    }
+
+    // Tentar encontrar o ID do projeto em diferentes estruturas possíveis
+    let projectId = null;
+
+    // Tenta encontrar o ID do projeto em diferentes formatos
+    if (activity.project?.id) {
+      projectId = activity.project.id;
+    } else if (activity.projectId) {
+      projectId = activity.projectId;
+    }
+
+    // Se encontrou o ID do projeto, busca os dados
+    if (projectId) {
+      this.getProjectDates(projectId);
+    } else {
+      // Se não encontrou, tenta usar o projectId do input
+      this.getProjectDates(this.projectId);
+    }
+  }
+
+  public onActivityChange(event: any): void {
+    const activity = event.value;
+    console.log('Activity changed:', activity);
+
+    this.selectedActivity = activity;
+    this.getProjectFromActivity(activity);
+  }
+
+  private getProjectDates(projectId: string): void {
+    if (!projectId) {
+      this.projectStartDate = null;
+      this.projectEndDate = null;
+      return;
+    }
+
+    this.projectsService.getProjectById(projectId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (project: any) => {
+          // Formatar datas para exibição mais amigável (DD/MM/YYYY)
+          this.projectStartDate = project.startDate ?
+            this.dateUtils.formatDateForDisplay(project.startDate) : null;
+          this.projectEndDate = project.endDate ?
+            this.dateUtils.formatDateForDisplay(project.endDate) : null;
+        },
+        error: (err) => {
+          console.error('Error fetching project data:', err);
+          this.projectStartDate = null;
+          this.projectEndDate = null;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível buscar os dados do projeto'
+          });
+        }
+      });
   }
 
   public openDeleteReleaseTimeDialog(releaseTime: any): void {
@@ -117,12 +197,24 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   }
 
   public updateReleaseTime(): void {
-    console.log(this.editReleaseTimeForm.value);
     if (this.editReleaseTimeForm.valid) {
       const formattedStartDate = this.dateUtils.formatDateTime(this.editReleaseTimeForm.value.startDate);
       const formattedEndDate = this.dateUtils.formatDateTime(this.editReleaseTimeForm.value.endDate);
 
       const { id, activity, user, description } = this.editReleaseTimeForm.value;
+
+      // Validar se as datas estão dentro do período do projeto
+      if (this.projectStartDate && this.projectEndDate) {
+        const startDate = new Date(this.editReleaseTimeForm.value.startDate);
+        const endDate = new Date(this.editReleaseTimeForm.value.endDate);
+        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
+        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
+
+        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
+          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
+          return;
+        }
+      }
 
       const requestPutReleaseTime: PutReleaseTimeRequest = {
         id: '',
@@ -139,14 +231,21 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
       this.releaseTimeService.putReleaseTime(id, requestPutReleaseTime)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((updatedReleaseTime: any) => {
-        this.releaseTimeUpdated.emit(updatedReleaseTime);
-        this.showSuccessMessage('Sucesso', 'Lançamento de hora atualizado com sucesso!');
-        this.editReleaseTimeForm.reset();
-        this.onCloseDialog('editRelease');
+      .subscribe({
+        next: (updatedReleaseTime: any) => {
+          this.releaseTimeUpdated.emit(updatedReleaseTime);
+          this.showSuccessMessage('Sucesso', 'Lançamento de hora atualizado com sucesso!');
+          this.editReleaseTimeForm.reset();
+          this.onCloseDialog('editRelease');
+          this.selectedActivity = null;
+        },
+        error: (err) => {
+          this.showErrorMessage('Erro', 'Erro ao atualizar lançamento de hora.');
+          console.error('Erro ao atualizar lançamento:', err);
+        }
       });
     } else {
-      this.showErrorMessage('Erro', 'Erro ao atualizar lançamento de hora.');
+      this.showErrorMessage('Erro', 'Formulário inválido. Por favor, verifique os campos obrigatórios.');
     }
   }
 
@@ -154,11 +253,17 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
     if (this.releaseTimeToDelete) {
       this.releaseTimeService.deleteReleaseTime(this.releaseTimeToDelete.id)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.releaseTimeDeleted.emit(this.releaseTimeToDelete);
-        this.showSuccessMessage('Sucesso', 'Lançamento de hora deletado com sucesso!');
-        this.onCloseDialog('deleteRelease');
-        this.releaseTimeToDelete = null;
+      .subscribe({
+        next: () => {
+          this.releaseTimeDeleted.emit(this.releaseTimeToDelete);
+          this.showSuccessMessage('Sucesso', 'Lançamento de hora deletado com sucesso!');
+          this.onCloseDialog('deleteRelease');
+          this.releaseTimeToDelete = null;
+        },
+        error: (err) => {
+          this.showErrorMessage('Erro', 'Não foi possível deletar o lançamento de hora!');
+          console.error('Erro ao deletar lançamento:', err);
+        }
       });
     } else {
       this.showErrorMessage('Erro', 'Não foi possível deletar o lançamento de hora!');
@@ -184,7 +289,12 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   }
 
   public onCloseDialog(dialogType: "editRelease" | "deleteRelease"): void {
-    if (dialogType === 'editRelease') this.isVisibleEditReleaseTime = false;
+    if (dialogType === 'editRelease') {
+      this.isVisibleEditReleaseTime = false;
+      this.projectStartDate = null;
+      this.projectEndDate = null;
+      this.selectedActivity = null;
+    }
     if (dialogType === 'deleteRelease') this.isVisibleDeleteReleaseTimeDialog = false;
   }
 

@@ -41,14 +41,6 @@ button {
   background-size: 50%;
 }
 
-::ng-deep .p-card {
-  display: flex;
-  padding: 20px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
 ::ng-deep .p-card-title {
   margin-bottom: 5px;
 }

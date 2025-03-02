@@ -17,14 +17,36 @@
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="activity">Atividade</label>
         <p-dropdown
-        id="activity"
-        [options]="activities"
-        formControlName="activity"
-        optionLabel="name"
-        appendTo="body">
-      </p-dropdown>
+          id="activity"
+          [options]="activities"
+          formControlName="activity"
+          optionLabel="name"
+          (onChange)="onActivityChange($event)"
+          appendTo="body">
+        </p-dropdown>
+        <!-- Exibe dados da atividade para debug -->
+        <small class="text-gray-500" *ngIf="selectedActivity">
+          ID: {{selectedActivity?.id}} |
+          Project ID: {{selectedActivity?.projectId || selectedActivity?.project?.id || 'N/A'}}
+        </small>
       </div>
 
+      <!-- Projeto associado à atividade selecionada -->
+      <div *ngIf="selectedActivity" class="p-field" style="margin-bottom: 1rem;">
+        <div class="project-info p-2 bg-primary-50 border-round">
+          <span class="font-bold">Projeto: </span>
+          <span>{{selectedActivity.projectName || selectedActivity.project?.name || 'Não especificado'}}</span>
+          <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
+            <span class="font-bold">Período do projeto: </span>
+            <span>{{projectStartDate || 'Não definido'}} até {{projectEndDate || 'Não definido'}}</span>
+          </div>
+          <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
+            <span class="text-yellow-500">O projeto não possui datas definidas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restante dos campos do formulário -->
       <div class="p-field" style="margin-bottom: 1rem;">
         <label for="user">Responsável</label>
         <p-dropdown
@@ -41,14 +63,22 @@
         <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
       </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataInicio">Data de Início</label>
-        <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body"></p-calendar>
-      </div>
+      <div class="flex flex-row gap-3 align-items-center">
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataInicio">Data de Início</label>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body"></p-calendar>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{projectStartDate}} e {{projectEndDate}}
+          </small>
+        </div>
 
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="dataFim">Data de Fim</label>
-        <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body"></p-calendar>
+        <div class="p-field flex-1" style="margin-bottom: 1rem;">
+          <label for="dataFim">Data de Fim</label>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body"></p-calendar>
+          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+            Deve estar entre {{projectStartDate}} e {{projectEndDate}}
+          </small>
+        </div>
       </div>
     </form>
   </div>
