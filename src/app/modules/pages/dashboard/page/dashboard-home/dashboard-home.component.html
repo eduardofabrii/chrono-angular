@@ -1,3 +1,14 @@
+<!-- Skeleton Overlay -->
+<app-skeleton-loader
+  *ngIf="isLoading"
+  [overlay]="true"
+  [width]="'360px'"
+  [height]="'240px'"
+  [pulseColor]="'#3B82F6'"
+  [showProgressBar]="true"
+  message="Carregando dashboard...">
+</app-skeleton-loader>
+
 <!-- Toolbar -->
 <p-toolbar>
   <div class="p-toolbar-group-start" style="display: flex; align-items: center;">

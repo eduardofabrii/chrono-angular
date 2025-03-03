@@ -1,8 +1,10 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { MessageService } from 'primeng/api';
+
 import { DashboardService } from '../../../../../services/dashboard/dashboard.service';
 import { UserService } from '../../../../../services/user/user.service';
+
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -77,12 +79,18 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   loadDashboardData() {
     this.isLoading = true;
-    this.dashboardService.getDashboardDatas()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => this.processApiResponse(response),
-        error: () => this.handleError()
-      });
+    setTimeout(() => {
+      this.dashboardService.getDashboardDatas()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            setTimeout(() => {
+              this.processApiResponse(response);
+            }, 800);
+          },
+          error: () => this.handleError()
+        });
+    }, 300);
   }
 
   processApiResponse(data: any) {
