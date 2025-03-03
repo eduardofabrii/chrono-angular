@@ -1,0 +1,57 @@
+<div class="skeleton-overlay" *ngIf="overlay">
+  <div class="skeleton-backdrop"></div>
+  <div class="skeleton-container skeleton-card"
+       [style.height]="height" 
+       [style.width]="width" 
+       [style.border-radius]="borderRadius">
+    <div class="skeleton-content">
+      <div class="logo-container" *ngIf="showLogo">
+        <img src="assets/imgs/chrono-logo.png" alt="Chrono App Logo" class="skeleton-logo" />
+      </div>
+      
+      <div class="loader-animation">
+        <div class="pulse-circles">
+          <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+          <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+          <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+        </div>
+      </div>
+      
+      <div class="loading-text">{{ message }}</div>
+      
+      <div *ngIf="showProgressBar" class="progress-bar-container">
+        <div class="progress-bar-background">
+          <div class="progress-bar-fill" [ngStyle]="{'background-color': pulseColor}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!overlay" 
+     class="skeleton-container"
+     [style.height]="height" 
+     [style.width]="width" 
+     [style.border-radius]="borderRadius">
+  <div class="skeleton-content">
+    <div class="logo-container" *ngIf="showLogo">
+      <img src="assets/imgs/chrono-logo.png" alt="Chrono App Logo" class="skeleton-logo" />
+    </div>
+    
+    <div class="loader-animation">
+      <div class="pulse-circles">
+        <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+        <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+        <div class="pulse-circle" [ngStyle]="{'background-color': pulseColor}"></div>
+      </div>
+    </div>
+    
+    <div class="loading-text">{{ message }}</div>
+    
+    <div *ngIf="showProgressBar" class="progress-bar-container">
+      <div class="progress-bar-background">
+        <div class="progress-bar-fill" [ngStyle]="{'background-color': pulseColor}"></div>
+      </div>
+    </div>
+  </div>
+</div>
