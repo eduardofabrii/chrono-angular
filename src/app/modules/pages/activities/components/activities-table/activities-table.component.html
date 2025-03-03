@@ -128,12 +128,24 @@
 
   <ng-template pTemplate="body" let-activity>
     <tr>
-      <td>{{ activity.name | shorten: 15 }}</td>
-      <td>{{ activity.description | shorten: 20 }}</td>
-      <td>{{ activity.startDate }}</td>
-      <td>{{ activity.endDate }}</td>
-      <td>{{ activity.status }}</td>
-      <td>{{ activity.responsible.name | shorten: 15}}</td>
+      <td pTooltip="{{ activity.name }}" tooltipPosition="top">
+        {{ activity.name | shorten: 15 }}
+      </td>
+      <td pTooltip="{{ activity.description }}" tooltipPosition="top">
+        {{ activity.description | shorten: 20 }}
+      </td>
+      <td>
+        {{ activity.startDate }}
+      </td>
+      <td>
+        {{ activity.endDate }}
+      </td>
+      <td pTooltip="{{ activity.status }}" tooltipPosition="top">
+        {{ activity.status }}
+      </td>
+      <td pTooltip="{{ activity.responsible.name }}" tooltipPosition="top">
+        {{ activity.responsible.name | shorten: 15}}
+      </td>
       <td *ngIf="role === 'ADMIN'">
         <div class="flex">
             <button pButton (click)="openEditActivityDialog(activity)" type="button" icon="pi pi-pencil" class="p-button-text p-button-secondary mr-3"></button>

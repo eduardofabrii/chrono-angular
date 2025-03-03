@@ -109,15 +109,21 @@
 
   <ng-template pTemplate="body" let-releaseTime>
     <tr>
-      <td>{{ releaseTime.activity.name}}</td>
+      <td pTooltip="{{ releaseTime.activity.name }}" tooltipPosition="top">
+        {{ releaseTime.activity.name | shorten:25 }}
+      </td>
       <td>{{ releaseTime.startDate }}</td>
       <td>{{ releaseTime.endDate }}</td>
-      <td>{{ releaseTime.description }}</td>
-      <td>{{ releaseTime.user.name }}</td>
+      <td pTooltip="{{ releaseTime.description }}" tooltipPosition="top">
+        {{ releaseTime.description | shorten:30 }}
+      </td>
+      <td pTooltip="{{ releaseTime.user.name }}" tooltipPosition="top">
+        {{ releaseTime.user.name | shorten:20 }}
+      </td>
       <td>
         <div class="flex">
-            <button *ngIf="canEditReleaseTime(releaseTime)" pButton pRipple icon="pi pi-pencil" class="p-button-text p-button-secondary mr-3" (click)="onEditReleaseTime(releaseTime)"></button>
-            <button *ngIf="canDeleteReleaseTime(releaseTime)" pButton pRipple icon="pi pi-trash" class="p-button-text p-button-danger" (click)="onDeleteReleaseTime(releaseTime)"></button>
+          <button *ngIf="canEditReleaseTime(releaseTime)" pButton pRipple icon="pi pi-pencil" class="p-button-text p-button-secondary mr-3" (click)="onEditReleaseTime(releaseTime)"></button>
+          <button *ngIf="canDeleteReleaseTime(releaseTime)" pButton pRipple icon="pi pi-trash" class="p-button-text p-button-danger" (click)="onDeleteReleaseTime(releaseTime)"></button>
         </div>
       </td>
     </tr>
