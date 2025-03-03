@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ReleaseTimeFormComponent } from './components/release-time-form/release-time-form.component';
 import { ReleaseTimeHomeComponent } from './page/release-time-home/release-time-home.component';
 import { ReleaseTimeTableComponent } from './components/release-time-table/release-time-table.component';
+import { SharedModule } from '../../../shared/shared.module';
 
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
@@ -15,6 +16,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
 import { TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
@@ -33,7 +35,10 @@ import { TableModule } from 'primeng/table';
     DropdownModule,
     InputTextModule,
     CalendarModule,
-    TableModule
+    TableModule,
+    TooltipModule,
+
+    SharedModule
   ]
 })
 export class ReleaseTimeModule { }

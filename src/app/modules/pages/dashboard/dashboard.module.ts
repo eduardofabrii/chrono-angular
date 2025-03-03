@@ -7,7 +7,7 @@ import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
-import { Toast, ToastModule } from 'primeng/toast';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
   declarations: [

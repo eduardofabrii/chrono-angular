@@ -47,13 +47,19 @@
 <!-- Cards -->
 <div class="cards">
   <ng-container *ngIf="filteredProjects.length > 0; else noProjects">
-    <p-card *ngFor="let project of filteredProjects" [header]="project.name | shorten: 20" [style]="{ width: '360px' }">
+    <p-card *ngFor="let project of filteredProjects" [style]="{ width: '360px' }">
+      <ng-template pTemplate="header">
+        <div class="card-header" pTooltip="{{ project.name }}" tooltipPosition="top"
+             style="font-weight: bold; font-size: 1.2rem; padding: 0.75rem; border-bottom: 1px solid #dee2e6; text-align: center; width: 100%; box-sizing: border-box;">
+          {{ project.name | shorten: 25 }}
+        </div>
+      </ng-template>
       <div>
-        <p><strong>Nome do Projeto:</strong> {{ project.name | shorten: 15 }}</p>
-        <p><strong>Descrição:</strong> {{ project.description | shorten: 20 }}</p>
-        <p><strong>Responsável:</strong> {{ project.responsible.name | shorten: 20 }}</p>
-        <p><strong>Data de Início:</strong> {{ project.startDate }}
-        <p><strong>Status:</strong> {{ project.status }}</p>
+        <p><strong>Nome do Projeto: </strong> <span pTooltip="{{ project.name }}" tooltipPosition="top">{{ project.name | shorten: 15 }}</span></p>
+        <p><strong>Descrição: </strong> <span pTooltip="{{ project.description }}" tooltipPosition="top">{{ project.description | shorten: 20 }}</span></p>
+        <p><strong>Responsável: </strong> {{ project.responsible.name | shorten: 20 }}</p>
+        <p><strong>Data de Início: </strong> {{ project.startDate }}
+        <p><strong>Status: </strong> {{ project.status }}</p>
       </div>
       <ng-template pTemplate="footer">
         <div class="flex gap-3 mt-3 justify-content-center">

@@ -16,6 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { CardModule } from 'primeng/card';
 import { ProjectsHomeComponent } from './projects-home/projects-home.component';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
@@ -36,6 +37,7 @@ import { ToastModule } from 'primeng/toast';
     InputTextModule,
     SharedModule,
     ToastModule,
+    TooltipModule,
   ],
   providers: [ProjectsService, UserService, DatePipe],
   exports: [],
