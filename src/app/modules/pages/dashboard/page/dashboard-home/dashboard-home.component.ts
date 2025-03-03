@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { DashboardService } from '../../../../../services/dashboard/dashboard.service';
+import { UserService } from '../../../../../services/user/user.service';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -14,6 +15,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   projectStatusData: any;
   projectHoursData: any;
   userHoursData: any;
+  currentUserId: any;
 
   totalProjects = 0;
   totalActivities = 0;
@@ -23,6 +25,25 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   topProjects: { name: string; hours: number; status: string }[] = [];
   topUsers: { name: string; hours: number; initials: string; color: string }[] = [];
+
+  // Atividades pendentes do usuario logado
+  pendingActivities: {
+    activityId: number;
+    activityName: string;
+    projectName: string;
+    deadline: string;
+    status: string;
+    overdue: boolean;
+    projectId: number;
+  }[] = [];
+
+  currentUser: {
+    userId: number;
+    userName: string;
+    initials: string;
+  } | null = null;
+
+  pendingActivitiesLoading = false;
 
   maxProjectHours = 0;
   maxUserHours = 0;
@@ -40,9 +61,12 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   private readonly userColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#D946EF', '#F97316', '#0EA5E9'];
 
   private readonly dashboardService = inject(DashboardService);
+  private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
+    const userIdFromService = this.userService.getCurrentUserId();
+    this.currentUserId = userIdFromService ? parseInt(userIdFromService, 10) : null;
     this.loadDashboardData();
   }
 
@@ -80,9 +104,49 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
     this.processProjectHoursData(data.projectHoursData || []);
     this.processUserHoursData(data.userHoursData || []);
+    this.processPendingActivities(data.pendingActivitiesByUser || []);
 
     this.initCharts(data.projectStatusCounts || []);
     this.isLoading = false;
+  }
+
+  // Processa atividades pendentes do usuario logado
+  processPendingActivities(userActivities: any[]) {
+    if (!userActivities?.length) {
+      this.pendingActivities = [];
+      return;
+    }
+
+    // Procura usuario pela ID (como número ou string)
+    const userEntry = this.currentUserId && userActivities.find(
+      user => user.userId == this.currentUserId
+    );
+
+    if (userEntry) {
+      this.currentUser = {
+        userId: userEntry.userId,
+        userName: userEntry.userName,
+        initials: userEntry.initials
+      };
+      this.pendingActivities = userEntry.pendingActivities || [];
+      return;
+    }
+
+    // Fallback: tenta encontrar na lista de topUsers
+    this.pendingActivities = [];
+    if (this.currentUserId && this.topUsers?.length) {
+      const userFromHours = this.topUsers.find(user =>
+        parseInt(user.name, 10) === this.currentUserId
+      );
+
+      if (userFromHours) {
+        this.currentUser = {
+          userId: this.currentUserId,
+          userName: userFromHours.name,
+          initials: userFromHours.initials
+        };
+      }
+    }
   }
 
   // Processa os dados dos projetos para exibição no gráfico de horas dos projetos
@@ -257,6 +321,82 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   handleError() {
     this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os dados do dashboard' });
     this.isLoading = false;
+  }
+
+  getActivityPriority(priority?: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' {
+    if (!priority) return 'secondary';
+
+    const priorityLower = priority.toLowerCase();
+
+    switch(priorityLower) {
+      case 'high':
+      case 'alta':
+        return 'danger';
+      case 'medium':
+      case 'média':
+      case 'media':
+        return 'warning';
+      case 'low':
+      case 'baixa':
+        return 'success';
+      default:
+        return 'info';
+    }
+  }
+
+  getActivityPriorityLabel(priority?: string): string {
+    if (!priority) return 'Normal';
+
+    const priorityLower = priority.toLowerCase();
+
+    switch(priorityLower) {
+      case 'high':
+        return 'Alta';
+      case 'medium':
+        return 'Média';
+      case 'low':
+        return 'Baixa';
+      default:
+        return priority;
+    }
+  }
+
+  isActivityOverdue(dueDate?: Date): boolean {
+    if (!dueDate) return false;
+    const today = new Date();
+    const due = new Date(dueDate);
+    return due < today;
+  }
+
+  getActivityStatus(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'in-progress': 'Em andamento',
+      'em andamento': 'Em andamento',
+      'em_andamento': 'Em andamento',
+      'completed': 'Concluído',
+      'concluido': 'Concluído',
+      'concluído': 'Concluído',
+      'delayed': 'Atrasado',
+      'atrasado': 'Atrasado',
+      'not-started': 'Não iniciado',
+      'não iniciado': 'Não iniciado',
+      'nao_iniciado': 'Não iniciado',
+      'cancelado': 'Cancelado',
+      'canceled': 'Cancelado'
+    };
+
+    return statusMap[status?.toLowerCase()] || status || 'Não definido';
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'Sem data definida';
+
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR');
+    } catch (e) {
+      return dateString;
+    }
   }
 
   refreshData() {
