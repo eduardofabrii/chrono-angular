@@ -16,12 +16,13 @@ const routes: Routes = [
     component: LayoutComponent,
     canMatch: [authGuard],
     children: [
-      { path: 'dashboard', component: DashboardHomeComponent },
-      { path: 'projects', component: ProjectsHomeComponent },
-      { path: 'projects/activities/:id', component: ActivitiesHomeComponent },
-      { path: 'hours', component: ReleaseTimeHomeComponent },
+      { path: 'dashboard', component: DashboardHomeComponent, title: 'Chrono | Dashboard' },
+      { path: 'projects', component: ProjectsHomeComponent, title: 'Chrono | Projetos'},
+      { path: 'projects/activities/:id', component: ActivitiesHomeComponent, title: 'Chrono | Atividades' },
+      { path: 'hours', component: ReleaseTimeHomeComponent, title: 'Chrono | Lançamento de Horas' },
     ]
-  }
+  },
+  { path: '**', redirectTo: 'dashboard' }
 ];
 
 @NgModule({
