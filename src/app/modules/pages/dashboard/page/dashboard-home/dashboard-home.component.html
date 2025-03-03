@@ -63,22 +63,45 @@
   <!-- Projeto Status -->
   <div class="grid">
     <div class="col-12 md:col-6 lg:col-6">
-      <p-card header="Status dos Projetos" styleClass="chart-card text-center">
-        <div class="chart-container">
-          <div class="percentage-container">
-            <div class="percentage-value">{{ projectInProgressPercentage }}%</div>
-            <div class="percentage-label">Em andamento</div>
-          </div>
-          <p-chart type="doughnut" [data]="projectStatusData" [options]="chartOptions"></p-chart>
+      <p-card header="Status dos Projetos" styleClass="chart-card text-center standard-card">
+      <div class="chart-container">
+        <div class="percentage-container">
+        <div class="percentage-value">{{ projectInProgressPercentage }}%</div>
+        <div class="percentage-label">Em andamento</div>
         </div>
+        <p-chart type="doughnut" [data]="projectStatusData" [options]="chartOptions"></p-chart>
+      </div>
       </p-card>
     </div>
 
-    <!-- TODO: Pensando o que por... -->
+    <!-- Atividades pendentes -->
     <div class="col-12 md:col-6 lg:col-6">
-      <p-card header="Pensando" styleClass="chart-card text-center">
-        <div class="chart-container">
-          <p-chart [options]="chartOptions"></p-chart>
+      <p-card [header]="currentUser ? 'Atividades Pendentes - ' + currentUser.userName : 'Minhas Atividades Pendentes'" styleClass="pending-activities-card">
+        <div *ngIf="!isLoading" class="pending-activities-container">
+          <div *ngIf="pendingActivities.length === 0" class="no-pending-activities">
+            <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--green-500);"></i>
+            <p>Você não tem atividades pendentes!</p>
+          </div>
+
+          <div *ngFor="let activity of pendingActivities" class="pending-activity-item">
+            <div class="activity-header">
+              <span class="activity-title">{{ activity.activityName }}</span>
+              <p-tag
+                [value]="getActivityStatus(activity.status)"
+                [severity]="activity.overdue ? 'danger' : 'info'"
+                [style]="{ 'font-size': '0.75rem' }">
+              </p-tag>
+            </div>
+            <div class="activity-project">
+              <i class="pi pi-briefcase" style="margin-right: 5px;"></i>
+              <span>{{activity.projectName}}</span>
+            </div>
+            <div class="activity-due-date" [ngClass]="{'overdue': activity.overdue}">
+              <i class="pi pi-calendar" style="margin-right: 5px;"></i>
+              <span>{{ formatDate(activity.deadline) }}</span>
+              <span *ngIf="activity.overdue" class="overdue-label">ATRASADA</span>
+            </div>
+          </div>
         </div>
       </p-card>
     </div>
