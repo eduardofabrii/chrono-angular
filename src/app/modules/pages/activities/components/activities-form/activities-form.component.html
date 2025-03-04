@@ -43,7 +43,7 @@
       <div class="flex flex-row gap-3 align-items-center">
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
           <small *ngIf="projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
           </small>
@@ -51,7 +51,7 @@
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
           <small *ngIf="projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
           </small>
@@ -115,7 +115,7 @@
       <div class="flex flex-row gap-3 align-items-center">
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
           <small *ngIf="projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
           </small>
@@ -123,7 +123,7 @@
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-calendar>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
           <small *ngIf="projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
           </small>
