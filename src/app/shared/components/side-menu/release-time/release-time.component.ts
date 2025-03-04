@@ -38,6 +38,15 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadActivities();
+
+    // Add value change listeners to both date fields
+    this.addReleaseTime.get('startDate')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.updateHours());
+
+    this.addReleaseTime.get('endDate')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.updateHours());
   }
 
   loadActivities(): void {
@@ -118,9 +127,54 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
     const endDate = this.addReleaseTime.get('endDate')?.value;
 
     if (startDate && endDate) {
-      const diff = Math.floor((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60));
-      this.addReleaseTime.get('hours')?.setValue(diff.toString());
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Valida datas
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        this.addReleaseTime.get('hours')?.setValue('');
+        return;
+      }
+
+      // Calcula diferente de milissegundos
+      const diffMs = end.getTime() - start.getTime();
+
+      //Chega se a data final é menor que a data inicial
+      if (diffMs < 0) {
+        this.addReleaseTime.get('hours')?.setValue('0:00');
+        return;
+      }
+
+      // Calcula a diferença em horas
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      // Formata a diferença para HH:MM
+      const formattedTime = this.formatDecimalHoursToHHMM(diffHours);
+
+      this.addReleaseTime.get('hours')?.setValue(formattedTime);
+    } else {
+      this.addReleaseTime.get('hours')?.setValue('');
     }
+  }
+
+  // Formata um número decimal de horas para HH:MM
+  private formatDecimalHoursToHHMM(decimalHours: number): string {
+    const hours = Math.floor(decimalHours);
+    const minutes = Math.round((decimalHours - hours) * 60);
+
+    // Ajusta as horas e minutos
+    let adjustedHours = hours;
+    let adjustedMinutes = minutes;
+
+    if (minutes === 60) {
+      adjustedHours += 1;
+      adjustedMinutes = 0;
+    }
+
+    // Formata os minutos para 2 dígitos
+    const minutesStr = adjustedMinutes < 10 ? `0${adjustedMinutes}` : `${adjustedMinutes}`;
+
+    return `${adjustedHours}:${minutesStr}`;
   }
 
   ngOnDestroy(): void {

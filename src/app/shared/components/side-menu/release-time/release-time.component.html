@@ -20,19 +20,21 @@
           <label for="dataInicio">Data de Início</label>
           <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy"
                       [showIcon]="true" [showTime]="true" timeFormat="HH:mm"
-                      [appendTo]="'body'" (onSelect)="updateHours()"></p-calendar>
+                      [appendTo]="'body'" (onSelect)="updateHours()" (onInput)="updateHours()"
+                      (onBlur)="updateHours()" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
         </div>
 
         <div class="p-field flex-1">
           <label for="dataFim">Data de Fim</label>
           <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy"
                       [showIcon]="true" [showTime]="true" timeFormat="HH:mm"
-                      [appendTo]="'body'"(onSelect)="updateHours()"></p-calendar>
+                      [appendTo]="'body'" (onSelect)="updateHours()" (onInput)="updateHours()"
+                      (onBlur)="updateHours()" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
         </div>
 
         <div class="p-field flex-1">
             <label for="horas">Horas</label>
-            <input id="horas" type="number" pInputText formControlName="hours" class="p-inputtext p-component"
+            <input id="horas" type="text" pInputText formControlName="hours" class="p-inputtext p-component"
              readonly style="background-color: #f5f5f5;" />
         </div>
       </div>
