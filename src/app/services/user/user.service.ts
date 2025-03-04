@@ -47,7 +47,6 @@ export class UserService {
     }
   }
 
-   // TODO: Implementar rota ou guma maneira de pegar a role de admin :)
   getRole(): string | null {
     const token = this.cookie.get('token');
     if (token) {
@@ -60,6 +59,11 @@ export class UserService {
       }
     }
     return null;
+  }
+
+  isAdmin(): boolean {
+    const role = this.getRole();
+    return role === 'ADMIN' || role === 'admin';
   }
 
   getUsersAdmin(): Observable<{ id: number, name: string, email: string }[]> {
