@@ -64,7 +64,7 @@
       <div class="summary-card bg-purple-50">
         <div class="card-content">
           <span class="title">Horas Totais</span>
-          <span class="value">{{ totalHours }}</span>
+          <span class="value">{{ formatHours(totalHours) }}h</span>
         </div>
         <i class="pi pi-clock icon purple-icon"></i>
       </div>
@@ -124,7 +124,7 @@
           <div *ngFor="let project of topProjects" class="project-item">
             <div class="project-info">
               <div class="project-name">{{project.name}}</div>
-              <div class="project-hours">{{project.hours}}h</div>
+              <div class="project-hours">{{formatHours(project.hours)}}h</div>
             </div>
             <p-progressBar [value]="getProjectHoursPercentage(project.hours)" [showValue]="false"></p-progressBar>
             <p-tag [value]="getProjectStatus(project.status)" [severity]="getProjectSeverity(project.status)" [style]="{ 'margin-top': '5px' }"></p-tag>
@@ -144,7 +144,7 @@
             <div class="user-info">
               <div class="user-name">{{user.name}}</div>
               <p-progressBar [value]="getUserHoursPercentage(user.hours)" [showValue]="false"></p-progressBar>
-              <div class="user-hours">{{user.hours}}h</div>
+              <div class="user-hours">{{formatHours(user.hours)}}h</div>
             </div>
           </div>
         </div>
