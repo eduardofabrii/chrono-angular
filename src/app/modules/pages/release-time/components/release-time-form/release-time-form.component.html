@@ -1,14 +1,4 @@
 <div style="max-width: 100%; overflow-x: auto;">
-  <div class="flex justify-content-between mb-2 flex-wrap">
-    <p-dropdown
-      [options]="statusOptions"
-      placeholder="Filtrar"
-      optionLabel="label"
-      optionValue="value"
-      appendTo="body">
-    </p-dropdown>
-  </div>
-</div>
 
 <!-- Modal/Dialog para editar lançamento -->
 <p-dialog header="Editar lançamento de hora" [(visible)]="isVisibleEditReleaseTime" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">

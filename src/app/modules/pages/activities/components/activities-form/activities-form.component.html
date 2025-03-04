@@ -1,12 +1,5 @@
 <div style="max-width: 100%; overflow-x: auto;">
     <div class="flex justify-content-between mb-2 flex-wrap">
-      <p-dropdown
-        [options]="statusOptions"
-        placeholder="Filtrar"
-        optionLabel="label"
-        optionValue="value"
-        appendTo="body">
-      </p-dropdown>
       <button pButton *ngIf="role === 'ADMIN'" (click)="openNewActivityDialog()" type="button" label="Criar" icon="pi pi-plus" class="p-button-primary mb-2"></button>
     </div>
   </div>
