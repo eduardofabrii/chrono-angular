@@ -407,6 +407,28 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Formata horas decimais para o formato HH:MM
+   * Ex: 1.5h → 1h30min
+   */
+  formatHours(decimalHours: number): string {
+    const hours = Math.floor(decimalHours);
+    const minutes = Math.round((decimalHours - hours) * 60);
+
+    let adjustedHours = hours;
+    let adjustedMinutes = minutes;
+
+    if (minutes === 60) {
+      adjustedHours += 1;
+      adjustedMinutes = 0;
+    }
+
+    // Adiciona zero à esquerda se necessário
+    const minutesStr = adjustedMinutes < 10 ? `0${adjustedMinutes}` : `${adjustedMinutes}`;
+
+    return `${adjustedHours}:${minutesStr}`;
+  }
+
   refreshData() {
     this.loadDashboardData();
   }
