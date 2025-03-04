@@ -18,6 +18,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   projectHoursData: any;
   userHoursData: any;
   currentUserId: any;
+  isAdminUser: boolean = false;
 
   totalProjects = 0;
   totalActivities = 0;
@@ -26,7 +27,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   projectInProgressPercentage = 0;
 
   topProjects: { name: string; hours: number; status: string }[] = [];
-  topUsers: { name: string; hours: number; initials: string; color: string }[] = [];
+  topUsers: { name: string; hours: number; initials: string; color: string; userId?: number }[] = [];
 
   // Atividades pendentes do usuario logado
   pendingActivities: {
@@ -38,6 +39,29 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     overdue: boolean;
     projectId: number;
   }[] = [];
+
+  // Todas as atividades pendentes (apenas para admin)
+  allPendingActivities: {
+    userId: number;
+    userName: string;
+    initials: string;
+    pendingActivities: {
+      activityId: number;
+      activityName: string;
+      projectName: string;
+      deadline: string;
+      status: string;
+      overdue: boolean;
+      projectId: number;
+    }[];
+  }[] = [];
+
+  // Usuário selecionado para visualização de atividades (apenas para admin)
+  selectedUser: {
+    userId: number;
+    userName: string;
+    initials: string;
+  } | null = null;
 
   currentUser: {
     userId: number;
@@ -60,21 +84,18 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   isLoading = true;
 
-  private readonly userColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#D946EF', '#F97316', '#0EA5E9'];
+  // Changed from private to public to be accessible from the template
+  public readonly userColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#D946EF', '#F97316', '#0EA5E9'];
 
   private readonly dashboardService = inject(DashboardService);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
+    this.isAdminUser = this.userService.isAdmin();
     const userIdFromService = this.userService.getCurrentUserId();
     this.currentUserId = userIdFromService ? parseInt(userIdFromService, 10) : null;
     this.loadDashboardData();
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   loadDashboardData() {
@@ -98,34 +119,99 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.totalProjects = data.totalProjects || 0;
-    this.totalActivities = data.totalActivities || 0;
-    this.totalHours = data.totalHours || 0;
+    // Para usuários com role USER, filtra os dados para mostrar apenas informações relevantes
+    if (!this.isAdminUser && this.currentUserId) {
+      // Para usuário, procura apenas suas atividades
+      const userActivitiesByUser = data.pendingActivitiesByUser || [];
+      const userEntry = userActivitiesByUser.find(
+        (user: any) => user.userId == this.currentUserId
+      );
 
-    // Calcula a porcentagem de projetos em andamento
-    const inProgressStatus = data.projectStatusCounts?.find((s: any) => ['in-progress', 'em andamento', 'em_andamento'].includes(s?.status?.toLowerCase()));
-    this.activeProjects = inProgressStatus?.count || 0;
+      // Obtém as atividades pendentes do usuário
+      const pendingActivities = userEntry?.pendingActivities || [];
 
-    // Calcula a porcentagem de projetos em andamento em relação ao total de projetos
-    const totalStatusCount = data.projectStatusCounts?.reduce((sum: number, status: any) => sum + (status?.count || 0), 0) || 0;
-    this.projectInProgressPercentage = totalStatusCount > 0 ? Math.round((this.activeProjects / totalStatusCount) * 100) : 0;
+      // Extrai os IDs dos projetos associados às atividades do usuário
+      const userProjectIds = [...new Set(pendingActivities.map((activity: any) => activity.projectId))];
 
-    this.processProjectHoursData(data.projectHoursData || []);
-    this.processUserHoursData(data.userHoursData || []);
-    this.processPendingActivities(data.pendingActivitiesByUser || []);
+      // Filtra os dados de projetos para mostrar apenas os do usuário
+      const userProjects = (data.projectHoursData || []).filter((project: any) =>
+        userProjectIds.includes(project.projectId)
+      );
 
-    this.initCharts(data.projectStatusCounts || []);
+      // Encontra as horas totais do usuário
+      const userHours = (data.userHoursData || []).find((user: any) => user.userId == this.currentUserId);
+
+      // Atualiza os contadores
+      this.totalProjects = userProjects.length;
+      this.totalActivities = pendingActivities.length;
+      this.totalHours = userHours?.totalHours || 0;
+
+      // Processa os dados dos projetos e as atividades pendentes
+      this.processProjectHoursData(userProjects);
+      this.processPendingActivities(userActivitiesByUser);
+
+      // Inicializa os gráficos específicos para o usuário
+      const userProjectStatusCounts = this.calculateUserProjectStatusCounts(userProjects);
+      this.initCharts(userProjectStatusCounts);
+    } else {
+      // Admin vê todos os dados
+      this.totalProjects = data.totalProjects || 0;
+      this.totalActivities = data.totalActivities || 0;
+      this.totalHours = data.totalHours || 0;
+
+      // Calcula a porcentagem de projetos em andamento
+      const inProgressStatus = data.projectStatusCounts?.find((s: any) => ['in-progress', 'em andamento', 'em_andamento'].includes(s?.status?.toLowerCase()));
+      this.activeProjects = inProgressStatus?.count || 0;
+
+      // Calcula a porcentagem de projetos em andamento em relação ao total de projetos
+      const totalStatusCount = data.projectStatusCounts?.reduce((sum: number, status: any) => sum + (status?.count || 0), 0) || 0;
+      this.projectInProgressPercentage = totalStatusCount > 0 ? Math.round((this.activeProjects / totalStatusCount) * 100) : 0;
+
+      this.processProjectHoursData(data.projectHoursData || []);
+      this.processUserHoursData(data.userHoursData || []);
+      this.processPendingActivities(data.pendingActivitiesByUser || []);
+      this.initCharts(data.projectStatusCounts || []);
+    }
+
     this.isLoading = false;
   }
 
-  // Processa atividades pendentes do usuario logado
+  // Método auxiliar para calcular a contagem de status dos projetos do usuário
+  calculateUserProjectStatusCounts(userProjects: any[]): any[] {
+    const statusCounts: { [key: string]: { status: string, count: number } } = {};
+
+    userProjects.forEach(project => {
+      const status = project.projectStatus?.toLowerCase() || 'unknown';
+      if (!statusCounts[status]) {
+        statusCounts[status] = { status, count: 0 };
+      }
+      statusCounts[status].count += 1;
+    });
+
+    return Object.values(statusCounts);
+  }
+
+  // Processa atividades pendentes baseado na role do usuário
   processPendingActivities(userActivities: any[]) {
     if (!userActivities?.length) {
       this.pendingActivities = [];
+      this.allPendingActivities = [];
       return;
     }
 
-    // Procura usuario pela ID (como número ou string)
+    // Armazena todas as atividades pendentes para admins
+    this.allPendingActivities = userActivities;
+
+    if (this.isAdminUser) {
+      // Para admin, mostramos as atividades pendentes de todos usuários
+      // e selecionamos o primeiro usuário por padrão para exibir
+      if (userActivities.length > 0) {
+        this.selectUserActivities(userActivities[0].userId);
+      }
+      return;
+    }
+
+    // Para usuário normal, procura apenas suas atividades
     const userEntry = this.currentUserId && userActivities.find(
       user => user.userId == this.currentUserId
     );
@@ -144,7 +230,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     this.pendingActivities = [];
     if (this.currentUserId && this.topUsers?.length) {
       const userFromHours = this.topUsers.find(user =>
-        parseInt(user.name, 10) === this.currentUserId
+        user.userId === this.currentUserId
       );
 
       if (userFromHours) {
@@ -154,6 +240,19 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
           initials: userFromHours.initials
         };
       }
+    }
+  }
+
+  // Método para admin selecionar qual usuário deseja visualizar
+  selectUserActivities(userId: number) {
+    const userEntry = this.allPendingActivities.find(user => user.userId === userId);
+    if (userEntry) {
+      this.selectedUser = {
+        userId: userEntry.userId,
+        userName: userEntry.userName,
+        initials: userEntry.initials
+      };
+      this.pendingActivities = userEntry.pendingActivities || [];
     }
   }
 
@@ -217,7 +316,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
         name: user.userName || 'Usuário sem nome',
         hours: user.totalHours || 0,
         initials: user.initials || this.getInitials(user.userName || ''),
-        color: this.userColors[index % this.userColors.length]
+        color: this.userColors[index % this.userColors.length],
+        userId: user.userId
       }));
 
     this.maxUserHours = this.topUsers.length > 0 ? Math.max(...this.topUsers.map(user => user.hours), 1) : 1;
@@ -429,7 +529,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     return `${adjustedHours}:${minutesStr}`;
   }
 
-  refreshData() {
-    this.loadDashboardData();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
