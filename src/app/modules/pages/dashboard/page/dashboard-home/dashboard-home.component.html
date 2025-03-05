@@ -85,7 +85,7 @@
 
     <!-- Atividades pendentes - ADMIN -->
     <div class="col-12 md:col-6 lg:col-6" *ngIf="isAdminUser">
-      <p-card [header]="selectedUser ? 'Atividades de ' + selectedUser.userName : 'Selecione um usuário'" styleClass="pending-activities-card">
+      <p-card [header]="selectedUser ? 'Atividades de ' + selectedUser.userName : 'Selecione um usuário'" styleClass="chart-card pending-activities-card">
         <div class="user-selector mb-3">
           <p-dropdown
             [options]="allPendingActivities"
@@ -145,7 +145,7 @@
 
     <!-- Atividades pendentes - USER -->
     <div class="col-12 md:col-6 lg:col-6" *ngIf="!isAdminUser">
-      <p-card [header]="currentUser ? 'Atividades Pendentes - ' + currentUser.userName : 'Minhas Atividades Pendentes'" styleClass="pending-activities-card">
+      <p-card [header]="currentUser ? 'Atividades Pendentes - ' + currentUser.userName : 'Minhas Atividades Pendentes'" styleClass="chart-card pending-activities-card">
         <div *ngIf="!isLoading" class="pending-activities-container">
           <div *ngIf="pendingActivities.length === 0" class="no-pending-activities">
             <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--green-500);"></i>
