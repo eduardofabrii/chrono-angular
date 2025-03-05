@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { AuthResponse } from '../../models/interfaces/auth/AuthResponse';
 import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
 import { environment } from '../../../environments/environment.prod';
 import { CookieService } from 'ngx-cookie-service';
+import { User } from '../../models/interfaces/register/User';
 
 import jwt_decode from 'jwt-decode';
 
@@ -32,6 +33,18 @@ export class UserService {
   getUsers(): Observable<{ id: number, name: string, email: string }[]> {
     const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
     return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user`, { headers });
+  }
+
+  registerUser(user: User): Observable<User> {
+    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
+    return this.http.post<User>(`${this.API_URL}/v1/user`, user, { headers });
+  }
+
+  getUserRoles(): { label: string, value: string }[] {
+    return [
+      { label: 'Usuário', value: 'USER' },
+      { label: 'Administrador', value: 'ADMIN' }
+    ];
   }
 
   getUsername(): string | null {
