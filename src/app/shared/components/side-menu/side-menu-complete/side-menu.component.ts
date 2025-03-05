@@ -15,6 +15,7 @@ export class SideMenuComponent implements OnInit {
   username: string | null = null;
   items: MenuItem[] | undefined;
   isCollapsed = true;
+  isMobileMenuVisible = false;
 
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
@@ -25,7 +26,13 @@ export class SideMenuComponent implements OnInit {
   }
 
   toggleMenu() {
-    this.isCollapsed = !this.isCollapsed;
+    // Mobile
+    if (window.innerWidth < 768) {
+      this.isMobileMenuVisible = !this.isMobileMenuVisible;
+    } else {
+      // PC
+      this.isCollapsed = !this.isCollapsed;
+    }
   }
 
   logout() {
