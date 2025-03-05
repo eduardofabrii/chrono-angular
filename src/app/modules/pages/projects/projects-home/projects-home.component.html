@@ -8,7 +8,7 @@
   </div>
 
   <div class="p-toolbar-group-center">
-    <span class="p-input-icon-left">
+    <span class="p-input-icon-left" style="width: 100%;">
       <i class="pi pi-search"></i>
       <input
         pInputText
@@ -82,7 +82,7 @@
   [modal]="true"
   [(visible)]="isVisibleShowMoreDialog"
   [style]="{ width: '50rem', 'max-height': '90vh' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
   (onHide)="onCloseDialog('showMore')">
 
   <div *ngIf="selectedProject" class="project-details">
@@ -97,7 +97,11 @@
 </p-dialog>
 
 <!-- Modal/Dialog de criar projeto -->
-<p-dialog *ngIf="role === 'ADMIN'" header="Novo Projeto" [(visible)]="isVisibleNewProjectDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
+<p-dialog *ngIf="role === 'ADMIN'" header="Novo Projeto"
+  [(visible)]="isVisibleNewProjectDialog"
+  [modal]="true"
+  [style]="{ width: '50rem', 'max-height': '90vh' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }">
   <div class="p-fluid">
     <form [formGroup]="addProjectForm">
       <div class="p-field" style="margin-bottom: 1rem;">
@@ -113,12 +117,12 @@
       <div class="flex flex-row gap-3 align-items-center">
         <div class="p-field flex-1 relative" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true" [touchUI]="true"></p-calendar>
         </div>
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true" [touchUI]="true"></p-calendar>
         </div>
       </div>
 
@@ -165,7 +169,7 @@
   [(visible)]="isVisibleEditProjectDialog"
   [modal]="true"
   [style]="{ width: '50rem', 'max-height': '90vh' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
   (onHide)="onCloseDialog('editProject')">
   <div class="p-fluid">
     <form [formGroup]="editProjectForm">
@@ -195,12 +199,12 @@
         <div class="flex flex-row gap-3 align-items-center">
           <div class="p-field flex-1" style="margin-bottom: 1rem;">
             <label for="editDataInicio">Data de Início</label>
-            <p-calendar id="editDataInicio" formControlName="startDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+            <p-calendar id="editDataInicio" formControlName="startDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" [touchUI]="true"></p-calendar>
           </div>
 
           <div class="p-field flex-1" style="margin-bottom: 1rem;">
             <label for="editDataFim">Data de Fim</label>
-            <p-calendar id="editDataFim" formControlName="endDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+            <p-calendar id="editDataFim" formControlName="endDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" [touchUI]="true"></p-calendar>
           </div>
         </div>
 
@@ -240,7 +244,7 @@
   [(visible)]="isVisibleDeleteProjectDialog"
   [modal]="true"
   [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
   (onHide)="onCloseDialog('deleteProject')">
   <div class="p-fluid">
     <div class="p-field">
@@ -268,7 +272,7 @@
   [(visible)]="isVisibleConfirmDeleteDialog"
   [modal]="true"
   [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
   (onHide)="onCloseDialog('confirmDelete')">
   <div class="p-fluid">
     <div class="p-field">
@@ -288,7 +292,7 @@
   [(visible)]="isVisibleDeleteErrorDialog"
   [modal]="true"
   [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
   (onHide)="onCloseDialog('deleteError')">
   <div class="p-fluid">
     <div class="p-field">
