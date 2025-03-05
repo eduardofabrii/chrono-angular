@@ -8,6 +8,7 @@ import { ProjectsHomeComponent } from './modules/pages/projects/projects-home/pr
 import { ActivitiesHomeComponent } from './modules/pages/activities/page/activities-home/activities-home.component';
 import { ReleaseTimeHomeComponent } from './modules/pages/release-time/page/release-time-home/release-time-home.component';
 import { DashboardHomeComponent } from './modules/pages/dashboard/page/dashboard-home/dashboard-home.component';
+import { RegisterHomeComponent } from './modules/pages/register/page/register-home/register-home.component';
 
 const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -20,6 +21,7 @@ const routes: Routes = [
       { path: 'projects', component: ProjectsHomeComponent, title: 'Chrono | Projetos'},
       { path: 'projects/activities/:id', component: ActivitiesHomeComponent, title: 'Chrono | Atividades' },
       { path: 'hours', component: ReleaseTimeHomeComponent, title: 'Chrono | Lançamento de Horas' },
+      { path: 'register', component: RegisterHomeComponent, title: 'Chrono | Registro de Usuários' },
     ]
   },
   { path: '**', redirectTo: 'dashboard' }
