@@ -1,9 +1,21 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RegisterHomeComponent } from './page/register-home/register-home.component';
+import { ReactiveFormsModule } from '@angular/forms';
+
+// PrimeNG
 import { ToolbarModule } from 'primeng/toolbar';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { DropdownModule } from 'primeng/dropdown';
+import { ToastModule } from 'primeng/toast';
+import { CardModule } from 'primeng/card';
+import { DividerModule } from 'primeng/divider';
+import { RippleModule } from 'primeng/ripple';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { TooltipModule } from 'primeng/tooltip';
 
-
+import { RegisterHomeComponent } from './page/register-home/register-home.component';
 
 @NgModule({
   declarations: [
@@ -11,9 +23,18 @@ import { ToolbarModule } from 'primeng/toolbar';
   ],
   imports: [
     CommonModule,
-
-    // PrimeNg
+    ReactiveFormsModule,
     ToolbarModule,
+    InputTextModule,
+    ButtonModule,
+    DropdownModule,
+    ToastModule,
+    CardModule,
+    DividerModule,
+    RippleModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    TooltipModule
   ]
 })
 export class RegisterModule { }
