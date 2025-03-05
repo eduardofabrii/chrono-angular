@@ -16,6 +16,7 @@ export class SideMenuComponent implements OnInit {
   items: MenuItem[] | undefined;
   isCollapsed = true;
   isMobileMenuVisible = false;
+  isAdmin = false;
 
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
@@ -23,6 +24,7 @@ export class SideMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.username = this.userService.getUsername();
+    this.isAdmin = this.userService.isAdmin();
   }
 
   toggleMenu() {
