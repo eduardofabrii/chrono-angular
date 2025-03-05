@@ -55,4 +55,58 @@
   padding: 0;
 }
 
+// Celulares
+@media screen and (max-width: 768px) {
+  .cards {
+    display: block;
+    justify-content: center;
+  }
+
+  ::ng-deep .p-card {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+
+  ::ng-deep .p-toolbar {
+    flex-wrap: wrap;
+  }
+
+  ::ng-deep .p-toolbar-group-start,
+  ::ng-deep .p-toolbar-group-center,
+  ::ng-deep .p-toolbar-group-end {
+    margin: 0.5rem 0;
+  }
+
+  ::ng-deep .p-toolbar-group-center {
+    width: 100%;
+  }
+
+  ::ng-deep .p-toolbar-group-center .p-input-icon-left {
+    width: 100%;
+  }
+
+  ::ng-deep .p-toolbar-group-center input {
+    width: 100%;
+  }
+
+  .flex.p-toolbar-group-end {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .flex.align-items-center.gap-2 {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem !important;
+  }
+
+  .flex.flex-row {
+    flex-direction: column !important;
+  }
+
+  .p-field.flex-1 {
+    width: 100% !important;
+  }
+}
+
 
