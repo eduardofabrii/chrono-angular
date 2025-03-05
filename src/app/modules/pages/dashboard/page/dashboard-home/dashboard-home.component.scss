@@ -1,8 +1,21 @@
 // Toolbar
 .pi-home {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-right: 10px;
+  font-size: 24px;
+  font-weight: 600;
+  margin-right: 0.7rem;
+  color: #4361ee;
+  background: rgba(67, 97, 238, 0.1);
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(67, 97, 238, 0.2);
+    transform: scale(1.05);
+  }
 }
 
 ::ng-deep .p-card {
