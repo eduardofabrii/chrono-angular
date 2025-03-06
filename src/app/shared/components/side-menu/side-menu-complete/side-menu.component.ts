@@ -42,6 +42,10 @@ export class SideMenuComponent implements OnInit {
     void this.router.navigate(['']);
   }
 
+  goToEditUser() {
+    void this.router.navigate(['edit-user']);
+  }
+
   openReleaseTimeDialog() {
     this.releaseTimeComponent.openDialog();
   }
