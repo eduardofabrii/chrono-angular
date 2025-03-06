@@ -1,0 +1,91 @@
+<div class="register-container">
+  <!-- Toolbar -->
+  <p-toolbar>
+    <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
+      <i class="pi pi-user-edit"></i>
+      <span class="register-title">
+        Editar Perfil
+      </span>
+    </div>
+  </p-toolbar>
+
+  <div class="register-card">
+    <div class="form-container">
+      <h2 class="form-title">Dados do Perfil</h2>
+
+      <p-card *ngIf="loadingUser" styleClass="loading-card">
+        <div class="loading-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          <p>Carregando dados do usuário...</p>
+        </div>
+      </p-card>
+
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" *ngIf="!loadingUser">
+        <div class="grid">
+          <div class="col-12 md:col-6 field-container">
+            <label for="name" class="required-field">Nome</label>
+            <span class="p-input-icon-left">
+              <i class="pi pi-user"></i>
+              <input id="name" type="text" pInputText formControlName="name"
+                    placeholder="Digite o nome completo"
+                    [ngClass]="{'ng-invalid ng-dirty': formControls['name'].invalid && formControls['name'].touched}">
+            </span>
+            <small *ngIf="formControls['name'].invalid && formControls['name'].touched" class="error-message">
+              <i class="pi pi-exclamation-circle"></i> Nome é obrigatório
+            </small>
+          </div>
+
+          <div class="col-12 md:col-6 field-container">
+            <label for="email" class="required-field">Email</label>
+            <span class="p-input-icon-left">
+              <i class="pi pi-envelope"></i>
+              <input id="email" type="email" pInputText formControlName="email"
+                    placeholder="Digite o email"
+                    [ngClass]="{'ng-invalid ng-dirty': formControls['email'].invalid && formControls['email'].touched}">
+            </span>
+            <small *ngIf="formControls['email'].invalid && formControls['email'].touched" class="error-message">
+              <i class="pi pi-exclamation-circle"></i> Email inválido
+            </small>
+          </div>
+
+          <div class="col-12 md:col-6 field-container">
+            <label for="password">Senha (deixe em branco para manter atual)</label>
+            <span class="p-input-icon-left">
+              <i class="pi pi-lock"></i>
+              <input id="password" type="password" pInputText formControlName="password"
+                    placeholder="Digite uma nova senha"
+                    [ngClass]="{'ng-invalid ng-dirty': formControls['password'].invalid && formControls['password'].touched}">
+            </span>
+            <small *ngIf="formControls['password'].invalid && formControls['password'].touched" class="error-message">
+              <i class="pi pi-exclamation-circle"></i> A senha deve ter no mínimo 6 caracteres
+            </small>
+          </div>
+
+          <div class="col-12 md:col-6 field-container">
+            <label for="confirmPassword">Confirmar Senha</label>
+            <span class="p-input-icon-left">
+              <i class="pi pi-lock-open"></i>
+              <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword"
+                    placeholder="Repita a senha"
+                    [ngClass]="{'ng-invalid ng-dirty': userForm.hasError('mismatch')}">
+            </span>
+            <small *ngIf="userForm.hasError('mismatch')" class="error-message">
+              <i class="pi pi-exclamation-circle"></i> As senhas não coincidem
+            </small>
+          </div>
+
+            <span style="color: gray;">Ao editar algum dado você será redirecionado para fazer o login novamente!</span>
+        </div>
+
+        <div class="submit-button-container">
+          <p-button type="button" label="Cancelar" icon="pi pi-times" styleClass="p-button-text"
+                   [style]="{'margin-right': '1rem'}" (onClick)="resetForm()"></p-button>
+          <p-button type="submit" label="Salvar Alterações" icon="pi pi-save"
+                   [loading]="loading" styleClass="p-button-primary"></p-button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<p-toast position="bottom-right"></p-toast>
