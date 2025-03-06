@@ -9,6 +9,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { User } from '../../models/interfaces/register/User';
 
 import jwt_decode from 'jwt-decode';
+import { Router } from '@angular/router';
 
 interface DecodedToken {
   iss: string;
@@ -25,6 +26,7 @@ export class UserService {
   private readonly API_URL = environment.API_URL;
   private readonly http = inject(HttpClient);
   private readonly cookie = inject(CookieService);
+  private readonly router = inject(Router);
 
   auth(authRequest: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, authRequest);
@@ -87,6 +89,21 @@ export class UserService {
   isAuthenticated(): boolean {
     const jwtToken = this.cookie.get('token');
     return Boolean(jwtToken);
+  }
+
+  putUserById(id: string, user: Partial<User>): Observable<User> {
+    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
+    return this.http.put<User>(`${this.API_URL}/v1/user/${id}`, user, { headers });
+  }
+
+  getUserById(id: string): Observable<User> {
+    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
+    return this.http.get<User>(`${this.API_URL}/v1/user/${id}`, { headers });
+  }
+
+  logout() {
+    this.cookie.delete('token');
+    void this.router.navigate(['']);
   }
 
   getCurrentUserId(): string | null {
