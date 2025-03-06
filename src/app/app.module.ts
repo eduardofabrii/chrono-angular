@@ -20,6 +20,7 @@ import { ActivitiesModule } from './modules/pages/activities/activities.module';
 import { ReleaseTimeModule } from './modules/pages/release-time/release-time.module';
 import { DashboardModule } from './modules/pages/dashboard/dashboard.module';
 import { RegisterModule } from './modules/pages/register/register.module';
+import { EditUserModule } from './modules/pages/edit-user/edit-user.module';
 
 // Registrar o locale pt-BR
 registerLocaleData(localePt, 'pt-BR');
@@ -46,6 +47,7 @@ registerLocaleData(localePt, 'pt-BR');
     ReleaseTimeModule,
     DashboardModule,
     RegisterModule,
+    EditUserModule,
 ],
   providers: [
     CookieService,
