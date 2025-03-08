@@ -1,0 +1,17 @@
+.report-container {
+  padding: 1rem 0;
+}
+
+.report-info {
+  background-color: var(--surface-ground);
+}
+
+:host ::ng-deep {
+  .p-multiselect {
+    width: 100%;
+  }
+
+  .p-calendar {
+    width: 100%;
+  }
+}

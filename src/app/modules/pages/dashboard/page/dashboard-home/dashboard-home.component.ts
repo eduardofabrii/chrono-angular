@@ -1,8 +1,9 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 
 import { DashboardService } from '../../../../../services/dashboard/dashboard.service';
 import { UserService } from '../../../../../services/user/user.service';
+import { ProjectReportComponent } from '../../../../components/project-report/project-report.component';
 
 import { MessageService } from 'primeng/api';
 
@@ -90,6 +91,9 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
+
+  // Referência ao componente de relatório
+  @ViewChild('projectReport') projectReport!: ProjectReportComponent;
 
   ngOnInit() {
     this.isAdminUser = this.userService.isAdmin();
@@ -509,24 +513,41 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   /**
    * Formata horas decimais para o formato HH:MM
-   * Ex: 1.5h → 1h30min
+   * Ex: 1.5h → 1:30
    */
   formatHours(decimalHours: number): string {
-    const hours = Math.floor(decimalHours);
-    const minutes = Math.round((decimalHours - hours) * 60);
+    if (isNaN(decimalHours)) return '0:00';
 
-    let adjustedHours = hours;
-    let adjustedMinutes = minutes;
+    // Calcula a parte inteira (horas)
+    let hours = Math.floor(decimalHours);
 
+    // Calcula os minutos a partir da parte decimal
+    // Multiplica por 60 para converter decimal para minutos
+    let minutes = Math.round((decimalHours - hours) * 60);
+
+    // Se os minutos chegarem a 60, incrementa a hora
     if (minutes === 60) {
-      adjustedHours += 1;
-      adjustedMinutes = 0;
+      hours += 1;
+      minutes = 0;
     }
 
-    // Adiciona zero à esquerda se necessário
-    const minutesStr = adjustedMinutes < 10 ? `0${adjustedMinutes}` : `${adjustedMinutes}`;
+    // Formata os minutos com zero à esquerda quando necessário
+    const minutesStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
 
-    return `${adjustedHours}:${minutesStr}`;
+    return `${hours}:${minutesStr}`;
+  }
+
+  openReportDialog() {
+    if (this.topProjects.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Não há projetos disponíveis para gerar relatório.'
+      });
+      return;
+    }
+
+    this.projectReport.show(this.topProjects);
   }
 
   ngOnDestroy() {

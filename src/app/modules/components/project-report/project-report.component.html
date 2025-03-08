@@ -1,0 +1,67 @@
+<p-dialog
+  [(visible)]="visible"
+  [style]="{width: '550px'}"
+  header="Gerar Relatório de Horas por Projeto"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closeOnEscape]="true">
+
+  <div class="report-container p-fluid">
+    <!-- Seleção de projetos -->
+    <div class="field mb-4">
+      <label for="projects" class="font-medium mb-2 block">Selecione os Projetos</label>
+      <p-multiSelect
+        [options]="projects"
+        [(ngModel)]="selectedProjects"
+        optionLabel="name"
+        [filter]="true"
+        filterBy="name"
+        placeholder="Selecione os projetos"
+        display="chip"
+        [showToggleAll]="true"
+        styleClass="w-full">
+      </p-multiSelect>
+      <small class="block text-gray-500 mt-1">
+        Projetos selecionados: {{selectedProjects.length}} de {{projects.length}}
+      </small>
+    </div>
+
+    <!-- Informação sobre o relatório -->
+    <div class="report-info mt-3 mb-3 p-3 border-1 surface-border border-round bg-gray-50">
+      <div class="flex align-items-center">
+        <i class="pi pi-info-circle text-blue-500 mr-2"></i>
+        <span class="font-medium">Informações do relatório</span>
+      </div>
+      <ul class="list-none p-0 m-0 mt-2 text-sm text-gray-600">
+        <li class="mb-2 flex align-items-center">
+          <i class="pi pi-check-circle text-green-500 mr-2"></i>
+          O relatório será gerado em formato PDF
+        </li>
+        <li class="mb-2 flex align-items-center">
+          <i class="pi pi-check-circle text-green-500 mr-2"></i>
+          Inclui o total de horas trabalhadas por projeto
+        </li>
+        <li class="flex align-items-center">
+          <i class="pi pi-check-circle text-green-500 mr-2"></i>
+          Mostra o status atual de cada projeto
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        styleClass="p-button-text"
+        (click)="hide()"></p-button>
+      <p-button
+        label="Gerar Relatório"
+        icon="pi pi-file-pdf"
+        (click)="generateReport()"
+        [loading]="isLoading"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
