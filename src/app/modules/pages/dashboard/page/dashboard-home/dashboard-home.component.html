@@ -20,6 +20,13 @@
   </div>
 
   <div class="flex p-toolbar-group-end">
+    <p-button
+      icon="pi pi-file-pdf"
+      styleClass="p-button-outlined p-button-info mr-2"
+      pTooltip="Gerar relatório"
+      tooltipPosition="bottom"
+      (onClick)="openReportDialog()"
+      [disabled]="isLoading"></p-button>
     <p-button icon="pi pi-refresh" styleClass="p-button-text" (onClick)="loadDashboardData()" [loading]="isLoading"></p-button>
   </div>
 </p-toolbar>
@@ -217,3 +224,6 @@
 
 <!-- Toast para notificações -->
 <p-toast></p-toast>
+
+<!-- Relatório -->
+<app-project-report #projectReport></app-project-report>
