@@ -119,19 +119,12 @@ export class ReportService {
 
   private getProjectStatus(status: string): string {
     const statusMap: { [key: string]: string } = {
-      'in-progress': 'Em andamento',
-      'em andamento': 'Em andamento',
       'em_andamento': 'Em andamento',
-      'completed': 'Concluído',
       'concluido': 'Concluído',
-      'concluído': 'Concluído',
       'delayed': 'Atrasado',
       'atrasado': 'Atrasado',
-      'not-started': 'Não iniciado',
-      'não iniciado': 'Não iniciado',
-      'nao_iniciado': 'Não iniciado',
       'cancelado': 'Cancelado',
-      'canceled': 'Cancelado'
+      'planejado': 'Planejado',
     };
 
     return statusMap[status?.toLowerCase()] || status || 'Não definido';
