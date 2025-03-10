@@ -7,6 +7,7 @@ import { SharedModule } from '../../../shared/shared.module';
 import { ProjectReportComponent } from '../../components/project-report/project-report.component';
 
 import { ProgressBarModule } from 'primeng/progressbar';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
@@ -39,6 +40,7 @@ import { TooltipModule } from 'primeng/tooltip';
     DialogModule,
     MultiSelectModule,
     TooltipModule,
+    CheckboxModule,
 
     SharedModule
   ]

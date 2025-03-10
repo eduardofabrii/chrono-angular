@@ -6,12 +6,69 @@
   background-color: var(--surface-ground);
 }
 
+.status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-card);
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  
+  &.cancelado {
+    background-color: #FFCDD2;
+    color: #C63737;
+  }
+  
+  &.em_andamento {
+    background-color: #C8E6C9;
+    color: #256029;
+  }
+  
+  &.concluido {
+    background-color: #B3E5FC;
+    color: #23547B;
+  }
+  
+  &.atrasado {
+    background-color: #FFE0B2;
+    color: #805B36;
+  }
+  
+  &.planejado {
+    background-color: #E1BEE7;
+    color: #7B1FA2;
+  }
+  
+  &.nao_iniciado {
+    background-color: #E1BEE7;
+    color: #7B1FA2;
+  }
+}
+
 :host ::ng-deep {
   .p-multiselect {
     width: 100%;
   }
-
-  .p-calendar {
-    width: 100%;
+  
+  .field-checkbox {
+    margin-bottom: 0.5rem;
+    
+    label {
+      margin-left: 0.5rem;
+    }
   }
 }

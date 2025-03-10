@@ -1,6 +1,6 @@
 <p-dialog
   [(visible)]="visible"
-  [style]="{width: '550px'}"
+  [style]="{width: '650px'}"
   header="Gerar Relatório de Horas por Projeto"
   [modal]="true"
   [draggable]="false"
@@ -8,8 +8,25 @@
   [closeOnEscape]="true">
 
   <div class="report-container p-fluid">
-    <!-- Seleção de projetos -->
-    <div class="field mb-4">
+    <!-- Filtro por status de projeto -->
+    <div class="field mt-2 mb-4">
+      <label class="font-medium mb-2 block">Filtrar por Status</label>
+      <div class="status-options">
+        <div *ngFor="let status of projectStatusOptions" class="status-item p-2 mb-2 border-round">
+          <p-checkbox 
+            [(ngModel)]="status.selected" 
+            [binary]="true" 
+            [inputId]="'status_' + status.value"
+            (onChange)="onStatusChange()">
+          </p-checkbox>
+          <label [for]="'status_' + status.value" class="ml-2">
+            <span [class]="'status-badge ' + status.value">{{status.label}}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field mb-3">
       <label for="projects" class="font-medium mb-2 block">Selecione os Projetos</label>
       <p-multiSelect
         [options]="projects"
@@ -27,11 +44,19 @@
       </small>
     </div>
 
-    <!-- Informação sobre o relatório -->
-    <div class="report-info mt-3 mb-3 p-3 border-1 surface-border border-round bg-gray-50">
+    <!-- Informação sobre status e filtros -->
+    <div *ngIf="projects.length === 0" class="mt-3 p-3 border-1 surface-border border-round bg-blue-50">
       <div class="flex align-items-center">
         <i class="pi pi-info-circle text-blue-500 mr-2"></i>
-        <span class="font-medium">Informações do relatório</span>
+        <span class="text-sm">Nenhum projeto corresponde aos filtros selecionados. Modifique os filtros de status para ver projetos.</span>
+      </div>
+    </div>
+
+    <!-- Resumo do relatório -->
+    <div class="report-info p-3 mt-4 border-1 surface-border border-round bg-gray-50">
+      <div class="flex align-items-center">
+        <i class="pi pi-info-circle text-blue-500 mr-2"></i>
+        <span class="font-medium">Resumo do Relatório</span>
       </div>
       <ul class="list-none p-0 m-0 mt-2 text-sm text-gray-600">
         <li class="mb-2 flex align-items-center">
@@ -40,11 +65,11 @@
         </li>
         <li class="mb-2 flex align-items-center">
           <i class="pi pi-check-circle text-green-500 mr-2"></i>
-          Inclui o total de horas trabalhadas por projeto
+          Projetos: {{selectedProjects.length > 0 ? selectedProjects.length : 'Nenhum selecionado'}}
         </li>
         <li class="flex align-items-center">
           <i class="pi pi-check-circle text-green-500 mr-2"></i>
-          Mostra o status atual de cada projeto
+          Status: {{getSelectedStatusString()}}
         </li>
       </ul>
     </div>
@@ -58,10 +83,11 @@
         styleClass="p-button-text"
         (click)="hide()"></p-button>
       <p-button
-        label="Gerar Relatório"
+        label="Gerar PDF"
         icon="pi pi-file-pdf"
         (click)="generateReport()"
-        [loading]="isLoading"></p-button>
+        [loading]="isLoading"
+        [disabled]="!canGenerateReport()"></p-button>
     </div>
   </ng-template>
 </p-dialog>
