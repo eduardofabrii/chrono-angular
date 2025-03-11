@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { AuthResponse } from '../../models/interfaces/auth/AuthResponse';
 import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
@@ -25,7 +25,7 @@ interface UserApiResponse {
   name: string;
   email: string;
   role?: string;
-  active?: boolean;
+  active: boolean;
   lastLogin?: string;
 }
 
@@ -38,10 +38,11 @@ export class UserService {
   private readonly cookie = inject(CookieService);
   private readonly router = inject(Router);
 
-  // Helper method to get auth headers
+  // Auth headers
   private getAuthHeaders(): HttpHeaders {
+    const token = this.cookie.get('token');
     return new HttpHeaders({
-      Authorization: `Bearer ${this.cookie.get('token')}`
+      Authorization: `Bearer ${token}`
     });
   }
 
@@ -50,20 +51,8 @@ export class UserService {
   }
 
   getUsers(): Observable<UserApiResponse[]> {
-    return this.http.get<UserApiResponse[]>(
-      `${this.API_URL}/v1/user`,
-      { headers: this.getAuthHeaders() }
-    ).pipe(
-      tap(users => {
-        users.forEach(user => {
-          console.log(`API Response - User ${user.name} (${user.id}):`, {
-            active: user.active,
-            lastLogin: user.lastLogin,
-            role: user.role
-          });
-        });
-      })
-    );
+    const url = `${this.API_URL}/v1/user?_=${Date.now()}`;
+    return this.http.get<UserApiResponse[]>(url, { headers: this.getAuthHeaders() });
   }
 
   registerUser(user: User): Observable<User> {
@@ -76,23 +65,41 @@ export class UserService {
 
   toggleUserActiveStatus(userId: string | number, isActive: boolean): Observable<any> {
     const endpoint = isActive
-      ? `${this.API_URL}/v1/user/restore/${userId}` // Activate
-      : `${this.API_URL}/v1/user/soft/${userId}`;   // Deactivate
+      ? `${this.API_URL}/v1/user/restore/${userId}`
+      : `${this.API_URL}/v1/user/soft/${userId}`;
 
-    const method = isActive
-      ? this.http.put.bind(this.http)
-      : this.http.delete.bind(this.http);
+    const request = isActive
+      ? this.http.put(endpoint, {}, { headers: this.getAuthHeaders(), responseType: 'text' })
+      : this.http.delete(endpoint, { headers: this.getAuthHeaders(), responseType: 'text' });
 
-    return method(
-      endpoint,
-      isActive ? {} : null,
-      {
-        headers: this.getAuthHeaders(),
-        responseType: 'text'
-      }
+    return request.pipe(
+      catchError(err => throwError(() => err))
     );
   }
 
+  getUserById(id: string): Observable<User> {
+    return this.http.get<User>(
+      `${this.API_URL}/v1/user/${id}`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  putUserById(id: string, user: Partial<User>): Observable<User> {
+    return this.http.put<User>(
+      `${this.API_URL}/v1/user/${id}`,
+      user,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  getUsersAdmin(): Observable<{ id: number, name: string, email: string }[]> {
+    return this.http.get<{ id: number, name: string, email: string }[]>(
+      `${this.API_URL}/v1/user/admin_users`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  // Role
   getUserRoles(): { label: string, value: string }[] {
     return [
       { label: 'Usuário', value: 'USER' },
@@ -113,51 +120,28 @@ export class UserService {
     return role === 'ADMIN' || role === 'admin';
   }
 
-  getUsersAdmin(): Observable<{ id: number, name: string, email: string }[]> {
-    return this.http.get<{ id: number, name: string, email: string }[]>(
-      `${this.API_URL}/v1/user/admin_users`,
-      { headers: this.getAuthHeaders() }
-    );
-  }
-
   isAuthenticated(): boolean {
     return Boolean(this.cookie.get('token'));
-  }
-
-  putUserById(id: string, user: Partial<User>): Observable<User> {
-    return this.http.put<User>(
-      `${this.API_URL}/v1/user/${id}`,
-      user,
-      { headers: this.getAuthHeaders() }
-    );
-  }
-
-  getUserById(id: string): Observable<User> {
-    return this.http.get<User>(
-      `${this.API_URL}/v1/user/${id}`,
-      { headers: this.getAuthHeaders() }
-    );
-  }
-
-  logout() {
-    this.cookie.delete('token');
-    void this.router.navigate(['']);
   }
 
   getCurrentUserId(): string | null {
     return this.getTokenValue('id');
   }
 
-  // Helper to extract values from token
+  logout(): void {
+    this.cookie.delete('token');
+    void this.router.navigate(['']);
+  }
+
+  // Private helper methods
   private getTokenValue(key: keyof DecodedToken): string | null {
     const token = this.cookie.get('token');
     if (!token) return null;
 
     try {
       const decodedToken = jwt_decode<DecodedToken>(token);
-      const value = decodedToken[key];
-      return value ? String(value) : null;
-    } catch (error) {
+      return decodedToken[key] ? String(decodedToken[key]) : null;
+    } catch {
       return null;
     }
   }
