@@ -84,7 +84,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   ngOnChanges() {
     this.role = this.userService.getRole() ?? '';
     this.getUsers();
-    this.getProjectDetails();
   }
 
   private getUsers(): void {
@@ -97,32 +96,6 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         email: user.email
       }));
     });
-  }
-
-  private getProjectDetails(): void {
-    this.projectsService.getProjectById(this.projectId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (project: any) => {
-          this.projectName = project.name;
-          this.projectStartDate = project.startDate;
-          this.projectEndDate = project.endDate;
-
-          // Formata datas
-          this.displayProjectStartDate = project.startDate ?
-            this.dateUtils.formatDateForDisplay(project.startDate) : null;
-          this.displayProjectEndDate = project.endDate ?
-            this.dateUtils.formatDateForDisplay(project.endDate) : null;
-        },
-        error: (err) => {
-          console.error('Error loading project details:', err);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Não foi possível carregar os detalhes do projeto'
-          });
-        }
-      });
   }
 
   public openNewActivityDialog(): void {
@@ -269,7 +242,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
           },
           error: (err: any) => {
             console.log(err);
-            this.showErrorMessage('Erro', 'Erro ao deletar atividade!');
+            this.showErrorMessage('Erro', 'Essa atividade provavelmente está vinculada a um lançamento de horas!');
           },
         });
     }

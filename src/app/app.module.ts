@@ -45,7 +45,6 @@ registerLocaleData(localePt, 'pt-BR');
     ProjectsModule,
     ActivitiesModule,
     ReleaseTimeModule,
-    DashboardModule,
     RegisterModule,
     EditUserModule,
 ],

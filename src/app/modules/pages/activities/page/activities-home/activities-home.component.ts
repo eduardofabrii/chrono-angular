@@ -18,7 +18,7 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject();
   public filteredActivities: GetActivityResponse[] = [];
   public activities: GetActivityResponse[] = [];
-  public project!: GetProjectResponse;
+  public project: GetProjectResponse = {} as GetProjectResponse;
 
   private readonly route = inject(ActivatedRoute);
   private readonly projectsService = inject(ProjectsService);
@@ -45,7 +45,16 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
 
   private loadProject(projectId: string): void {
     this.projectsService.getProjectById(projectId).subscribe({
-      next: (project) => this.project = project,
+      next: (project) => {
+        if (project) {
+          this.project = project;
+        } else {
+          this.project = {
+            id: projectId,
+            name: 'Projeto não encontrado',
+          } as GetProjectResponse;
+        }
+      },
       error: (err) => console.error('Erro ao buscar projeto:', err)
     });
   }
@@ -62,12 +71,14 @@ export class ActivitiesHomeComponent implements OnInit, OnDestroy {
     return this.project?.name;
   }
 
-  handleActivityCreated(): void {
-    this.subscribeToProjectId();
+  handleActivityCreated(activity: GetActivityResponse): void {
+    // Adiciona a nova atividade no início do array
+    this.filteredActivities = [activity, ...this.filteredActivities];
   }
 
-  handleActivityUpdated(): void {
-    this.subscribeToProjectId();
+  handleActivityUpdated(activity: GetActivityResponse): void {
+    this.filteredActivities = this.filteredActivities.filter(a => a.id !== activity.id);
+    this.filteredActivities = [activity, ...this.filteredActivities];
   }
 
   handleActivityDeleted(): void {

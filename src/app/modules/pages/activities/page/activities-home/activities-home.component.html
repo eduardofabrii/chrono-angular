@@ -19,20 +19,22 @@
 <div class="cards">
   <p-card styleClass="shadow-3 mt-5">
     <div style="max-width: 100%; overflow-x: auto;">
-      <app-activities-form
-        [activities]="activities"
-        [projectId]="project.id"
-        (activityCreated)="handleActivityCreated()"
-        (activityUpdated)="handleActivityUpdated()"
-        (activityDeleted)="handleActivityDeleted()">
-      </app-activities-form>
+      <div class="activities-content">
+        <app-activities-form
+          [activities]="filteredActivities"
+          [projectId]="project.id || ''"
+          (activityCreated)="handleActivityCreated($event)"
+          (activityUpdated)="handleActivityUpdated($event)"
+          (activityDeleted)="handleActivityDeleted()">
+        </app-activities-form>
 
-      <app-activities-table
-        [activities]="filteredActivities"
-        [project]="project"
-        (editActivity)="openEditActivityDialog($event)"
-        (deleteActivity)="openDeleteActivityDialog($event)">
-      </app-activities-table>
+        <app-activities-table
+          [activities]="filteredActivities"
+          [project]="project"
+          (editActivity)="openEditActivityDialog($event)"
+          (deleteActivity)="openDeleteActivityDialog($event)">
+        </app-activities-table>
+      </div>
     </div>
   </p-card>
 </div>

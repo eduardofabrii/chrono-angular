@@ -17,8 +17,8 @@
     <div style="max-width: 100%; overflow-x: auto;">
       <app-release-time-form
         [releaseTimes]="releaseTimeEntries"
-        (releaseTimeCreated)="handleReleaseTimeCreated()"
-        (releaseTimeUpdated)="handleReleaseTimeUpdated()"
+        (releaseTimeCreated)="handleReleaseTimeCreated($event)"
+        (releaseTimeUpdated)="handleReleaseTimeUpdated($event)"
         (releaseTimeDeleted)="handleReleaseTimeDeleted()">
       </app-release-time-form>
 

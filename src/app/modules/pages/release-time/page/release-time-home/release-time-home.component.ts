@@ -70,12 +70,20 @@ export class ReleaseTimeHomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  handleReleaseTimeCreated(): void {
+  handleReleaseTimeCreated(event: any): void {
     this.loadReleaseTimeEntries();
+    const releaseTime = event.releaseTime || event;
+    this.releaseTimeEntries = [releaseTime, ...this.releaseTimeEntries];
   }
 
-  handleReleaseTimeUpdated(): void {
-    this.loadReleaseTimeEntries();
+  handleReleaseTimeUpdated(event: any): void {
+    const updatedReleaseTime = event.releaseTime || event;
+
+    this.releaseTimeEntries = this.releaseTimeEntries.filter(item =>
+      item.id !== updatedReleaseTime.id
+    );
+
+    this.releaseTimeEntries = [updatedReleaseTime, ...this.releaseTimeEntries];
   }
 
   handleReleaseTimeDeleted(): void {
