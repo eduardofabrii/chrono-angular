@@ -146,9 +146,15 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (projects) => {
-            this.projects = [...projects]; // Cria uma nova referência de array
-            this.filteredProjects = [...projects]; // Cria uma nova referência de array
-            // Aguarda receber uma promise para atualizar a view
+            //formata as datas para exibição
+            const formattedProjects = projects.map(project => ({
+              ...project,
+              startDate: this.dateUtils.formatDateForDisplay(project.startDate),
+              endDate: this.dateUtils.formatDateForDisplay(project.endDate)
+            }));
+
+            this.projects = [...formattedProjects];
+            this.filteredProjects = [...formattedProjects];
             setTimeout(() => this.cdr.detectChanges(), 0);
           },
           error: (error) => {

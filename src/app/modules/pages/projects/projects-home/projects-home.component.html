@@ -58,7 +58,7 @@
         <p><strong>Nome do Projeto: </strong> <span pTooltip="{{ project.name }}" tooltipPosition="top">{{ project.name | shorten: 15 }}</span></p>
         <p><strong>Descrição: </strong> <span pTooltip="{{ project.description }}" tooltipPosition="top">{{ project.description | shorten: 20 }}</span></p>
         <p><strong>Responsável: </strong> {{ project.responsible.name | shorten: 20 }}</p>
-        <p><strong>Data de Início: </strong> {{ project.startDate | brDateOnly }}</p>
+        <p><strong>Data de Início: </strong> {{ project.startDate }}</p>
         <p><strong>Status: </strong> {{ project.status }}</p>
       </div>
       <ng-template pTemplate="footer">
@@ -88,8 +88,8 @@
   <div *ngIf="selectedProject" class="project-details">
     <div class="detail-item"><strong>Nome:</strong> {{ selectedProject.name }}</div>
     <div class="detail-item"><strong>Descrição:</strong> {{ selectedProject.description }}</div>
-    <div class="detail-item"><strong>Data de Início:</strong> {{ selectedProject.startDate | brDateOnly }}</div>
-    <div class="detail-item"><strong>Data de Fim:</strong> {{ selectedProject.endDate | brDateOnly }}</div>
+    <div class="detail-item"><strong>Data de Início:</strong> {{ selectedProject.startDate }}</div>
+    <div class="detail-item"><strong>Data de Fim:</strong> {{ selectedProject.endDate }}</div>
     <div class="detail-item"><strong>Status:</strong> {{ selectedProject.status }}</div>
     <div class="detail-item"><strong>Responsável:</strong> {{ selectedProject.responsible.name }}</div>
     <div class="detail-item"><strong>Prioridade:</strong> {{ selectedProject.priority }}</div>
