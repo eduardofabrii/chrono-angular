@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { AuthResponse } from '../../models/interfaces/auth/AuthResponse';
 import { AuthRequest } from '../../models/interfaces/auth/AuthRequest';
@@ -19,6 +20,15 @@ interface DecodedToken {
   exp: number;
 }
 
+interface UserApiResponse {
+  id: number;
+  name: string;
+  email: string;
+  role?: string;
+  active?: boolean;
+  lastLogin?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,18 +38,59 @@ export class UserService {
   private readonly cookie = inject(CookieService);
   private readonly router = inject(Router);
 
+  // Helper method to get auth headers
+  private getAuthHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: `Bearer ${this.cookie.get('token')}`
+    });
+  }
+
   auth(authRequest: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, authRequest);
   }
 
-  getUsers(): Observable<{ id: number, name: string, email: string }[]> {
-    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
-    return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user`, { headers });
+  getUsers(): Observable<UserApiResponse[]> {
+    return this.http.get<UserApiResponse[]>(
+      `${this.API_URL}/v1/user`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(users => {
+        users.forEach(user => {
+          console.log(`API Response - User ${user.name} (${user.id}):`, {
+            active: user.active,
+            lastLogin: user.lastLogin,
+            role: user.role
+          });
+        });
+      })
+    );
   }
 
   registerUser(user: User): Observable<User> {
-    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
-    return this.http.post<User>(`${this.API_URL}/v1/user`, user, { headers });
+    return this.http.post<User>(
+      `${this.API_URL}/v1/user`,
+      user,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  toggleUserActiveStatus(userId: string | number, isActive: boolean): Observable<any> {
+    const endpoint = isActive
+      ? `${this.API_URL}/v1/user/restore/${userId}` // Activate
+      : `${this.API_URL}/v1/user/soft/${userId}`;   // Deactivate
+
+    const method = isActive
+      ? this.http.put.bind(this.http)
+      : this.http.delete.bind(this.http);
+
+    return method(
+      endpoint,
+      isActive ? {} : null,
+      {
+        headers: this.getAuthHeaders(),
+        responseType: 'text'
+      }
+    );
   }
 
   getUserRoles(): { label: string, value: string }[] {
@@ -50,30 +101,11 @@ export class UserService {
   }
 
   getUsername(): string | null {
-    const token = this.cookie.get('token');
-    if (!token) return null;
-
-    try {
-      const decodedToken = jwt_decode<DecodedToken>(token);
-      return decodedToken['sub'] || null;
-    } catch (error) {
-      console.error('Erro ao decodificar o token:', error);
-      return null;
-    }
+    return this.getTokenValue('sub');
   }
 
   getRole(): string | null {
-    const token = this.cookie.get('token');
-    if (token) {
-      try {
-        const decodedToken = jwt_decode<DecodedToken>(token);
-        return decodedToken['role'];
-      } catch (error) {
-        console.error('Erro ao decodificar o token:', error);
-        return null;
-      }
-    }
-    return null;
+    return this.getTokenValue('role');
   }
 
   isAdmin(): boolean {
@@ -82,23 +114,29 @@ export class UserService {
   }
 
   getUsersAdmin(): Observable<{ id: number, name: string, email: string }[]> {
-    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
-    return this.http.get<{ id: number, name: string, email: string }[]>(`${this.API_URL}/v1/user/admin_users`, { headers });
+    return this.http.get<{ id: number, name: string, email: string }[]>(
+      `${this.API_URL}/v1/user/admin_users`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   isAuthenticated(): boolean {
-    const jwtToken = this.cookie.get('token');
-    return Boolean(jwtToken);
+    return Boolean(this.cookie.get('token'));
   }
 
   putUserById(id: string, user: Partial<User>): Observable<User> {
-    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
-    return this.http.put<User>(`${this.API_URL}/v1/user/${id}`, user, { headers });
+    return this.http.put<User>(
+      `${this.API_URL}/v1/user/${id}`,
+      user,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   getUserById(id: string): Observable<User> {
-    const headers = { Authorization: `Bearer ${this.cookie.get('token')}` };
-    return this.http.get<User>(`${this.API_URL}/v1/user/${id}`, { headers });
+    return this.http.get<User>(
+      `${this.API_URL}/v1/user/${id}`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   logout() {
@@ -107,20 +145,18 @@ export class UserService {
   }
 
   getCurrentUserId(): string | null {
-    const token = this.cookie.get('token');
+    return this.getTokenValue('id');
+  }
 
-    if (!token) {
-      return null;
-    }
+  // Helper to extract values from token
+  private getTokenValue(key: keyof DecodedToken): string | null {
+    const token = this.cookie.get('token');
+    if (!token) return null;
 
     try {
       const decodedToken = jwt_decode<DecodedToken>(token);
-
-      if (decodedToken.id) {
-        return decodedToken.id;
-      } else {
-        return null;
-      }
+      const value = decodedToken[key];
+      return value ? String(value) : null;
     } catch (error) {
       return null;
     }

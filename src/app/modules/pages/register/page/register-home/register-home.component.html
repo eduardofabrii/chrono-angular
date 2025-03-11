@@ -3,18 +3,22 @@
   <p-toolbar>
     <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
       <i class="pi pi-user-plus"></i>
-      <span class="register-title">
-        Registrar Usuário
-      </span>
+      <span class="register-title">Registrar Usuário</span>
+    </div>
+    <div class="p-toolbar-group-end">
+      <p-button label="Excluir Usuário" icon="pi pi-trash"
+        (onClick)="openDeleteUserDialog()" styleClass="p-button-raised p-button-danger">
+      </p-button>
     </div>
   </p-toolbar>
 
+  <!-- Registration Form -->
   <div class="register-card">
     <div class="form-container">
       <h2 class="form-title">Preencha os dados do novo usuário</h2>
-
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
         <div class="grid">
+          <!-- Name Field -->
           <div class="col-12 md:col-6 field-container">
             <label for="name" class="required-field">Nome</label>
             <span class="p-input-icon-left">
@@ -28,6 +32,7 @@
             </small>
           </div>
 
+          <!-- Email Field -->
           <div class="col-12 md:col-6 field-container">
             <label for="email" class="required-field">Email</label>
             <span class="p-input-icon-left">
@@ -41,6 +46,7 @@
             </small>
           </div>
 
+          <!-- Password Field -->
           <div class="col-12 md:col-6 field-container">
             <label for="password" class="required-field">Senha</label>
             <span class="p-input-icon-left">
@@ -54,14 +60,15 @@
             </small>
           </div>
 
+          <!-- Confirm Password Field -->
           <div class="col-12 md:col-6 field-container">
             <label for="confirmPassword" class="required-field">Confirmar Senha</label>
             <span class="p-input-icon-left">
               <i class="pi pi-lock-open"></i>
               <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword"
                     placeholder="Repita a senha"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['confirmPassword'].invalid && formControls['confirmPassword'].touched ||
-                                userForm.hasError('mismatch')}">
+                    [ngClass]="{'ng-invalid ng-dirty': formControls['confirmPassword'].invalid &&
+                                 formControls['confirmPassword'].touched || userForm.hasError('mismatch')}">
             </span>
             <small *ngIf="formControls['confirmPassword'].invalid && formControls['confirmPassword'].touched" class="error-message">
               <i class="pi pi-exclamation-circle"></i> Confirmação de senha é obrigatória
@@ -71,6 +78,7 @@
             </small>
           </div>
 
+          <!-- Role Selector -->
           <div class="col-12 field-container">
             <label for="role" class="required-field">Tipo de Usuário</label>
             <p-dropdown id="role" [options]="roles" formControlName="role"
@@ -92,15 +100,113 @@
           </div>
         </div>
 
+        <!-- Form Buttons -->
         <div class="submit-button-container">
           <p-button type="button" label="Cancelar" icon="pi pi-times" styleClass="p-button-text"
-                   [style]="{'margin-right': '1rem'}" (onClick)="resetForm()"></p-button>
+                  [style]="{'margin-right': '1rem'}" (onClick)="resetForm()"></p-button>
           <p-button type="submit" label="Cadastrar Usuário" icon="pi pi-save"
-                   [loading]="loading" styleClass="p-button-primary"></p-button>
+                  [loading]="loading" styleClass="p-button-primary"></p-button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
+<!-- User Management Dialog -->
+<p-dialog
+  header="Gerenciar Usuários"
+  [(visible)]="displayUserDialog"
+  [style]="{width: '70vw'}"
+  [modal]="true"
+  (onHide)="onUserDialogHide()">
+
+  <div class="user-list-container">
+    <p-table
+      [value]="users"
+      [loading]="loadingUsers"
+      [paginator]="true"
+      [rows]="10"
+      [rowHover]="true"
+      styleClass="p-datatable-sm p-datatable-gridlines">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Tipo de Usuário</th>
+          <th style="width: 120px;">Status</th>
+          <th style="width: 180px;">Último Acesso</th> <!-- New column -->
+          <th style="width: 100px;">Ativo</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr [ngClass]="{'inactive-user': !user.active}">
+          <td>{{user.name}}</td>
+          <td>{{user.email}}</td>
+          <td>
+            <span class="user-badge" [class.admin-badge]="user.role === 'ADMIN'">
+              <i class="pi" [ngClass]="user.role === 'ADMIN' ? 'pi-shield' : 'pi-user'"></i>
+              {{user.role === 'ADMIN' ? 'Administrador' : 'Usuário'}}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [class.inactive-badge]="!user.active">
+              <i class="pi" [ngClass]="user.active ? 'pi-check-circle' : 'pi-times-circle'"></i>
+              {{user.active ? 'Ativo' : 'Inativo'}}
+            </span>
+          </td>
+          <td>
+            <span class="last-login-badge">
+              <i class="pi pi-calendar"></i>
+              {{ formatLastLogin(user.lastLogin) }}
+            </span>
+          </td>
+          <td class="text-center">
+            <p-inputSwitch
+              [(ngModel)]="user.active"
+              (onChange)="toggleUserActiveStatus(user, $event.checked)"
+              [disabled]="loadingUsers"
+              pTooltip="{{user.active ? 'Desativar' : 'Ativar'}} Usuário"
+              tooltipPosition="top">
+            </p-inputSwitch>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-4">
+            <div *ngIf="!loadingUsers" class="empty-message">
+              <i class="pi pi-search" style="font-size: 2rem"></i>
+              <p>Nenhum usuário encontrado.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-between w-full">
+      <div>
+        <span *ngIf="loadingUsers" class="mr-2">
+          <i class="pi pi-spin pi-spinner" style="font-size: 1rem"></i>
+          Processando...
+        </span>
+      </div>
+      <button
+        pButton
+        pRipple
+        type="button"
+        label="Fechar"
+        icon="pi pi-times"
+        class="p-button-text"
+        (click)="displayUserDialog = false">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
 <p-toast position="bottom-right"></p-toast>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
