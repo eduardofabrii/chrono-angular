@@ -236,7 +236,15 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
               this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
               this.addProjectForm.reset();
               this.onCloseDialog('newProject');
-              this.loadProjectsBasedOnRole();
+
+              // Adiciona o novo projeto no início do array
+              if (response) {
+                this.projects = [response, ...this.projects];
+                this.filteredProjects = [response, ...this.filteredProjects];
+                setTimeout(() => this.cdr.detectChanges(), 0);
+              } else {
+                this.loadProjectsBasedOnRole();
+              }
             }
           },
           error: (err) => {
@@ -272,12 +280,26 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     this.projectsService.putProject(requestPutProject.id, requestPutProject)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: (updatedProject) => {
           this.showSuccessMessage('Sucesso', 'Projeto atualizado com sucesso!');
           this.editProjectForm.reset();
           this.isEditingProject = false;
           this.onCloseDialog('editProject');
-          this.loadProjectsBasedOnRole();
+
+          // Remove o projeto atual das listas
+          this.projects = this.projects.filter(p => p.id !== requestPutProject.id);
+          this.filteredProjects = this.filteredProjects.filter(p => p.id !== requestPutProject.id);
+
+          // Adiciona o projeto atualizado no início dos arrays
+          if (updatedProject) {
+            this.projects = [updatedProject, ...this.projects];
+            this.filteredProjects = [updatedProject, ...this.filteredProjects];
+          } else {
+            // Se não receber o projeto atualizado, busca todos novamente
+            this.loadProjectsBasedOnRole();
+          }
+
+          setTimeout(() => this.cdr.detectChanges(), 0);
         },
         error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
       });
