@@ -84,6 +84,10 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   ngOnChanges() {
     this.role = this.userService.getRole() ?? '';
     this.getUsers();
+
+    if (this.projectId) {
+      this.loadProjectDetails();
+    }
   }
 
   private getUsers(): void {
@@ -96,6 +100,31 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         email: user.email
       }));
     });
+  }
+
+  private loadProjectDetails(): void {
+    this.projectsService.getProjectById(this.projectId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (project) => {
+          if (project) {
+            this.projectName = project.name;
+            this.projectStartDate = project.startDate;
+            this.projectEndDate = project.endDate;
+
+            if (project.startDate) {
+              this.displayProjectStartDate = this.dateUtils.formatDateForDisplay(project.startDate);
+            }
+            if (project.endDate) {
+              this.displayProjectEndDate = this.dateUtils.formatDateForDisplay(project.endDate);
+            }
+          }
+        },
+        error: (err) => {
+          console.error('Error loading project details:', err);
+          this.showErrorMessage('Erro', 'Não foi possível carregar os detalhes do projeto');
+        }
+      });
   }
 
   public openNewActivityDialog(): void {
