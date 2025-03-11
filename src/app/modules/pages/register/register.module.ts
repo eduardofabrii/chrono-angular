@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { CommonModule, DatePipe } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 // PrimeNG
 import { ToolbarModule } from 'primeng/toolbar';
@@ -14,6 +14,11 @@ import { RippleModule } from 'primeng/ripple';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { InputSwitchModule } from 'primeng/inputswitch';
 
 import { RegisterHomeComponent } from './page/register-home/register-home.component';
 
@@ -24,6 +29,7 @@ import { RegisterHomeComponent } from './page/register-home/register-home.compon
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     ToolbarModule,
     InputTextModule,
     ButtonModule,
@@ -34,7 +40,12 @@ import { RegisterHomeComponent } from './page/register-home/register-home.compon
     RippleModule,
     InputGroupModule,
     InputGroupAddonModule,
-    TooltipModule
-  ]
+    TooltipModule,
+    DialogModule,
+    TableModule,
+    ConfirmDialogModule,
+    InputSwitchModule
+  ],
+  providers: [ConfirmationService, DatePipe]
 })
 export class RegisterModule { }

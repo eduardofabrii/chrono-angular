@@ -1,7 +1,9 @@
 export interface User {
-  id?: string;
+  id?: string | number;
   name: string;
   email: string;
-  password: string;
-  role: 'ADMIN' | 'USER';
+  password?: string;
+  role: string;
+  active?: boolean;
+  lastLogin?: Date | string; // Added last login field
 }
