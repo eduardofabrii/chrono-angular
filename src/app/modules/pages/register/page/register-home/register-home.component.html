@@ -164,10 +164,10 @@
           </td>
           <td class="text-center">
             <p-inputSwitch
-              [(ngModel)]="user.active"
+              [ngModel]="!!user.active"
               (onChange)="toggleUserActiveStatus(user, $event.checked)"
               [disabled]="loadingUsers"
-              pTooltip="{{user.active ? 'Desativar' : 'Ativar'}} Usuário"
+              pTooltip="{{!!user.active ? 'Desativar' : 'Ativar'}} Usuário"
               tooltipPosition="top">
             </p-inputSwitch>
           </td>

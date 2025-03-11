@@ -5,5 +5,6 @@ export interface User {
   password?: string;
   role: string;
   active?: boolean;
-  lastLogin?: Date | string; // Added last login field
+  lastLogin?: Date | string;
+  deletedAt?: Date | string | null;
 }
