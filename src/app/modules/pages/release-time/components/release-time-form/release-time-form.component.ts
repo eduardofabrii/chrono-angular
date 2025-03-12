@@ -106,8 +106,24 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public openEditReleaseTimeDialog(releaseTime: any): void {
     this.isVisibleEditReleaseTime = true;
 
-    const startDate = this.dateUtils.parseDate(releaseTime.startDate);
-    const endDate = this.dateUtils.parseDate(releaseTime.endDate);
+    // Ajuste para preservar o horário corretamente
+    let startDate, endDate;
+
+    if (releaseTime.startDate) {
+      if (typeof releaseTime.startDate === 'string') {
+        startDate = new Date(releaseTime.startDate);
+      } else {
+        startDate = releaseTime.startDate;
+      }
+    }
+
+    if (releaseTime.endDate) {
+      if (typeof releaseTime.endDate === 'string') {
+        endDate = new Date(releaseTime.endDate);
+      } else {
+        endDate = releaseTime.endDate;
+      }
+    }
 
     const selectedActivity = this.activities.find(act => act.id === releaseTime.activity?.id);
     const selectedUser = this.responsibleOptions.find(user => user.id === releaseTime.user?.id);
