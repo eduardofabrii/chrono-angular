@@ -21,6 +21,7 @@ import { ConfirmationService } from 'primeng/api';
 import { InputSwitchModule } from 'primeng/inputswitch';
 
 import { RegisterHomeComponent } from './page/register-home/register-home.component';
+import { SharedModule } from '../../../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,9 @@ import { RegisterHomeComponent } from './page/register-home/register-home.compon
     DialogModule,
     TableModule,
     ConfirmDialogModule,
-    InputSwitchModule
+    InputSwitchModule,
+
+    SharedModule,
   ],
   providers: [ConfirmationService, DatePipe]
 })
