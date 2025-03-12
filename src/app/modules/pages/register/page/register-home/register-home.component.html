@@ -6,8 +6,8 @@
       <span class="register-title">Registrar Usuário</span>
     </div>
     <div class="p-toolbar-group-end">
-      <p-button label="Excluir Usuário" icon="pi pi-trash"
-        (onClick)="openDeleteUserDialog()" styleClass="p-button-raised p-button-danger">
+      <p-button label="Gerenciar Usuários" icon="pi pi-users"
+        (onClick)="openDeleteUserDialog()" styleClass="p-button-raised p-button-info">
       </p-button>
     </div>
   </p-toolbar>
@@ -120,9 +120,58 @@
   [modal]="true"
   (onHide)="onUserDialogHide()">
 
+  <!-- User Statistics Section -->
+  <div class="user-stats-container">
+    <div class="stat-card total-users">
+      <div class="stat-icon">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getTotalUsers()}}</span>
+        <span class="stat-label">Total de Usuários</span>
+      </div>
+    </div>
+
+    <div class="stat-card active-users">
+      <div class="stat-icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getActiveUsers()}}</span>
+        <span class="stat-label">Usuários Ativos</span>
+      </div>
+    </div>
+
+    <div class="stat-card admin-users">
+      <div class="stat-icon">
+        <i class="pi pi-shield"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getAdminUsers()}}</span>
+        <span class="stat-label">Administradores</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <span class="p-input-icon-left p-input-icon-right w-full">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchText"
+        (input)="searchUsers()"
+        placeholder="Pesquisar por nome ou email..."
+        class="w-full"
+      >
+      <i *ngIf="searchText" class="pi pi-times cursor-pointer" (click)="clearSearch()"></i>
+    </span>
+  </div>
+
   <div class="user-list-container">
     <p-table
-      [value]="users"
+      [value]="filteredUsers || users"
       [loading]="loadingUsers"
       [paginator]="true"
       [rows]="10"

@@ -20,6 +20,9 @@ export class RegisterHomeComponent implements OnInit {
   users: User[] = [];
   loadingUsers = false;
 
+  searchText: string = '';
+  filteredUsers: User[] | null = null;
+
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
@@ -86,6 +89,8 @@ export class RegisterHomeComponent implements OnInit {
 
   openDeleteUserDialog(): void {
     this.displayUserDialog = true;
+    this.searchText = '';
+    this.filteredUsers = null;
     this.loadUsers();
   }
 
@@ -159,5 +164,36 @@ export class RegisterHomeComponent implements OnInit {
 
   get formControls(): { [key: string]: AbstractControl } {
     return this.userForm.controls;
+  }
+
+  // Helper methods for statistics (optional)
+  getTotalUsers(): number {
+    return this.users?.length || 0;
+  }
+
+  getActiveUsers(): number {
+    return this.users?.filter(u => u.active)?.length || 0;
+  }
+
+  getAdminUsers(): number {
+    return this.users?.filter(u => u.role === 'ADMIN')?.length || 0;
+  }
+
+  searchUsers(): void {
+    if (!this.searchText.trim()) {
+      this.filteredUsers = null;
+      return;
+    }
+
+    const searchTerm = this.searchText.toLowerCase().trim();
+    this.filteredUsers = this.users.filter(user =>
+      user.name.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  clearSearch(): void {
+    this.searchText = '';
+    this.filteredUsers = null;
   }
 }
