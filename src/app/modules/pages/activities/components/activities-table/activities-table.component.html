@@ -140,8 +140,8 @@
       <td>
         {{ activity.endDate }}
       </td>
-      <td pTooltip="{{ activity.status }}" tooltipPosition="top">
-        {{ activity.status }}
+      <td pTooltip="{{ formatStatus(activity.status) }}" tooltipPosition="top">
+        {{ formatStatus(activity.status) }}
       </td>
       <td pTooltip="{{ activity.responsible.name }}" tooltipPosition="top">
         {{ activity.responsible.name | shorten: 15}}

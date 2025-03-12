@@ -24,6 +24,21 @@ export class ActivitiesTableComponent implements OnInit {
     this.role = this.userService.getRole() ?? '';
   }
 
+  formatStatus(status: string): string {
+    switch (status) {
+      case 'ABERTA':
+        return 'Aberta';
+      case 'EM_ANDAMENTO':
+        return 'Em andamento';
+      case 'CONCLUIDA':
+        return 'Concluída';
+      case 'PAUSADA':
+        return 'Pausada';
+      default:
+        return status;
+    }
+  }
+
   openEditActivityDialog(activity: GetActivityResponse): void {
     this.editActivity.emit(activity); // Emitir a atividade para o home
   }
