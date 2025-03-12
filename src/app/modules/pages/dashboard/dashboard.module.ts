@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { DashboardHomeComponent } from './page/dashboard-home/dashboard-home.component';
 import { SharedModule } from '../../../shared/shared.module';
-import { ProjectReportComponent } from '../../components/project-report/project-report.component';
+import { ProjectReportComponent } from '../report/project-report/project-report.component';
 
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -18,11 +18,11 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DialogModule } from 'primeng/dialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
+import { ProjectReportModule } from '../report/project-report.module';
 
 @NgModule({
   declarations: [
     DashboardHomeComponent,
-    ProjectReportComponent
   ],
   imports: [
     CommonModule,
@@ -42,6 +42,7 @@ import { TooltipModule } from 'primeng/tooltip';
     TooltipModule,
     CheckboxModule,
 
+    ProjectReportModule,
     SharedModule
   ]
 })
