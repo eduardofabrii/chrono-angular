@@ -60,11 +60,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     startDate: [''],
     endDate: [''],
     status: [''],
-    responsible: this.formBuilder.group({
-      id: [''],
-      name: [''],
-      email: ['']
-    }),
+    responsible: [null], // Changed from nested form group to simple control
   });
 
   public editActivityForm: FormGroup = this.formBuilder.group({
@@ -74,11 +70,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     startDate: [''],
     endDate: [''],
     status: [''],
-    responsible: this.formBuilder.group({
-      id: [''],
-      name: [''],
-      email: ['']
-    }),
+    responsible: [null], // Changed from nested form group to simple control
   });
 
   ngOnChanges() {
@@ -140,9 +132,12 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     const responsible = this.responsibleOptions.find(user => user.id === activity.responsible.id);
 
     this.editActivityForm.patchValue({
-      ...activity,
+      id: activity.id,
+      name: activity.name,
+      description: activity.description,
       startDate: startDate,
       endDate: endDate,
+      status: activity.status,
       responsible: responsible || null
     });
   }
@@ -156,6 +151,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (this.addActivityForm.valid) {
       const formattedStartDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.startDate);
       const formattedEndDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.endDate);
+      const responsible = this.addActivityForm.value.responsible;
 
       // Validar se as datas estão dentro do período do projeto
       if (this.projectStartDate && this.projectEndDate) {
@@ -180,9 +176,9 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         endDate: formattedEndDate,
         status: this.addActivityForm.value.status!,
         responsible: {
-          id: this.addActivityForm.value.responsible?.id ?? '',
-          name: this.addActivityForm.value.responsible?.name ?? '',
-          email: this.addActivityForm.value.responsible?.email ?? ''
+          id: responsible?.id ?? '',
+          name: responsible?.name ?? '',
+          email: responsible?.email ?? ''
         },
       };
 
@@ -209,6 +205,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
     if (this.editActivityForm.valid) {
       const formattedStartDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.startDate);
       const formattedEndDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.endDate);
+      const responsible = this.editActivityForm.value.responsible;
 
       // Validar se as datas estão dentro do período do projeto
       if (this.projectStartDate && this.projectEndDate) {
@@ -233,9 +230,9 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
         endDate: formattedEndDate,
         status: this.editActivityForm.value.status!,
         responsible: {
-          id: this.editActivityForm.value.responsible?.id ?? '',
-          name: this.editActivityForm.value.responsible?.name ?? '',
-          email: this.editActivityForm.value.responsible?.email ?? ''
+          id: responsible?.id ?? '',
+          name: responsible?.name ?? '',
+          email: responsible?.email ?? ''
         },
       };
 
