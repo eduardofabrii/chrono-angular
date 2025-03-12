@@ -3,7 +3,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { DashboardService } from '../../../../../services/dashboard/dashboard.service';
 import { UserService } from '../../../../../services/user/user.service';
-import { ProjectReportComponent } from '../../../../components/project-report/project-report.component';
+import { ProjectReportComponent } from '../../../report/project-report/project-report.component';
 
 import { MessageService } from 'primeng/api';
 

@@ -1,8 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ReportService } from '../../../services/report/report.service';
+import { ReportService } from '../../../../services/report/report.service';
 import { MessageService } from 'primeng/api';
-import { FormsModule } from '@angular/forms';
-import { UserService } from '../../../services/user/user.service';
+import { UserService } from '../../../../services/user/user.service';
 
 interface StatusOption {
   label: string;
@@ -21,7 +20,7 @@ export class ProjectReportComponent implements OnInit {
   projects: any[] = [];     // Projetos filtrados para exibição
   selectedProjects: any[] = [];
   isLoading = false;
-  
+
   projectStatusOptions: StatusOption[] = [
     { label: 'Planejado', value: 'planejado', selected: true },
     { label: 'Em Andamento', value: 'em_andamento', selected: true },
@@ -65,7 +64,7 @@ export class ProjectReportComponent implements OnInit {
   // Atualiza a lista de projetos com base nos status selecionados
   updateFilteredProjects() {
     const selectedStatus = this.getSelectedStatus();
-    
+
     if (selectedStatus.length === 0) {
       // Se nenhum status estiver selecionado, não mostramos nenhum projeto
       this.projects = [];
@@ -76,7 +75,7 @@ export class ProjectReportComponent implements OnInit {
       const normalizedStatus = this.normalizeProjectStatus(project.status);
       return selectedStatus.includes(normalizedStatus);
     });
-    
+
     console.log('Projetos filtrados:', this.projects);
     console.log('Status selecionados:', selectedStatus);
   }
@@ -88,10 +87,10 @@ export class ProjectReportComponent implements OnInit {
   }
 
   getSelectedStatusString(): string {
-    const selectedStatuses = this.getSelectedStatus().map(status => 
+    const selectedStatuses = this.getSelectedStatus().map(status =>
       this.getStatusLabel(status)
     );
-    
+
     return selectedStatuses.length > 0 ? selectedStatuses.join(', ') : 'Nenhum';
   }
 
@@ -102,7 +101,7 @@ export class ProjectReportComponent implements OnInit {
 
   normalizeProjectStatus(status: string): string {
     if (!status) return 'planejado';
-    
+
     const statusMap: { [key: string]: string } = {
       'em andamento': 'em_andamento',
       'concluido': 'concluido',
@@ -110,7 +109,7 @@ export class ProjectReportComponent implements OnInit {
       'cancelado': 'cancelado',
       'planejado': 'planejado',
     };
-    
+
     return statusMap[status?.toLowerCase()] || status?.toLowerCase() || 'planejado';
   }
 
