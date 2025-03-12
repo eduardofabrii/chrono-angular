@@ -338,6 +338,21 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  public formatStatus(status: string): string {
+    switch (status) {
+      case 'EM_ANDAMENTO':
+        return 'Em andamento';
+      case 'CONCLUIDO':
+        return 'Concluído';
+      case 'PLANEJADO':
+        return 'Planejado';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  }
+
   private showSuccessMessage(summary: string, detail: string): void {
     this.messageService.add({
       severity: 'success',

@@ -46,7 +46,7 @@ export class ActivitiesFormComponent implements OnChanges, OnDestroy {
 
   public statusOptions = [
     { label: 'Aberta', value: 'ABERTA' },
-    { label: 'Em andamento', value: 'EM_ANDAMENTO' },
+    { label: 'Em Andamento', value: 'EM_ANDAMENTO' },
     { label: 'Concluída', value: 'CONCLUIDA' },
     { label: 'Pausada', value: 'PAUSADA' }
   ];
