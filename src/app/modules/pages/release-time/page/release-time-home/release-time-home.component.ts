@@ -17,6 +17,7 @@ export class ReleaseTimeHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject();
   public releaseTimeEntries: GetReleaseTimeResponse[] = [];
   public isAdmin: boolean = false;
+  public isLoading: boolean = true;
 
   private readonly releaseTimeService = inject(ReleaseTimeService);
   private readonly userService = inject(UserService);
@@ -29,7 +30,9 @@ export class ReleaseTimeHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkUserRole();
-    this.loadReleaseTimeEntries();
+    setTimeout(() => {
+      this.loadReleaseTimeEntries();
+    }, 300);
   }
 
   private checkUserRole(): void {
@@ -51,8 +54,14 @@ export class ReleaseTimeHomeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (entries) => {
           this.releaseTimeEntries = entries;
+          setTimeout(() => {
+            this.isLoading = false;
+          }, 500);
         },
-        error: (err) => console.error('Erro ao buscar lançamentos de horas:', err)
+        error: (err) => {
+          console.error('Erro ao buscar lançamentos de horas:', err);
+          this.isLoading = false;
+        }
       });
   }
 
@@ -64,8 +73,14 @@ export class ReleaseTimeHomeComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (entries) => {
             this.releaseTimeEntries = entries;
+            setTimeout(() => {
+              this.isLoading = false;
+            }, 500);
           },
-          error: (err) => console.error('Erro ao buscar lançamentos de horas do usuário:', err)
+          error: (err) => {
+            console.error('Erro ao buscar lançamentos de horas do usuário:', err);
+            this.isLoading = false;
+          }
         });
     }
   }

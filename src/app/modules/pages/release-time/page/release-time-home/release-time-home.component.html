@@ -12,8 +12,19 @@
   </div>
 </p-toolbar>
 
+<!-- Skeleton Overlay -->
+<app-skeleton-loader
+  *ngIf="isLoading"
+  [overlay]="true"
+  [width]="'360px'"
+  [height]="'240px'"
+  [pulseColor]="'#3B82F6'"
+  [showProgressBar]="true"
+  message="Carregando horas lançadas...">
+</app-skeleton-loader>
+
 <div class="cards">
-  <p-card styleClass="shadow-3 mt-5">
+  <p-card styleClass="shadow-3 mt-5" *ngIf="!isLoading">
     <div style="max-width: 100%; overflow-x: auto;">
       <app-release-time-form
         [releaseTimes]="releaseTimeEntries"
