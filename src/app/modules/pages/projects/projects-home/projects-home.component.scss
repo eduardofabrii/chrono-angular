@@ -28,6 +28,9 @@
   font-size: 1.5rem;
 }
 
+// Remove the skeleton-wrapper styles since we're using overlay mode
+// which is handled by the skeleton-loader component itself
+
 // Toolbar
 .pi-folder-open {
   font-size: 24px;
@@ -120,6 +123,8 @@
   .p-field.flex-1 {
     width: 100% !important;
   }
+
+  // Remove the mobile-specific skeleton styles since we're using overlay
 }
 
 
