@@ -15,6 +15,7 @@ export class RegisterHomeComponent implements OnInit {
   userForm!: FormGroup;
   roles: { label: string, value: string }[] = [];
   loading = false;
+  isLoading = true;
 
   displayUserDialog = false;
   users: User[] = [];
@@ -30,8 +31,11 @@ export class RegisterHomeComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.initForm();
-    this.roles = this.userService.getUserRoles();
+    setTimeout(() => {
+      this.initForm();
+      this.roles = this.userService.getUserRoles();
+      this.isLoading = false;
+    }, 800);
   }
 
   private initForm(): void {
