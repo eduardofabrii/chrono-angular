@@ -32,6 +32,7 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   public name: string = '';
   public role: string | null = '';
   public deleteError: string = 'Não é possível excluir um projeto que possui tarefas associadas.';
+  public isLoading: boolean = true;
 
   projectsService = inject(ProjectsService);
   userService = inject(UserService);
@@ -89,8 +90,10 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.role = this.userService.getRole();
-    this.getUsersAdmin();
-    this.loadProjectsBasedOnRole();
+    setTimeout(() => {
+      this.getUsersAdmin();
+      this.loadProjectsBasedOnRole();
+    }, 300);
   }
 
   private loadProjectsBasedOnRole(): void {
@@ -113,12 +116,17 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
   private getUsersAdmin(): void {
     this.userService.getUsersAdmin()
     .pipe(takeUntil(this.destroy$))
-    .subscribe((users: any[]) => {
-      this.responsibleOptions = users.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }));
+    .subscribe({
+      next: (users: any[]) => {
+        this.responsibleOptions = users.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email
+        }));
+      },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -130,11 +138,16 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
           this.projects = [...projects]; // Cria uma nova referência de array
           this.filteredProjects = [...projects]; // Cria uma nova referência de array
           // Aguarda receber uma promise para atualizar a view
-          setTimeout(() => this.cdr.detectChanges(), 0);
+          // Adiciona um pequeno delay antes de esconder o skeleton para uma transição mais suave
+          setTimeout(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }, 500);
         },
         error: (error) => {
           console.error('Error fetching all projects:', error);
           this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
+          this.isLoading = false;
         }
       });
   }
@@ -155,11 +168,16 @@ export class ProjectsHomeComponent implements OnInit, OnDestroy {
 
             this.projects = [...formattedProjects];
             this.filteredProjects = [...formattedProjects];
-            setTimeout(() => this.cdr.detectChanges(), 0);
+            // Adiciona um pequeno delay antes de esconder o skeleton para uma transição mais suave
+            setTimeout(() => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            }, 500);
           },
           error: (error) => {
             console.error('Error fetching user projects:', error);
             this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
+            this.isLoading = false;
           }
         });
     }
