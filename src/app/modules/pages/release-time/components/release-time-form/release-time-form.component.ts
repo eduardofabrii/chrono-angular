@@ -106,24 +106,9 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public openEditReleaseTimeDialog(releaseTime: any): void {
     this.isVisibleEditReleaseTime = true;
 
-    // Ajuste para preservar o horário corretamente
-    let startDate, endDate;
-
-    if (releaseTime.startDate) {
-      if (typeof releaseTime.startDate === 'string') {
-        startDate = new Date(releaseTime.startDate);
-      } else {
-        startDate = releaseTime.startDate;
-      }
-    }
-
-    if (releaseTime.endDate) {
-      if (typeof releaseTime.endDate === 'string') {
-        endDate = new Date(releaseTime.endDate);
-      } else {
-        endDate = releaseTime.endDate;
-      }
-    }
+    // Improved date parsing logic to handle different formats
+    let startDate = this.parseDate(releaseTime.startDate);
+    let endDate = this.parseDate(releaseTime.endDate);
 
     const selectedActivity = this.activities.find(act => act.id === releaseTime.activity?.id);
     const selectedUser = this.responsibleOptions.find(user => user.id === releaseTime.user?.id);
@@ -141,6 +126,105 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
     // Buscar as datas do projeto associado à atividade selecionada
     this.getProjectFromActivity(selectedActivity);
+  }
+
+  private parseDate(date: any): Date | null {
+    if (!date) {
+      return null;
+    }
+
+    if (date instanceof Date) {
+      return date;
+    }
+
+    if (typeof date === 'string') {
+      let parsedDate = new Date(date);
+
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+
+      if (date.includes('T')) {
+        try {
+          return new Date(date);
+        } catch (e) {
+          console.error('Error parsing ISO date:', e);
+        }
+      }
+
+      // Tenta DD/MM/YYYY HH:mm:ss ou DD/MM/YYYY HH:mm
+      if (date.includes('/') && date.includes(':')) {
+        const [datePart, timePart] = date.split(' ');
+        const dateParts = datePart.split('/');
+        const timeParts = timePart.split(':');
+
+        if (dateParts.length === 3 && timeParts.length >= 2) {
+          const year = parseInt(dateParts[2], 10);
+          const month = parseInt(dateParts[1], 10) - 1;
+          const day = parseInt(dateParts[0], 10);
+          const hour = parseInt(timeParts[0], 10);
+          const minute = parseInt(timeParts[1], 10);
+          const second = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
+
+          return new Date(year, month, day, hour, minute, second);
+        }
+      }
+
+      if (date.includes('/')) {
+        const parts = date.split('/');
+        if (parts.length === 3) {
+          const now = new Date();
+          const year = parseInt(parts[2], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[0], 10);
+
+          return new Date(year, month, day,
+                          now.getHours(), now.getMinutes(), now.getSeconds());
+        }
+      }
+
+      const timeMatch = date.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+      if (timeMatch) {
+        const now = new Date();
+        const hour = parseInt(timeMatch[1], 10);
+        const minute = parseInt(timeMatch[2], 10);
+        const second = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+
+        now.setHours(hour, minute, second, 0);
+        return now;
+      }
+
+      try {
+        const utilsDate = this.dateUtils.parseDate(date);
+        if (utilsDate) {
+          return utilsDate;
+        }
+      } catch (e) {
+        console.error('Error parsing date with dateUtils:', e);
+      }
+    } else if (typeof date === 'object' && date !== null) {
+      try {
+        if (date.hasOwnProperty('date') && date.hasOwnProperty('time')) {
+          return this.parseDate(`${date.date} ${date.time}`);
+        }
+
+        if (date.hasOwnProperty('year') && date.hasOwnProperty('month')) {
+          const year = date.year;
+          const month = date.month - 1;
+          const day = date.day || 1;
+          const hour = date.hour || 0;
+          const minute = date.minute || 0;
+          const second = date.second || 0;
+
+          return new Date(year, month, day, hour, minute, second);
+        }
+      } catch (e) {
+        console.error('Error parsing date object:', e, date);
+      }
+    }
+
+    console.warn('Could not parse date:', date);
+    return null;
   }
 
   private getProjectFromActivity(activity: any): void {
@@ -171,8 +255,6 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
   public onActivityChange(event: any): void {
     const activity = event.value;
-    console.log('Activity changed:', activity);
-
     this.selectedActivity = activity;
     this.getProjectFromActivity(activity);
   }
@@ -214,8 +296,12 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
   public updateReleaseTime(): void {
     if (this.editReleaseTimeForm.valid) {
-      const formattedStartDate = this.dateUtils.formatDateTime(this.editReleaseTimeForm.value.startDate);
-      const formattedEndDate = this.dateUtils.formatDateTime(this.editReleaseTimeForm.value.endDate);
+      // Formatar datas para envio
+      const startDate = this.editReleaseTimeForm.value.startDate;
+      const endDate = this.editReleaseTimeForm.value.endDate;
+
+      const formattedStartDate = startDate ? this.dateUtils.formatDateTime(startDate) : '';
+      const formattedEndDate = endDate ? this.dateUtils.formatDateTime(endDate) : '';
 
       const { id, activity, user, description } = this.editReleaseTimeForm.value;
 
