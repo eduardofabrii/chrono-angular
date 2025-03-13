@@ -35,6 +35,7 @@ export class RegisterHomeComponent implements OnInit {
       this.initForm();
       this.roles = this.userService.getUserRoles();
       this.isLoading = false;
+      this.cdr.detectChanges();
     }, 800);
   }
 
@@ -46,7 +47,7 @@ export class RegisterHomeComponent implements OnInit {
       confirmPassword: ['', [Validators.required]],
       role: ['USER', [Validators.required]]
     }, {
-      validators: this.passwordMatchValidator
+      validators: this.passwordMatchValidator.bind(this)
     });
   }
 
@@ -147,7 +148,7 @@ export class RegisterHomeComponent implements OnInit {
 
   formatLastLogin(lastLogin: Date | string | undefined): string {
     if (!lastLogin) return 'Nunca acessou';
-    const formattedDate = this.datePipe.transform(lastLogin, 'dd/MM/yyyy HH:mm');
+    const formattedDate = this.datePipe.transform(lastLogin, 'dd/MM/yyyy HH:mm:ss');
     return formattedDate || 'Data inválida';
   }
 
