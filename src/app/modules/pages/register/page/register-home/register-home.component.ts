@@ -3,13 +3,13 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../../../../services/user/user.service';
 import { User } from '../../../../../models/interfaces/register/User';
-import { DatePipe } from '@angular/common';
+import { DateUtilsService } from '../../../../../shared/services/date-utils.service';
 
 @Component({
   selector: 'app-register-home',
   templateUrl: './register-home.component.html',
   styleUrl: './register-home.component.scss',
-  providers: [MessageService, DatePipe]
+  providers: [MessageService]
 })
 export class RegisterHomeComponent implements OnInit {
   userForm!: FormGroup;
@@ -27,8 +27,8 @@ export class RegisterHomeComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
-  private readonly datePipe = inject(DatePipe);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly dateUtils = inject(DateUtilsService);
 
   ngOnInit(): void {
     setTimeout(() => {
@@ -103,18 +103,23 @@ export class RegisterHomeComponent implements OnInit {
     this.loadingUsers = true;
     this.userService.getUsers().subscribe({
       next: (users) => {
-        this.users = users.map(user => ({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role || 'USER',
-          active: user.active,
-          lastLogin: user.lastLogin ? new Date(user.lastLogin) : undefined
-        }));
+        console.log('Raw user data from API:', users);
+        this.users = users.map(user => {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role || 'USER',
+            active: user.active,
+            lastLogin: user.lastLogin // Mantém a data no formato original
+          };
+        });
+        console.log('Processed users:', this.users);
         this.loadingUsers = false;
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading users:', err);
         this.showMessage('error', 'Erro', 'Não foi possível carregar a lista de usuários');
         this.loadingUsers = false;
       }
@@ -143,13 +148,25 @@ export class RegisterHomeComponent implements OnInit {
   }
 
   onUserDialogHide(): void {
-    // Clear any selected state
+    this.filteredUsers = null;
+    this.searchText = '';
   }
 
   formatLastLogin(lastLogin: Date | string | undefined): string {
     if (!lastLogin) return 'Nunca acessou';
-    const formattedDate = this.datePipe.transform(lastLogin, 'dd/MM/yyyy HH:mm:ss');
-    return formattedDate || 'Data inválida';
+
+    try {
+      // Se já for uma string formatada corretamente, apenas retorna
+      if (typeof lastLogin === 'string' && lastLogin.match(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/)) {
+        return lastLogin;
+      }
+
+      // Se for uma string ISO, converte para Date
+      return this.dateUtils.formatDateTime(lastLogin) || 'Data inválida';
+    } catch (error) {
+      console.error('Error formatting date:', error, lastLogin);
+      return 'Data inválida';
+    }
   }
 
   private showMessage(severity: string, summary: string, detail: string): void {

@@ -1,9 +1,9 @@
 export interface User {
-  id?: string | number;
+  id?: number;
   name: string;
   email: string;
   password?: string;
-  role: string;
+  role?: string;
   active?: boolean;
   lastLogin?: Date | string;
   deletedAt?: Date | string | null;
