@@ -58,8 +58,9 @@
 
         <!-- Botão de alternância do menu -->
         <button class="p-button p-component" (click)="toggleMenu()">
-          <span class="p-button-icon pi pi-bars"></span>
+          <span class="p-button-icon pi pi-bars" style="color: white;"></span>
         </button>
+
 
         <!-- Ícone de Projetos na parte inferior -->
         <a class="p-button p-component-extra" title="Projetos" href="/projects">
@@ -100,9 +101,9 @@
           <i class="pi pi-user mr-2"></i>
           <span class="font-bold">{{ username }}</span>
         </a>
-        <button class="m-3 btn-logout" (click)="logout()">
-          <i class="pi pi-sign-out"></i>
-          <span class="font-medium">Sair</span>
+        <button class="m-3 btn-logout" (click)="logout()" style="color: white;">
+          <i class="pi pi-sign-out" style="color: white;"></i>
+          <span class="font-medium" style="color: white;">Sair</span>
         </button>
       </div>
     </ng-template>
