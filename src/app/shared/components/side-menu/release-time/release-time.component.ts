@@ -8,6 +8,7 @@ import { ReleaseTimeService } from '../../../../services/release-time/release-ti
 import { PostReleaseTimeRequest } from '../../../../models/interfaces/release-time/request/PostReleaseTimeRequest';
 import { MessageService } from 'primeng/api';
 import { DateUtilsService } from '../../../services/date-utils.service';
+import { ProjectsService } from '../../../../services/projects/projects.service';
 
 @Component({
   selector: 'app-release-time',
@@ -19,6 +20,11 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
   public isVisibleReleaseTimeDialog = false;
   public activities: GetActivityResponse[] = [];
   public mappedActivities: { label: string; value: string }[] = [];
+  public selectedActivity: any = null;
+  public projectStartDate: string | null = null;
+  public projectEndDate: string | null = null;
+  public activityStartDate: string | null = null;
+  public activityEndDate: string | null = null;
 
   private readonly userService = inject(UserService);
   private readonly activitiesService = inject(ActivitiesService);
@@ -26,6 +32,7 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly dateUtils = inject(DateUtilsService);
+  private readonly projectsService = inject(ProjectsService);
 
   addReleaseTime = this.formBuilder.group({
     activity: this.formBuilder.group({ id: [''] }),
@@ -54,12 +61,18 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
     if (userId) {
       this.activitiesService.getActivityByResponsibleId(userId)
         .pipe(takeUntil(this.destroy$))
-        .subscribe((activities: GetActivityResponse[]) => {
-          this.activities = activities;
-          this.mappedActivities = activities.map(activity => ({
-            label: activity.name,
-            value: activity.id
-          }));
+        .subscribe({
+          next: (activities: GetActivityResponse[]) => {
+            this.activities = activities;
+            this.mappedActivities = activities.map(activity => ({
+              label: activity.name,
+              value: activity.id
+            }));
+          },
+          error: (err) => {
+            console.error('Error loading activities:', err);
+            this.showMessage('error', 'Erro', 'Não foi possível carregar as atividades');
+          }
         });
     } else {
       console.error('User ID not found');
@@ -67,11 +80,147 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
   }
 
   openDialog() {
+    // Resetar o formulário completamente antes de abrir o dialog
+    this.resetForm();
     this.isVisibleReleaseTimeDialog = true;
   }
 
   onCloseDialog() {
     this.isVisibleReleaseTimeDialog = false;
+    this.resetForm();
+  }
+
+  // Método para resetar completamente o formulário e dados relacionados
+  private resetForm(): void {
+    // Resetar o formulário
+    this.addReleaseTime.reset({
+      activity: { id: '' },
+      user: { id: '' },
+      description: '',
+      startDate: '',
+      endDate: '',
+      hours: ''
+    });
+
+    // Resetar a atividade selecionada
+    this.selectedActivity = null;
+
+    // Resetar períodos
+    this.resetPeriods();
+  }
+
+  onActivityChange(event: any): void {
+    const activityId = event.value;
+    this.selectedActivity = this.activities.find(activity => activity.id === activityId);
+
+    if (this.selectedActivity) {
+      // Formatar datas da atividade
+      this.activityStartDate = this.selectedActivity.startDate ?
+        this.dateUtils.formatDateForDisplay(this.selectedActivity.startDate) : null;
+      this.activityEndDate = this.selectedActivity.endDate ?
+        this.dateUtils.formatDateForDisplay(this.selectedActivity.endDate) : null;
+
+      // Buscar as datas do projeto associado à atividade
+      this.getProjectFromActivity(this.selectedActivity);
+
+      // Se a atividade tiver datas definidas, sugira-as para o lançamento
+      if (this.selectedActivity.startDate && !this.addReleaseTime.get('startDate')?.value) {
+        try {
+          const startDate = new Date(this.selectedActivity.startDate);
+          const now = new Date();
+
+          // Definir a hora atual para a data de início da atividade
+          startDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+
+          // Converter para string no formato que o componente aceita (ISO)
+          const isoDateString = startDate.toISOString();
+          this.addReleaseTime.get('startDate')?.setValue(isoDateString);
+        } catch (error) {
+          console.error('Erro ao converter data de início:', error);
+        }
+      }
+
+      if (this.selectedActivity.endDate && !this.addReleaseTime.get('endDate')?.value) {
+        try {
+          const endDate = new Date(this.selectedActivity.endDate);
+          const now = new Date();
+
+          // Definir a hora atual para a data de fim da atividade
+          endDate.setHours(now.getHours(), now.getMinutes()+30, 0, 0);
+
+          // Converter para string no formato que o componente aceita (ISO)
+          const isoDateString = endDate.toISOString();
+          this.addReleaseTime.get('endDate')?.setValue(isoDateString);
+        } catch (error) {
+          console.error('Erro ao converter data de fim:', error);
+        }
+      }
+    } else {
+      this.resetPeriods();
+    }
+  }
+
+  private getProjectFromActivity(activity: any): void {
+    if (!activity) {
+      this.resetPeriods();
+      return;
+    }
+
+    // Tentar encontrar o ID do projeto em diferentes estruturas possíveis
+    let projectId = null;
+
+    // Tenta encontrar o ID do projeto em diferentes formatos
+    if (activity.project?.id) {
+      projectId = activity.project.id;
+    } else if (activity.projectId) {
+      projectId = activity.projectId;
+    }
+
+    // Se encontrou o ID do projeto, busca os dados
+    if (projectId) {
+      this.getProjectDates(projectId);
+    } else {
+      this.resetProjectPeriod();
+    }
+  }
+
+  private getProjectDates(projectId: string): void {
+    if (!projectId) {
+      this.resetProjectPeriod();
+      return;
+    }
+
+    this.projectsService.getProjectById(projectId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (project: any) => {
+          // Formatar datas para exibição mais amigável (DD/MM/YYYY)
+          this.projectStartDate = project.startDate ?
+            this.dateUtils.formatDateForDisplay(project.startDate) : null;
+          this.projectEndDate = project.endDate ?
+            this.dateUtils.formatDateForDisplay(project.endDate) : null;
+        },
+        error: (err) => {
+          console.error('Error fetching project data:', err);
+          this.resetProjectPeriod();
+          this.showMessage('error', 'Erro', 'Não foi possível buscar os dados do projeto');
+        }
+      });
+  }
+
+  private resetProjectPeriod(): void {
+    this.projectStartDate = null;
+    this.projectEndDate = null;
+  }
+
+  private resetActivityPeriod(): void {
+    this.activityStartDate = null;
+    this.activityEndDate = null;
+  }
+
+  private resetPeriods(): void {
+    this.resetProjectPeriod();
+    this.resetActivityPeriod();
   }
 
   releaseTime() {
@@ -80,6 +229,42 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
       if (!startDate || !endDate) {
         this.showMessage('error', 'Erro', 'Datas inválidas!');
         return;
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Validar se as datas estão dentro do período da atividade (prioridade mais alta)
+      if (this.activityStartDate && this.activityEndDate) {
+        const activityStart = this.dateUtils.parseDate(this.activityStartDate);
+        const activityEnd = this.dateUtils.parseDate(this.activityEndDate);
+
+        if (activityStart && activityEnd) {
+          // Configurar para início e fim do dia para comparação justa
+          activityStart.setHours(0, 0, 0, 0);
+          activityEnd.setHours(23, 59, 59, 999);
+
+          if (start < activityStart || end > activityEnd) {
+            this.showMessage('warn', 'Atenção', 'As datas de lançamento devem estar dentro do período da atividade!');
+            return;
+          }
+        }
+      }
+      // Se não houver período de atividade definido, validar pelo período do projeto
+      else if (this.projectStartDate && this.projectEndDate) {
+        const projectStart = this.dateUtils.parseDate(this.projectStartDate);
+        const projectEnd = this.dateUtils.parseDate(this.projectEndDate);
+
+        if (projectStart && projectEnd) {
+          // Configurar para início e fim do dia para comparação justa
+          projectStart.setHours(0, 0, 0, 0);
+          projectEnd.setHours(23, 59, 59, 999);
+
+          if (start < projectStart || end > projectEnd) {
+            this.showMessage('warn', 'Atenção', 'As datas de lançamento devem estar dentro do período do projeto!');
+            return;
+          }
+        }
       }
 
       const formattedStartDate = this.dateUtils.formatDateTime(new Date(startDate));
@@ -105,7 +290,8 @@ export class ReleaseTimeComponent implements OnInit, OnDestroy {
           .subscribe({
             next: () => {
               this.showMessage('success', 'Sucesso', 'Hora lançada com sucesso!');
-              this.addReleaseTime.reset();
+              this.resetForm(); // Usar o novo método para reset completo
+              this.onCloseDialog();
             },
             error: (err) => {
               console.error('Erro ao lançar hora:', err);
