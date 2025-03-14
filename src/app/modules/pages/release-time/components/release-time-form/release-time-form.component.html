@@ -24,12 +24,23 @@
         <div class="project-info p-2 bg-primary-50 border-round">
           <span class="font-bold">Projeto: </span>
           <span>{{selectedActivity.projectName || selectedActivity.project?.name || 'Não especificado'}}</span>
+
+          <!-- Período do projeto -->
           <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
             <span class="font-bold">Período do projeto: </span>
             <span>{{projectStartDate || 'Não definido'}} até {{projectEndDate || 'Não definido'}}</span>
           </div>
           <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
             <span class="text-yellow-500">O projeto não possui datas definidas</span>
+          </div>
+
+          <!-- Período da atividade -->
+          <div *ngIf="activityStartDate || activityEndDate" class="mt-2">
+            <span class="font-bold">Período da atividade: </span>
+            <span>{{activityStartDate || 'Não definido'}} até {{activityEndDate || 'Não definido'}}</span>
+          </div>
+          <div *ngIf="!activityStartDate && !activityEndDate && selectedActivity" class="mt-2">
+            <span class="text-yellow-500">A atividade não possui datas definidas</span>
           </div>
         </div>
       </div>
@@ -54,16 +65,22 @@
       <div class="flex flex-row gap-3 align-items-center">
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
+          <small *ngIf="activityStartDate && activityEndDate" class="text-600">
+            Deve estar entre {{activityStartDate}} e {{activityEndDate}}
+          </small>
+          <small *ngIf="!activityStartDate && !activityEndDate && projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{projectStartDate}} e {{projectEndDate}}
           </small>
         </div>
 
         <div class="p-field flex-1" style="margin-bottom: 1rem;">
           <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true" [showOnFocus]="false"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
+          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showTime]="true" hourFormat="24" [showIcon]="true" appendTo="body" [showButtonBar]="true" [showOnFocus]="false"></p-calendar>
+          <small *ngIf="activityStartDate && activityEndDate" class="text-600">
+            Deve estar entre {{activityStartDate}} e {{activityEndDate}}
+          </small>
+          <small *ngIf="!activityStartDate && !activityEndDate && projectStartDate && projectEndDate" class="text-600">
             Deve estar entre {{projectStartDate}} e {{projectEndDate}}
           </small>
         </div>

@@ -26,6 +26,8 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public role = '';
   public projectStartDate: string | null = null;
   public projectEndDate: string | null = null;
+  public activityStartDate: string | null = null;
+  public activityEndDate: string | null = null;
   public selectedActivity: any = null;
 
   @Input() releaseTimes: Array<any> = [];
@@ -106,7 +108,6 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public openEditReleaseTimeDialog(releaseTime: any): void {
     this.isVisibleEditReleaseTime = true;
 
-    // Improved date parsing logic to handle different formats
     let startDate = this.parseDate(releaseTime.startDate);
     let endDate = this.parseDate(releaseTime.endDate);
 
@@ -123,6 +124,14 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
     });
 
     this.selectedActivity = selectedActivity;
+
+    // Extrair e formatar as datas da atividade selecionada
+    if (selectedActivity) {
+      this.activityStartDate = selectedActivity.startDate ?
+        this.dateUtils.formatDateForDisplay(selectedActivity.startDate) : null;
+      this.activityEndDate = selectedActivity.endDate ?
+        this.dateUtils.formatDateForDisplay(selectedActivity.endDate) : null;
+    }
 
     // Buscar as datas do projeto associado à atividade selecionada
     this.getProjectFromActivity(selectedActivity);
@@ -256,6 +265,20 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public onActivityChange(event: any): void {
     const activity = event.value;
     this.selectedActivity = activity;
+
+    // Limpar datas da atividade anterior
+    this.activityStartDate = null;
+    this.activityEndDate = null;
+
+    // Extrair e formatar as datas da nova atividade selecionada
+    if (activity) {
+      this.activityStartDate = activity.startDate ?
+        this.dateUtils.formatDateForDisplay(activity.startDate) : null;
+      this.activityEndDate = activity.endDate ?
+        this.dateUtils.formatDateForDisplay(activity.endDate) : null;
+    }
+
+    // Buscar também as datas do projeto (para exibição e backup na validação)
     this.getProjectFromActivity(activity);
   }
 
@@ -305,16 +328,40 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
 
       const { id, activity, user, description } = this.editReleaseTimeForm.value;
 
-      // Validar se as datas estão dentro do período do projeto
-      if (this.projectStartDate && this.projectEndDate) {
-        const startDate = new Date(this.editReleaseTimeForm.value.startDate);
-        const endDate = new Date(this.editReleaseTimeForm.value.endDate);
-        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
-        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
+      // Validar primeiro com base nas datas da atividade (prioridade mais alta)
+      if (this.activityStartDate && this.activityEndDate) {
+        const start = new Date(this.editReleaseTimeForm.value.startDate);
+        const end = new Date(this.editReleaseTimeForm.value.endDate);
+        const activityStart = this.dateUtils.parseDate(this.activityStartDate);
+        const activityEnd = this.dateUtils.parseDate(this.activityEndDate);
 
-        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
-          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
-          return;
+        if (activityStart && activityEnd) {
+          // Configurar para início e fim do dia para comparação justa
+          activityStart.setHours(0, 0, 0, 0);
+          activityEnd.setHours(23, 59, 59, 999);
+
+          if (start < activityStart || end > activityEnd) {
+            this.showErrorMessage('Erro', 'As datas devem estar dentro do período da atividade.');
+            return;
+          }
+        }
+      }
+      // Se a atividade não tiver datas definidas, validar pelo período do projeto
+      else if (this.projectStartDate && this.projectEndDate) {
+        const start = new Date(this.editReleaseTimeForm.value.startDate);
+        const end = new Date(this.editReleaseTimeForm.value.endDate);
+        const projectStart = this.dateUtils.parseDate(this.projectStartDate);
+        const projectEnd = this.dateUtils.parseDate(this.projectEndDate);
+
+        if (projectStart && projectEnd) {
+          // Configurar para início e fim do dia para comparação justa
+          projectStart.setHours(0, 0, 0, 0);
+          projectEnd.setHours(23, 59, 59, 999);
+
+          if (start < projectStart || end > projectEnd) {
+            this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
+            return;
+          }
         }
       }
 
@@ -395,6 +442,8 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
       this.isVisibleEditReleaseTime = false;
       this.projectStartDate = null;
       this.projectEndDate = null;
+      this.activityStartDate = null;
+      this.activityEndDate = null;
       this.selectedActivity = null;
     }
     if (dialogType === 'deleteRelease') this.isVisibleDeleteReleaseTimeDialog = false;
