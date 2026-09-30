@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { PrimeNGConfig } from 'primeng/api';
+import { ThemeService } from './shared/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -9,9 +10,11 @@ import { PrimeNGConfig } from 'primeng/api';
 export class AppComponent implements OnInit {
   title = 'chrono-angular';
 
-  constructor(private readonly primeNgConfig: PrimeNGConfig) {}
+  private readonly primeNgConfig = inject(PrimeNGConfig);
+  private readonly theme = inject(ThemeService);
 
   ngOnInit(): void {
     this.primeNgConfig.ripple = true;
+    this.theme.init();
   }
 }

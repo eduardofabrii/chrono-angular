@@ -36,6 +36,17 @@ export class DateUtilsService {
   }
 
 // Converte uma string de data para um objeto Date
+  /** Converte "dd/MM/yyyy HH:mm[:ss]" (formato da API) mantendo o horário. */
+  parseDateTime(dateValue: string | Date | null): Date | null {
+    if (!dateValue) return null;
+    if (dateValue instanceof Date) return dateValue;
+    const [datePart, timePart = '00:00:00'] = dateValue.split(' ');
+    const [day, month, year] = datePart.split('/').map(Number);
+    if (!day || !month || !year) return this.parseDate(dateValue);
+    const [hours = 0, minutes = 0, seconds = 0] = timePart.split(':').map(Number);
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+  }
+
   parseDate(dateValue: string | Date | null): Date | null {
     if (!dateValue) return null;
 
@@ -88,7 +99,7 @@ export class DateUtilsService {
   }
 
   // Formata data para exibição no formato DD/MM/YYYY
-  formatDateForDisplay(dateString: string): string {
+  formatDateForDisplay(dateString: string | Date): string {
     if (!dateString) return '';
     const date = this.parseDate(dateString);
     if (!date) return '';
@@ -98,5 +109,26 @@ export class DateUtilsService {
     const year = date.getFullYear();
 
     return `${day}/${month}/${year}`;
+  }
+
+  /** Duração em minutos de um lançamento ("dd/MM/yyyy HH:mm:ss"). */
+  entryMinutes(startDate: string, endDate: string): number {
+    const start = this.parseDateTime(startDate);
+    const end = this.parseDateTime(endDate);
+    return start && end ? Math.max(0, (end.getTime() - start.getTime()) / 60000) : 0;
+  }
+
+  /** Segunda-feira 00:00 da semana da data informada. */
+  startOfWeek(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() - ((date.getDay() + 6) % 7));
+  }
+
+  /** Número da semana ISO 8601. */
+  isoWeek(date: Date): number {
+    const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const day = target.getUTCDay() || 7;
+    target.setUTCDate(target.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+    return Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 }

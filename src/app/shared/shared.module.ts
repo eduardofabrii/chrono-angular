@@ -3,10 +3,13 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { SideMenuComponent } from './components/side-menu/side-menu-complete/side-menu.component';
-import { ReleaseTimeComponent } from './components/side-menu/release-time/release-time.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
-import { BottomMenuComponent } from './components/bottom-menu/bottom-menu.component';
 import { LayoutComponent } from './layout/layout.component';
+import { LogoClockComponent } from './components/logo-clock/logo-clock.component';
+import { StatusChipComponent } from './components/status-chip/status-chip.component';
+import { IconComponent } from './components/icon/icon.component';
+import { HoursPipe } from './pipes/hours.pipe';
+import { RouterModule } from '@angular/router';
 import { ShortenPipe } from './pipes/shorten/shorten.pipe';
 
 import { AvatarModule } from 'primeng/avatar';
@@ -28,16 +31,19 @@ import { DateUtilsService } from './services/date-utils.service';
 @NgModule({
   declarations: [
     SideMenuComponent,
-    BottomMenuComponent,
     LayoutComponent,
     ShortenPipe,
-    ReleaseTimeComponent,
     BrDateFormatPipe,
     BrDateOnlyPipe,
     SkeletonLoaderComponent,
+    LogoClockComponent,
+    StatusChipComponent,
+    IconComponent,
+    HoursPipe,
   ],
   imports: [
     CommonModule,
+    RouterModule,
     BrowserAnimationsModule,
     // PrimeNg
     AvatarModule,
@@ -54,7 +60,7 @@ import { DateUtilsService } from './services/date-utils.service';
     DropdownModule,
   ],
   exports: [
-    LayoutComponent, ShortenPipe, BrDateFormatPipe, BrDateOnlyPipe, SkeletonLoaderComponent,
+    LayoutComponent, ShortenPipe, BrDateFormatPipe, BrDateOnlyPipe, SkeletonLoaderComponent, LogoClockComponent, StatusChipComponent, IconComponent, HoursPipe,
   ],
   providers: [
     DateUtilsService,
