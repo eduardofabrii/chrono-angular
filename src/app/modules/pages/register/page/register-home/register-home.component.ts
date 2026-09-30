@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../../../../services/user/user.service';
@@ -9,213 +9,143 @@ import { DateUtilsService } from '../../../../../shared/services/date-utils.serv
   selector: 'app-register-home',
   templateUrl: './register-home.component.html',
   styleUrl: './register-home.component.scss',
-  providers: [MessageService]
 })
 export class RegisterHomeComponent implements OnInit {
-  userForm!: FormGroup;
-  roles: { label: string, value: string }[] = [];
-  loading = false;
-  isLoading = true;
-
-  displayUserDialog = false;
-  users: User[] = [];
-  loadingUsers = false;
-
-  searchText: string = '';
-  filteredUsers: User[] | null = null;
-
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly dateUtils = inject(DateUtilsService);
 
+  readonly roles = this.userService.getUserRoles();
+
+  users: User[] = [];
+  filteredUsers: User[] = [];
+  searchText = '';
+  isLoading = true;
+  saving = false;
+  displayNewUserDialog = false;
+
+  userForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required]],
+    role: ['USER', [Validators.required]]
+  }, {
+    validators: this.passwordMatchValidator.bind(this)
+  });
+
   ngOnInit(): void {
-    setTimeout(() => {
-      this.initForm();
-      this.roles = this.userService.getUserRoles();
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }, 800);
-  }
-
-  private initForm(): void {
-    this.userForm = this.fb.group({
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]],
-      role: ['USER', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator.bind(this)
-    });
-  }
-
-  private passwordMatchValidator(form: FormGroup): { mismatch: boolean } | null {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { mismatch: true };
-  }
-
-  onSubmit(): void {
-    if (!this.userForm.valid) {
-      this.showMessage('warn', 'Atenção', 'Por favor, preencha todos os campos corretamente');
-      this.markFormGroupTouched(this.userForm);
-      return;
-    }
-
-    this.loading = true;
-    const userData: User = {
-      name: this.userForm.value.name,
-      email: this.userForm.value.email,
-      password: this.userForm.value.password,
-      role: this.userForm.value.role
-    };
-
-    this.userService.registerUser(userData).subscribe({
-      next: () => {
-        this.showMessage('success', 'Sucesso', 'Usuário cadastrado com sucesso!');
-        this.userForm.reset();
-        this.userForm.patchValue({ role: 'USER' });
-        this.loading = false;
-      },
-      error: () => {
-        this.showMessage('error', 'Erro', 'Ocorreu um erro ao cadastrar o usuário.');
-        this.loading = false;
-      }
-    });
-  }
-
-  resetForm(): void {
-    this.userForm.reset();
-    this.userForm.patchValue({ role: 'USER' });
-    this.showMessage('info', 'Informação', 'Formulário limpo');
-  }
-
-  openDeleteUserDialog(): void {
-    this.displayUserDialog = true;
-    this.searchText = '';
-    this.filteredUsers = null;
     this.loadUsers();
-  }
-
-  loadUsers(): void {
-    this.loadingUsers = true;
-    this.userService.getUsers().subscribe({
-      next: (users) => {
-        console.log('Raw user data from API:', users);
-        this.users = users.map(user => {
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role || 'USER',
-            active: user.active,
-            lastLogin: user.lastLogin // Mantém a data no formato original
-          };
-        });
-        console.log('Processed users:', this.users);
-        this.loadingUsers = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading users:', err);
-        this.showMessage('error', 'Erro', 'Não foi possível carregar a lista de usuários');
-        this.loadingUsers = false;
-      }
-    });
-  }
-
-  toggleUserActiveStatus(user: User, isActive: boolean): void {
-    if (!user.id) {
-      this.showMessage('error', 'Erro', 'ID do usuário não encontrado');
-      return;
-    }
-
-    this.loadingUsers = true;
-
-    this.userService.toggleUserActiveStatus(user.id, isActive).subscribe({
-      next: () => {
-        this.showMessage('success', 'Sucesso', `Usuário ${isActive ? 'ativado' : 'desativado'} com sucesso!`);
-        setTimeout(() => this.loadUsers(), 800);
-      },
-      error: () => {
-        this.showMessage('error', 'Erro', `Erro ao ${isActive ? 'ativar' : 'desativar'} usuário.`);
-        this.loadingUsers = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  onUserDialogHide(): void {
-    this.filteredUsers = null;
-    this.searchText = '';
-  }
-
-  formatLastLogin(lastLogin: Date | string | undefined): string {
-    if (!lastLogin) return 'Nunca acessou';
-
-    try {
-      // Se já for uma string formatada corretamente, apenas retorna
-      if (typeof lastLogin === 'string' && lastLogin.match(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/)) {
-        return lastLogin;
-      }
-
-      // Se for uma string ISO, converte para Date
-      return this.dateUtils.formatDateTime(lastLogin) || 'Data inválida';
-    } catch (error) {
-      console.error('Error formatting date:', error, lastLogin);
-      return 'Data inválida';
-    }
-  }
-
-  private showMessage(severity: string, summary: string, detail: string): void {
-    this.messageService.add({
-      severity,
-      summary,
-      detail,
-      life: severity === 'error' ? 5000 : 3000
-    });
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      formGroup.get(key)?.markAsTouched();
-    });
   }
 
   get formControls(): { [key: string]: AbstractControl } {
     return this.userForm.controls;
   }
 
-  // Helper methods for statistics (optional)
-  getTotalUsers(): number {
-    return this.users?.length || 0;
+  loadUsers(): void {
+    this.isLoading = true;
+    this.userService.getUsers().subscribe({
+      next: users => {
+        this.users = users.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role || 'USER',
+          active: user.active,
+          lastLogin: user.lastLogin
+        }));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.showMessage('error', 'Erro', 'Não foi possível carregar a lista de usuários');
+        this.isLoading = false;
+      }
+    });
   }
 
-  getActiveUsers(): number {
-    return this.users?.filter(u => u.active)?.length || 0;
+  applyFilters(): void {
+    const term = this.searchText.trim().toLowerCase();
+    this.filteredUsers = this.users.filter(user =>
+      !term || user.name.toLowerCase().includes(term) || user.email.toLowerCase().includes(term));
   }
 
-  getAdminUsers(): number {
-    return this.users?.filter(u => u.role === 'ADMIN')?.length || 0;
+  count(filter: string): number {
+    return this.users.filter(user => this.matchesFilter(user, filter)).length;
   }
 
-  searchUsers(): void {
-    if (!this.searchText.trim()) {
-      this.filteredUsers = null;
+  openNewUserDialog(): void {
+    this.userForm.reset({ role: 'USER' });
+    this.displayNewUserDialog = true;
+  }
+
+  onSubmit(): void {
+    if (!this.userForm.valid) {
+      this.userForm.markAllAsTouched();
+      this.showMessage('warn', 'Atenção', 'Por favor, preencha todos os campos corretamente');
       return;
     }
 
-    const searchTerm = this.searchText.toLowerCase().trim();
-    this.filteredUsers = this.users.filter(user =>
-      user.name.toLowerCase().includes(searchTerm) ||
-      user.email.toLowerCase().includes(searchTerm)
-    );
+    this.saving = true;
+    const { name, email, password, role } = this.userForm.value;
+    this.userService.registerUser({ name, email, password, role }).subscribe({
+      next: () => {
+        this.showMessage('success', 'Sucesso', 'Usuário cadastrado com sucesso!');
+        this.saving = false;
+        this.displayNewUserDialog = false;
+        this.loadUsers();
+      },
+      error: () => {
+        this.showMessage('error', 'Erro', 'Ocorreu um erro ao cadastrar o usuário.');
+        this.saving = false;
+      }
+    });
   }
 
-  clearSearch(): void {
-    this.searchText = '';
-    this.filteredUsers = null;
+  toggleUserActiveStatus(user: User, isActive: boolean): void {
+    if (!user.id) return;
+
+    this.userService.toggleUserActiveStatus(user.id, isActive).subscribe({
+      next: () => {
+        user.active = isActive;
+        this.applyFilters();
+        this.showMessage('success', 'Sucesso', `Usuário ${isActive ? 'ativado' : 'desativado'} com sucesso!`);
+      },
+      error: () => this.showMessage('error', 'Erro', `Erro ao ${isActive ? 'ativar' : 'desativar'} usuário.`)
+    });
+  }
+
+  initials(name: string): string {
+    return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  /** "Hoje, 14:02", "Ontem, 18:30" ou a data. */
+  formatLastLogin(lastLogin: Date | string | undefined): string {
+    const date = typeof lastLogin === 'string' ? this.dateUtils.parseDateTime(lastLogin) : lastLogin ?? null;
+    if (!date) return 'Nunca acessou';
+    const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return `Hoje, ${time}`;
+    if (date.toDateString() === yesterday.toDateString()) return `Ontem, ${time}`;
+    return this.dateUtils.formatDateForDisplay(date);
+  }
+
+  private matchesFilter(user: User, filter: string): boolean {
+    switch (filter) {
+      case 'ATIVOS': return !!user.active;
+      case 'INATIVOS': return !user.active;
+      case 'ADMIN': return user.role === 'ADMIN';
+      default: return true;
+    }
+  }
+
+  private passwordMatchValidator(form: FormGroup): { mismatch: boolean } | null {
+    return form.get('password')?.value === form.get('confirmPassword')?.value ? null : { mismatch: true };
+  }
+
+  private showMessage(severity: string, summary: string, detail: string): void {
+    this.messageService.add({ severity, summary, detail, life: severity === 'error' ? 5000 : 3000 });
   }
 }

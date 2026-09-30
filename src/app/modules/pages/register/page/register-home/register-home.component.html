@@ -1,272 +1,112 @@
-<div class="register-container">
-  <!-- Toolbar -->
-  <p-toolbar>
-    <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-      <i class="pi pi-user-plus"></i>
-      <span class="register-title">Registrar Usuário</span>
+<!-- Desktop -->
+<div class="desk-only page">
+  <header class="page-header">
+    <div class="titles">
+      <h1 class="page-title">Usuários</h1>
+      <span class="page-subtitle">Quem acessa o Chrono e com qual permissão</span>
     </div>
-    <div class="p-toolbar-group-end">
-      <p-button label="Gerenciar Usuários" icon="pi pi-users"
-        (onClick)="openDeleteUserDialog()" styleClass="p-button-raised p-button-info">
-      </p-button>
+    <button pButton type="button" label="Cadastrar usuário" (click)="openNewUserDialog()"></button>
+  </header>
+
+  <section class="kpis">
+    <div class="surface-card kpi"><span class="muted">Total de usuários</span><span class="num">{{ users.length }}</span></div>
+    <div class="surface-card kpi"><span class="muted">Usuários ativos</span><span class="num">{{ count('ATIVOS') }}</span></div>
+    <div class="surface-card kpi"><span class="muted">Administradores</span><span class="num">{{ count('ADMIN') }}</span></div>
+  </section>
+
+  <section class="table surface-card">
+    <div class="toolbar">
+      <label class="search inner-search">
+        <app-icon name="search" [size]="16" [stroke]="2"></app-icon>
+        <input placeholder="Pesquisar por nome ou email..." [(ngModel)]="searchText" (ngModelChange)="applyFilters()" aria-label="Pesquisar usuários" />
+      </label>
     </div>
-  </p-toolbar>
+    <div class="row head"><span>Nome</span><span>Email</span><span>Tipo</span><span>Último acesso</span><span>Status</span></div>
 
-  <!-- Skeleton Overlay -->
-  <app-skeleton-loader
-    *ngIf="isLoading"
-    [overlay]="true"
-    [width]="'360px'"
-    [height]="'240px'"
-    [pulseColor]="'#3B82F6'"
-    [showProgressBar]="true"
-    message="Carregando formulário...">
-  </app-skeleton-loader>
+    <app-skeleton-loader *ngIf="isLoading" [overlay]="false" [width]="'100%'" [height]="'160px'"
+                         [pulseColor]="'#8E8E93'" message="Carregando usuários..."></app-skeleton-loader>
 
-  <!-- Registration Form -->
-  <div class="register-card" *ngIf="!isLoading">
-    <div class="form-container">
-      <h2 class="form-title">Preencha os dados do novo usuário</h2>
-      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-        <div class="grid">
-          <!-- Name Field -->
-          <div class="col-12 md:col-6 field-container">
-            <label for="name" class="required-field">Nome</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-user"></i>
-              <input id="name" type="text" pInputText formControlName="name"
-                    placeholder="Digite o nome completo"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['name'].invalid && formControls['name'].touched}">
-            </span>
-            <small *ngIf="formControls['name'].invalid && formControls['name'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> Nome é obrigatório
-            </small>
-          </div>
-
-          <!-- Email Field -->
-          <div class="col-12 md:col-6 field-container">
-            <label for="email" class="required-field">Email</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-envelope"></i>
-              <input id="email" type="email" pInputText formControlName="email"
-                    placeholder="Digite o email"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['email'].invalid && formControls['email'].touched}">
-            </span>
-            <small *ngIf="formControls['email'].invalid && formControls['email'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> Email inválido
-            </small>
-          </div>
-
-          <!-- Password Field -->
-          <div class="col-12 md:col-6 field-container">
-            <label for="password" class="required-field">Senha</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-lock"></i>
-              <input id="password" type="password" pInputText formControlName="password"
-                    placeholder="Digite uma senha segura"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['password'].invalid && formControls['password'].touched}">
-            </span>
-            <small *ngIf="formControls['password'].invalid && formControls['password'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> A senha deve ter no mínimo 6 caracteres
-            </small>
-          </div>
-
-          <!-- Confirm Password Field -->
-          <div class="col-12 md:col-6 field-container">
-            <label for="confirmPassword" class="required-field">Confirmar Senha</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-lock-open"></i>
-              <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword"
-                    placeholder="Repita a senha"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['confirmPassword'].invalid &&
-                                 formControls['confirmPassword'].touched || userForm.hasError('mismatch')}">
-            </span>
-            <small *ngIf="formControls['confirmPassword'].invalid && formControls['confirmPassword'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> Confirmação de senha é obrigatória
-            </small>
-            <small *ngIf="userForm.hasError('mismatch')" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> As senhas não coincidem
-            </small>
-          </div>
-
-          <!-- Role Selector -->
-          <div class="col-12 field-container">
-            <label for="role" class="required-field">Tipo de Usuário</label>
-            <p-dropdown id="role" [options]="roles" formControlName="role"
-                      optionLabel="label" optionValue="value"
-                      placeholder="Selecione o tipo de usuário">
-              <ng-template pTemplate="selectedItem">
-                <div class="flex align-items-center gap-2" *ngIf="userForm.get('role')?.value">
-                  <i class="pi" [ngClass]="userForm.get('role')?.value === 'ADMIN' ? 'pi-shield' : 'pi-user'"></i>
-                  <div>{{ userForm.get('role')?.value === 'ADMIN' ? 'Administrador' : 'Usuário' }}</div>
-                </div>
-              </ng-template>
-              <ng-template let-item pTemplate="item">
-                <div class="flex align-items-center gap-2">
-                  <i class="pi" [ngClass]="item.value === 'ADMIN' ? 'pi-shield' : 'pi-user'"></i>
-                  <div>{{item.label}}</div>
-                </div>
-              </ng-template>
-            </p-dropdown>
-          </div>
-        </div>
-
-        <!-- Form Buttons -->
-        <div class="submit-button-container">
-          <p-button type="button" label="Cancelar" icon="pi pi-times" styleClass="p-button-text"
-                  [style]="{'margin-right': '1rem'}" (onClick)="resetForm()"></p-button>
-          <p-button type="submit" label="Cadastrar Usuário" icon="pi pi-save"
-                  [loading]="loading" styleClass="p-button-primary"></p-button>
-        </div>
-      </form>
+    <div *ngIf="!isLoading && !filteredUsers.length" class="empty">
+      <app-logo-clock [size]="40"></app-logo-clock>
+      Nenhum usuário encontrado.
     </div>
-  </div>
+
+    <div *ngFor="let user of filteredUsers" class="row">
+      <span class="person"><span class="avatar">{{ initials(user.name) }}</span>{{ user.name }}</span>
+      <span class="muted email">{{ user.email }}</span>
+      <span><span class="role-chip" [class.admin]="user.role === 'ADMIN'">{{ user.role === 'ADMIN' ? 'Administrador' : 'Usuário' }}</span></span>
+      <span class="num last">{{ formatLastLogin(user.lastLogin) }}</span>
+      <span class="status">
+        <button type="button" role="switch" class="switch" [class.on]="user.active" [attr.aria-checked]="!!user.active"
+                [attr.aria-label]="'Ativar ou desativar ' + user.name" (click)="toggleUserActiveStatus(user, !user.active)"><span></span></button>
+        <span class="status-label" [class.off]="!user.active">{{ user.active ? 'Ativo' : 'Inativo' }}</span>
+      </span>
+    </div>
+  </section>
 </div>
 
-<!-- User Management Dialog -->
-<p-dialog
-  header="Gerenciar Usuários"
-  [(visible)]="displayUserDialog"
-  [style]="{width: '70vw'}"
-  [modal]="true"
-  (onHide)="onUserDialogHide()">
+<!-- Celular -->
+<div class="mob-only mobile">
+  <div class="m-top">
+    <a routerLink="/more" class="back-link"><app-icon name="chevron-left" [size]="24" [stroke]="2.2"></app-icon>Voltar</a>
+    <button type="button" class="text-btn m-new" (click)="openNewUserDialog()">Novo</button>
+  </div>
+  <h1 class="page-title">Usuários</h1>
+  <div class="m-kpis">
+    <div class="surface-card m-kpi"><span class="muted">Total</span><span class="num">{{ users.length }}</span></div>
+    <div class="surface-card m-kpi"><span class="muted">Ativos</span><span class="num">{{ count('ATIVOS') }}</span></div>
+    <div class="surface-card m-kpi"><span class="muted">Admins</span><span class="num">{{ count('ADMIN') }}</span></div>
+  </div>
+  <label class="search">
+    <app-icon name="search" [size]="16" [stroke]="2"></app-icon>
+    <input placeholder="Pesquisar por nome ou email..." [(ngModel)]="searchText" (ngModelChange)="applyFilters()" aria-label="Pesquisar usuários" />
+  </label>
+  <section class="surface-card m-list">
+    <div *ngFor="let user of filteredUsers" class="m-user">
+      <span class="avatar m-avatar">{{ initials(user.name) }}</span>
+      <span class="m-user-info">
+        <span class="m-user-name">{{ user.name }}</span>
+        <span class="muted">{{ user.role === 'ADMIN' ? 'Administrador' : 'Usuário' }} · {{ formatLastLogin(user.lastLogin) }}</span>
+      </span>
+      <button type="button" role="switch" class="switch small" [class.on]="user.active" [attr.aria-checked]="!!user.active"
+              [attr.aria-label]="'Ativar ou desativar ' + user.name" (click)="toggleUserActiveStatus(user, !user.active)"><span></span></button>
+    </div>
+  </section>
+</div>
 
-  <!-- User Statistics Section -->
-  <div class="user-stats-container">
-    <div class="stat-card total-users">
-      <div class="stat-icon">
-        <i class="pi pi-users"></i>
+<p-dialog header="Cadastrar usuário" [(visible)]="displayNewUserDialog" [modal]="true" [draggable]="false"
+          [style]="{ width: '35rem' }" [breakpoints]="{ '575px': '95vw' }">
+  <form [formGroup]="userForm" class="dialog-form" (ngSubmit)="onSubmit()" id="newUserForm">
+    <div class="p-field">
+      <label for="u-name">Nome</label>
+      <input id="u-name" type="text" pInputText formControlName="name" placeholder="Digite o nome completo" />
+      <small *ngIf="formControls['name'].invalid && formControls['name'].touched" class="error-message">Nome é obrigatório</small>
+    </div>
+    <div class="p-field">
+      <label for="u-email">Email</label>
+      <input id="u-email" type="email" pInputText formControlName="email" placeholder="Digite o email" />
+      <small *ngIf="formControls['email'].invalid && formControls['email'].touched" class="error-message">Email inválido</small>
+    </div>
+    <div class="dialog-grid">
+      <div class="p-field">
+        <label for="u-pass">Senha</label>
+        <input id="u-pass" type="password" pInputText formControlName="password" placeholder="Digite uma senha segura" />
+        <small *ngIf="formControls['password'].invalid && formControls['password'].touched" class="error-message">Mínimo de 6 caracteres</small>
       </div>
-      <div class="stat-content">
-        <span class="stat-value">{{getTotalUsers()}}</span>
-        <span class="stat-label">Total de Usuários</span>
+      <div class="p-field">
+        <label for="u-pass2">Confirmar senha</label>
+        <input id="u-pass2" type="password" pInputText formControlName="confirmPassword" placeholder="Repita a senha" />
+        <small *ngIf="userForm.hasError('mismatch') && formControls['confirmPassword'].touched" class="error-message">As senhas não coincidem</small>
       </div>
     </div>
-
-    <div class="stat-card active-users">
-      <div class="stat-icon">
-        <i class="pi pi-check-circle"></i>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{getActiveUsers()}}</span>
-        <span class="stat-label">Usuários Ativos</span>
-      </div>
+    <div class="p-field">
+      <label for="u-role">Tipo de usuário</label>
+      <p-dropdown inputId="u-role" [options]="roles" formControlName="role" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+      <span class="hint">Administradores cadastram usuários e veem as horas de toda a equipe.</span>
     </div>
-
-    <div class="stat-card admin-users">
-      <div class="stat-icon">
-        <i class="pi pi-shield"></i>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{getAdminUsers()}}</span>
-        <span class="stat-label">Administradores</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Search Bar -->
-  <div class="search-container">
-    <span class="p-input-icon-left p-input-icon-right w-full">
-      <i class="pi pi-search"></i>
-      <input
-        type="text"
-        pInputText
-        [(ngModel)]="searchText"
-        (input)="searchUsers()"
-        placeholder="Pesquisar por nome ou email..."
-        class="w-full"
-      >
-      <i *ngIf="searchText" class="pi pi-times cursor-pointer" (click)="clearSearch()"></i>
-    </span>
-  </div>
-
-  <div class="user-list-container">
-    <p-table
-      [value]="filteredUsers || users"
-      [loading]="loadingUsers"
-      [paginator]="true"
-      [rows]="10"
-      [rowHover]="true"
-      styleClass="p-datatable-sm p-datatable-gridlines">
-
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Tipo de Usuário</th>
-          <th style="width: 120px;">Status</th>
-          <th style="width: 180px;">Último Acesso</th>
-          <th style="width: 100px;">Ativo</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-user>
-        <tr [ngClass]="{'inactive-user': !user.active}">
-          <td>{{user.name}}</td>
-          <td>{{user.email}}</td>
-          <td>
-            <span class="user-badge" [class.admin-badge]="user.role === 'ADMIN'">
-              <i class="pi" [ngClass]="user.role === 'ADMIN' ? 'pi-shield' : 'pi-user'"></i>
-              {{user.role === 'ADMIN' ? 'Administrador' : 'Usuário'}}
-            </span>
-          </td>
-          <td>
-            <span class="status-badge" [class.inactive-badge]="!user.active">
-              <i class="pi" [ngClass]="user.active ? 'pi-check-circle' : 'pi-times-circle'"></i>
-              {{user.active ? 'Ativo' : 'Inativo'}}
-            </span>
-          </td>
-          <td>
-            <span class="last-login-badge">
-              <i class="pi pi-calendar"></i>
-              {{ formatLastLogin(user.lastLogin) }}
-            </span>
-          </td>
-          <td class="text-center">
-            <p-inputSwitch
-              [ngModel]="!!user.active"
-              (onChange)="toggleUserActiveStatus(user, $event.checked)"
-              [disabled]="loadingUsers"
-              pTooltip="{{!!user.active ? 'Desativar' : 'Ativar'}} Usuário"
-              tooltipPosition="top">
-            </p-inputSwitch>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="text-center p-4">
-            <div *ngIf="!loadingUsers" class="empty-message">
-              <i class="pi pi-search" style="font-size: 2rem"></i>
-              <p>Nenhum usuário encontrado.</p>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
-
+  </form>
   <ng-template pTemplate="footer">
-    <div class="flex justify-content-between w-full">
-      <div>
-        <span *ngIf="loadingUsers" class="mr-2">
-          <i class="pi pi-spin pi-spinner" style="font-size: 1rem"></i>
-          Processando...
-        </span>
-      </div>
-      <button
-        pButton
-        pRipple
-        type="button"
-        label="Fechar"
-        icon="pi pi-times"
-        class="p-button-text"
-        (click)="displayUserDialog = false">
-      </button>
-    </div>
+    <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="displayNewUserDialog = false"></button>
+    <button pButton type="submit" form="newUserForm" label="Cadastrar" [loading]="saving"></button>
   </ng-template>
 </p-dialog>
-
-<p-toast position="bottom-right"></p-toast>
-<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
