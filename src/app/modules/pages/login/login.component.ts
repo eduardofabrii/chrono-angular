@@ -26,6 +26,10 @@ export class LoginComponent {
   });
 
   onSubmitLoginForm() {
+    if (this.loginForm.invalid) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Informe usuário e senha.' });
+      return;
+    }
     if (this.loginForm.valid) {
       this.userService.auth(this.loginForm.value as AuthRequest)
         .subscribe({
@@ -37,9 +41,8 @@ export class LoginComponent {
               window.location.href = '/dashboard';
             }
           },
-          error: (error) => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: `${this.loginForm.value.name}, não encontramos seu login ` });
-            console.log('Login falhou', error);
+          error: () => {
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Usuário ou senha inválidos.' });
           }
         });
     }

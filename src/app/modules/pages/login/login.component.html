@@ -1,50 +1,48 @@
-<div class="container">
-  <div class="left-side">
+<div class="login">
+  <section class="form-side">
+    <img class="logo wordmark" src="assets/imgs/chrono-logo.png" alt="Chrono" />
+
     <form [formGroup]="loginForm" (ngSubmit)="onSubmitLoginForm()">
-      <div class="content-sign flex justify-content-center align-content-center text-align-center">
-        <p-card styleClass="mt-10 mb-10 custom-card" header="Login" subheader="Faça login com sua conta existente">
-
-          <div class="flex justify-content-center align-content-center text-align-center">
-            <input
-              type="text"
-              pInputText
-              placeholder="Usuario"
-              formControlName="name"/>
-          </div>
-
-          <div class="flex justify-content-center align-content-center text-align-center">
-            <input
-              type="password"
-              pInputText
-              placeholder="Senha"
-              formControlName="password"/>
-          </div>
-
-          <div class="flex justify-content-center align-content-center text-align-center mt-2">
-            <button
-              type="submit"
-              pButton
-              pRipple
-              label="Entrar"
-              [disabled]="!this.loginForm.valid">
-            </button>
-          </div>
-
-          <p-toast
-            position="top-right"
-            [showTransformOptions]="'translateY(100%)'"
-            [showTransitionOptions]="'1000ms'"
-            [hideTransitionOptions]="'1000ms'"
-            [breakpoints]="{'920px': {width: 'auto', right: '1em', left: 'auto'}}">
-          </p-toast>
-        </p-card>
+      <div class="heading">
+        <h1>Entrar</h1>
+        <p>Use a conta criada pelo administrador da sua equipe.</p>
       </div>
-    </form>
-  </div>
 
-  <div class="right-side">
-    <div>
-      <img src="" alt="">
+      <div class="fld">
+        <label for="login-user">Usuário</label>
+        <input id="login-user" type="text" pInputText formControlName="name" placeholder="seu.nome" autocomplete="username" />
+      </div>
+
+      <div class="fld">
+        <label for="login-pass">Senha</label>
+        <input id="login-pass" type="password" pInputText formControlName="password" placeholder="Sua senha" autocomplete="current-password" />
+      </div>
+
+      <button type="submit" pButton label="Entrar" class="submit"></button>
+      <p class="hint desk-only">Esqueceu a senha? Fale com o administrador do seu time.</p>
+    </form>
+    <p class="hint mobile-hint mob-only">Esqueceu a senha? Fale com o administrador do seu time.</p>
+  </section>
+
+  <section class="brand-side" aria-hidden="true">
+    <svg class="big-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="12" fill="#2370DC"></circle>
+      <circle cx="12" cy="12" r="11.1" fill="none" stroke="#1F5EBD" stroke-width=".8"></circle>
+      <path d="M12.35 6.9V12.5l3.7 3.9" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M12 6.2V12l3.7 3.9" fill="none" stroke="#F0A800" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+
+    <div class="focus-card">
+      <span class="focus-state"><span class="dot"></span>Em foco agora</span>
+      <span class="focus-title">API de relatórios em PDF</span>
+      <span class="focus-clock num">01:24:36</span>
     </div>
-  </div>
+
+    <div class="tagline">
+      <span class="tagline-title">Cada hora conta.</span>
+      <span class="tagline-text">Projetos, atividades e horas da equipe no mesmo lugar, com um timer que vira lançamento em um clique.</span>
+    </div>
+  </section>
 </div>
+
+<p-toast position="top-right"></p-toast>
