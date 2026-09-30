@@ -1,113 +1,111 @@
-<!-- Mobile Header -->
-<div class="mobile-header">
-  <div class="mobile-header-content">
-    <div class="mobile-logo">
-      <img src="../../../../assets/imgs/chrono-logo.png" alt="Chrono Logo" />
-    </div>
-    <button class="mobile-menu-toggle" (click)="toggleMenu()">
-      <i class="pi" [ngClass]="isMobileMenuVisible ? 'pi-times' : 'pi-bars'"></i>
-    </button>
-  </div>
+<ng-container *ngIf="timer.snapshot$ | async as t">
 
-  <!-- Mobile Menu -->
-  <div class="mobile-menu" *ngIf="isMobileMenuVisible">
-    <a class="mobile-menu-item" href="/dashboard">
-      <i class="pi pi-home"></i>
-      <span>Dashboard</span>
-    </a>
-    <a class="mobile-menu-item" href="/projects">
-      <i class="pi pi-folder"></i>
-      <span>Projetos</span>
-    </a>
-    <a class="mobile-menu-item" href="/hours">
-      <i class="pi pi-history"></i>
-      <span>Registro de Horas</span>
-    </a>
-    <a class="mobile-menu-item" (click)="openReleaseTimeDialog()">
-      <i class="pi pi-clock"></i>
-      <span>Lançar Horas</span>
-    </a>
-    <a class="mobile-menu-item" href="/reports">
-      <i class="pi pi-chart-line"></i>
-      <span>Relatórios</span>
-    </a>
-    <a class="mobile-menu-item" *ngIf="isAdmin" href="/register">
-      <i class="pi pi-user-plus"></i>
-      <span>Cadastro de Usuários</span>
-    </a>
-    <div class="mobile-menu-item">
-      <i class="pi pi-user"></i>
-      <span>{{ username }}</span>
-    </div>
-    <div class="mobile-menu-item" (click)="logout()" style="color: #f56565;">
-      <i class="pi pi-sign-out"></i>
-      <span>Sair</span>
-    </div>
-  </div>
-</div>
+  <!-- Desktop: trilho + painel -->
+  <div class="sidebar" [class.open]="isOpen">
+    <nav class="rail" aria-label="Trilho">
+      <a routerLink="/dashboard" class="rail-logo" aria-label="Chrono">
+        <img src="assets/imgs/chrono-logo-c.png" alt="Chrono" />
+      </a>
 
-<!-- Desktop Sidebar -->
-<div class="side-menu-bar-full flex-container">
-  <p-menu [ngClass]="'small-menu'" [style]="{ width: '60px' }">
-    <ng-template pTemplate="start">
-      <div class="sidebar" [class.collapsed]="isCollapsed">
-        <!-- Ícone do Dashboard no topo -->
-        <a class="p-button p-component-extra" title="Dashboard" href="/dashboard">
-          <span class="p-button-icon-extra pi pi-home"></span>
+      <button type="button" class="rail-toggle" (click)="toggleMenu()"
+              [attr.aria-label]="isOpen ? 'Recolher menu' : 'Expandir menu'"
+              [title]="isOpen ? 'Recolher menu' : 'Expandir menu'">
+        <app-icon [name]="isOpen ? 'chevron-left' : 'menu'" [size]="18" [stroke]="isOpen ? 2.4 : 2.2"></app-icon>
+      </button>
+
+      <div *ngIf="!isOpen" class="rail-items">
+        <a *ngFor="let entry of visibleEntries" class="rail-item" [routerLink]="entry.route" [queryParams]="entry.queryParams"
+           routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+           [attr.aria-label]="entry.label" [title]="entry.label">
+          <app-icon [name]="entry.icon"></app-icon>
         </a>
 
-        <!-- Botão de alternância do menu -->
-        <button class="p-button p-component" (click)="toggleMenu()">
-          <span class="p-button-icon pi pi-bars" style="color: white;"></span>
+        <div class="spacer"></div>
+
+        <button *ngIf="t.state" type="button" class="rail-timer" (click)="timer.toggle()"
+                [attr.aria-label]="(t.state.running ? 'Pausar' : 'Retomar') + ' timer'" [title]="(t.state.running ? 'Pausar' : 'Retomar') + ' timer'">
+          <app-logo-clock [size]="20"></app-logo-clock>
+          <span class="num">{{ t.shortClock }}</span>
         </button>
 
-
-        <!-- Ícone de Projetos na parte inferior -->
-        <a class="p-button p-component-extra" title="Projetos" href="/projects">
-          <span class="p-button-icon-extra pi pi-folder"></span>
-        </a>
-      </div>
-    </ng-template>
-  </p-menu>
-
-  <p-menu *ngIf="isCollapsed" class="large-menu">
-    <ng-template pTemplate="start">
-      <div class="side-menu-bar-main flex flex-column h-full">
-        <div class="flex align-items-center justify-content-center px-4 pt-3 flex-shrink-0">
-            <span class="inline-flex align-items-center gap-2">
-            <img src="../../../../assets/imgs/chrono-logo.png" alt="" class="mx-auto" style="width: 130px; cursor: pointer;" />
-            </span>
-        </div>
-        <div class="overflow-y-auto flex-grow-1">
-          <ul class="list-none p-3 m-0">
-            <li>
-              <div pRipple pStyleClass="@next" enterFromClass="hidden" enterActiveClass="slidedown" leaveToClass="hidden" leaveActiveClass="slideup" class="p-3 flex align-items-center justify-content-between text-600 cursor-pointer p-ripple">
-                <span class="font-medium">Gerenciamento</span>
-                <i class="pi pi-chevron-down"></i>
-              </div>
-              <ul class="list-none p-0 m-0 overflow-hidden">
-                <li><a pRipple href="/dashboard" class="flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple"><i class="pi pi-home mr-2"></i><span class="font-medium">Dashboard</span></a></li>
-                <li><a pRipple href="/projects" class="flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple"><i class="pi pi-folder mr-2"></i><span class="font-medium">Projetos</span></a></li>
-                <li><a pRipple href="/hours" class="flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple"><i class="pi pi-history mr-2"></i><span class="font-medium">Registro de Horas</span></a></li>
-                <li *ngIf="isAdmin"><a pRipple href="/register" class="flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple"><i class="pi pi-user-plus mr-2"></i><span class="font-medium">Registro de Usuários</span></a></li>
-                <li><a pRipple (click)="openReleaseTimeDialog()" class="flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple"><i class="pi pi-clock mr-2"></i><span class="font-medium">Lançar Horas</span></a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-        <div class="mt-auto"></div>
-        <hr class="mb-3 mx-3 border-top-1 border-none surface-border" />
-        <a pRipple (click)="goToEditUser()" class="m-3 flex align-items-center justify-content-center cursor-pointer p-3 gap-2 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple">
-          <i class="pi pi-user mr-2"></i>
-          <span class="font-bold">{{ username }}</span>
-        </a>
-        <button class="m-3 btn-logout" (click)="logout()" style="color: white;">
-          <i class="pi pi-sign-out" style="color: white;"></i>
-          <span class="font-medium" style="color: white;">Sair</span>
+        <a routerLink="/edit-user" aria-label="Meu perfil" title="Meu perfil"><span class="avatar rail-avatar">{{ initials }}</span></a>
+        <button type="button" class="rail-logout" (click)="logout()" title="Sair" aria-label="Sair">
+          <app-icon name="logout"></app-icon>
         </button>
       </div>
-    </ng-template>
-  </p-menu>
-</div>
+    </nav>
 
-<app-release-time></app-release-time>
+    <aside *ngIf="isOpen" class="panel" aria-label="Menu">
+      <a routerLink="/dashboard" class="panel-logo">
+        <img class="wordmark" src="assets/imgs/chrono-logo.png" alt="Chrono" />
+      </a>
+
+      <button type="button" class="group-toggle" (click)="isGroupOpen = !isGroupOpen">
+        Gerenciamento
+        <app-icon name="chevron-down" [size]="14" [stroke]="2.4" [class.collapsed]="!isGroupOpen"></app-icon>
+      </button>
+
+      <div *ngIf="isGroupOpen" class="panel-items">
+        <a *ngFor="let entry of visibleEntries" class="panel-item" [routerLink]="entry.route" [queryParams]="entry.queryParams"
+           routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <app-icon [name]="entry.icon" [size]="18"></app-icon>{{ entry.label }}
+        </a>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div *ngIf="t.state" class="timer-card">
+        <a routerLink="/hours" class="timer-info">
+          <span class="timer-state"><app-logo-clock [size]="14"></app-logo-clock>{{ t.state.running ? 'Rodando' : 'Pausado' }}</span>
+          <span class="timer-clock num">{{ t.clock }}</span>
+          <span class="timer-activity">{{ t.state.description || t.state.activityName }}</span>
+        </a>
+        <button type="button" class="timer-btn" (click)="timer.toggle()" [title]="t.state.running ? 'Pausar' : 'Retomar'"
+                [attr.aria-label]="(t.state.running ? 'Pausar' : 'Retomar') + ' timer'">
+          <app-icon [name]="t.state.running ? 'pause' : 'play'" [size]="t.state.running ? 14 : 12" [stroke]="t.state.running ? 2.6 : 2"></app-icon>
+        </button>
+      </div>
+
+      <a routerLink="/edit-user" routerLinkActive="active" class="profile">
+        <span class="avatar">{{ initials }}</span>
+        <span class="profile-text">
+          <span class="profile-name">{{ username }}</span>
+          <span class="profile-role">{{ isAdmin ? 'Administrador' : 'Usuário' }}</span>
+        </span>
+      </a>
+      <button type="button" class="logout" (click)="logout()">Sair</button>
+    </aside>
+  </div>
+
+  <!-- Celular: mini player do timer + barra de navegação -->
+  <div class="mobile-dock">
+    <div *ngIf="showMiniPlayer" class="mini-player">
+      <ng-container *ngIf="t.state; else idlePlayer">
+        <a routerLink="/launch" class="mini-info">
+          <app-logo-clock [size]="28"></app-logo-clock>
+          <span class="mini-text">
+            <span class="mini-title">{{ t.state.description || t.state.activityName }}</span>
+            <span class="mini-sub">{{ t.state.projectName || t.state.activityName }}</span>
+          </span>
+          <span class="mini-clock num">{{ t.clock }}</span>
+        </a>
+        <button type="button" class="mini-toggle" (click)="timer.toggle()" [attr.aria-label]="(t.state.running ? 'Pausar' : 'Retomar') + ' timer'">
+          <app-icon [name]="t.state.running ? 'pause' : 'play'" [size]="t.state.running ? 16 : 14" [stroke]="t.state.running ? 2.6 : 2"></app-icon>
+        </button>
+      </ng-container>
+      <ng-template #idlePlayer>
+        <a routerLink="/launch" class="mini-idle">
+          <span class="mini-idle-label"><app-logo-clock [size]="24"></app-logo-clock>Nenhum timer rodando</span>
+          <span class="mini-idle-action">Iniciar</span>
+        </a>
+      </ng-template>
+    </div>
+
+    <nav class="tabbar" aria-label="Navegação">
+      <a *ngFor="let tab of tabs" [routerLink]="tab.route" [class.active]="isTabActive(tab.route)">
+        <app-icon [name]="tab.icon" [size]="24" [stroke]="1.9"></app-icon>{{ tab.label }}
+      </a>
+    </nav>
+  </div>
+
+</ng-container>

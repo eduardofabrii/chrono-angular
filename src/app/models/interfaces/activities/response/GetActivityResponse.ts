@@ -1,6 +1,6 @@
 export interface GetActivityResponse {
   id: string;
-  project: { id: string };
+  project: { id: string; name?: string; startDate?: string; endDate?: string };
   name: string;
   description: string;
   startDate: string;

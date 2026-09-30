@@ -36,7 +36,7 @@ export class ActivitiesService {
   }
 
   getActivitiesByProjectId(projectId: string): Observable<GetActivityResponse[]> {
-    return this.http.get<GetActivityResponse[]>(`${this.API_URL}/v1/activity/project/${projectId}`);
+    return this.http.get<GetActivityResponse[]>(`${this.API_URL}/v1/activity/project/${projectId}`, this.getHttpOptions());
   }
 
   getActivityByName(name: string): Observable<GetActivityResponse> {
