@@ -1,19 +1,274 @@
-// Toolbar
-.pi-file {
-  font-size: 24px;
-  font-weight: 600;
-  margin-right: 0.7rem;
-  color: #4361ee;
-  background: rgba(67, 97, 238, 0.1);
-  padding: 10px;
-  border-radius: 50%;
+:host {
+  display: block;
+}
+
+.page {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.breadcrumb {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  gap: 6px;
+  font-size: 13.5px;
 
-  &:hover {
-    background: rgba(67, 97, 238, 0.2);
-    transform: scale(1.05);
+  a {
+    color: var(--c-link);
   }
+
+  .sep {
+    color: #C7C7CC;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: -8px;
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 18px 0;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 22px;
+  min-width: 0;
+
+  & + & {
+    border-left: 1px solid var(--c-line-soft);
+  }
+
+  .label {
+    font-size: 13px;
+    color: var(--c-muted);
+  }
+
+  .value {
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 30px;
+
+    .muted {
+      font-weight: 500;
+    }
+  }
+
+  .person {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 30px;
+
+    .track {
+      flex-grow: 1;
+      height: 8px;
+    }
+
+    .num {
+      font-size: 13.5px;
+    }
+  }
+}
+
+.table {
+  flex-grow: 1;
+
+  .row {
+    grid-template-columns: 2.4fr 1.3fr 1.1fr 1.1fr .8fr 170px;
+    min-height: 64px;
+
+    &.head {
+      min-height: 44px;
+    }
+  }
+}
+
+.name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.desc {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  min-width: 0;
+}
+
+.period {
+  font-size: 13.5px;
+  color: var(--c-text-2);
+
+  &.overdue {
+    color: var(--c-danger);
+    font-weight: 600;
+  }
+}
+
+.strong {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+// ---------- Celular ----------
+.mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-summary {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .priority {
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+}
+
+.m-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+
+  .strong {
+    font-size: 13px;
+  }
+}
+
+.m-summary-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .track {
+    flex-grow: 1;
+  }
+
+  .num {
+    font-size: 12px;
+  }
+}
+
+.m-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m-empty {
+  font-size: 14px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.m-card {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.m-card-info {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.m-card-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.m-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--c-text-2);
+
+  .overdue {
+    color: var(--c-danger);
+    font-weight: 600;
+  }
+}
+
+.avatar.tiny {
+  width: 22px;
+  height: 22px;
+  font-size: 9.5px;
+}
+
+.m-launch {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-secondary);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
 }

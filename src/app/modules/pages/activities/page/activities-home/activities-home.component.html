@@ -1,36 +1,124 @@
-<!-- Toolbar -->
-<p-toolbar>
-  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-    <i class="pi pi-file"></i>
-    <span style="font-weight: bold; font-size: 1.4rem;">
-      Atividades
-    </span>
+<!-- Desktop -->
+<div class="desk-only page">
+  <nav class="breadcrumb" aria-label="Trilha">
+    <a routerLink="/projects">Projetos</a><span class="sep">/</span><span class="muted">{{ project.name }}</span>
+  </nav>
+
+  <header class="header">
+    <div class="titles">
+      <div class="title-row">
+        <h1 class="page-title">{{ project.name }}</h1>
+        <app-status-chip *ngIf="project.status" [status]="project.status"></app-status-chip>
+      </div>
+      <span *ngIf="subtitle" class="page-subtitle">{{ subtitle }}</span>
+    </div>
+    <div *ngIf="isAdmin" class="actions">
+      <button pButton type="button" class="p-button-secondary" label="Editar projeto" (click)="editProject()"></button>
+      <button pButton type="button" label="Nova atividade" (click)="openNewActivityDialog()"></button>
+    </div>
+  </header>
+
+  <section class="summary surface-card">
+    <div class="summary-item">
+      <span class="label">Responsável</span>
+      <span class="value person"><span class="avatar">{{ initials(responsibleName) }}</span>{{ responsibleName }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Período</span>
+      <span class="value num">{{ period() }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Horas lançadas</span>
+      <span class="value num">{{ projectHours | hours }}<span *ngIf="project.estimatedHours" class="muted"> de {{ project.estimatedHours }}h</span></span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Concluídas</span>
+      <span class="value progress">
+        <span class="track"><span class="bar" [style.width.%]="completedPercent"></span></span>
+        <span class="num">{{ completedCount }} de {{ activities.length }}</span>
+      </span>
+    </div>
+  </section>
+
+  <div class="segmented" role="tablist" aria-label="Filtrar atividades">
+    <button *ngFor="let tab of statusTabs" type="button" role="tab" [class.active]="statusFilter === tab.value"
+            [attr.aria-selected]="statusFilter === tab.value" (click)="setStatusFilter(tab.value)">
+      {{ tab.label }}<span class="count num">{{ countByStatus(tab.value) }}</span>
+    </button>
   </div>
 
-  <div class="flex p-toolbar-group-end" style="gap: 1rem;">
-    <span style="font-weight: bold; font-size: 1.2rem;">{{ getProjectName() }}</span>
-  </div>
-</p-toolbar>
+  <section class="table surface-card">
+    <div class="row head">
+      <span>Atividade</span><span>Responsável</span><span>Período</span><span>Status</span><span>Horas</span><span></span>
+    </div>
 
-<div class="cards">
-  <p-card styleClass="shadow-3 mt-5">
-    <div style="max-width: 100%; overflow-x: auto;">
-      <div class="activities-content">
-        <app-activities-form
-          [activities]="filteredActivities"
-          [projectId]="project.id || ''"
-          (activityCreated)="handleActivityCreated($event)"
-          (activityUpdated)="handleActivityUpdated($event)"
-          (activityDeleted)="handleActivityDeleted()">
-        </app-activities-form>
+    <app-skeleton-loader *ngIf="isLoading" [overlay]="false" [width]="'100%'" [height]="'160px'"
+                         [pulseColor]="'#8E8E93'" message="Carregando atividades..."></app-skeleton-loader>
 
-        <app-activities-table
-          [activities]="filteredActivities"
-          [project]="project"
-          (editActivity)="openEditActivityDialog($event)"
-          (deleteActivity)="openDeleteActivityDialog($event)">
-        </app-activities-table>
+    <div *ngIf="!isLoading && !filteredActivities.length" class="empty">
+      <app-logo-clock [size]="40"></app-logo-clock>
+      Nenhuma atividade com esse status.
+    </div>
+
+    <div *ngFor="let activity of filteredActivities" class="row">
+      <div class="name-cell">
+        <span class="name">{{ activity.name }}</span>
+        <span class="desc">{{ activity.description }}</span>
+      </div>
+      <span class="person"><span class="avatar">{{ initials(activity.responsible.name) }}</span>{{ activity.responsible.name }}</span>
+      <span class="num period" [class.overdue]="isOverdue(activity)">{{ activityPeriod(activity) }}</span>
+      <span><app-status-chip [status]="activity.status" [overdue]="isOverdue(activity)"></app-status-chip></span>
+      <span class="num strong">{{ activityHours(activity) | hours }}</span>
+      <div class="row-actions">
+        <button *ngIf="canLaunch(activity)" type="button" class="text-btn" (click)="releaseHours(activity)">Lançar horas</button>
+        <button *ngIf="isAdmin" type="button" class="text-btn" (click)="openEditActivityDialog(activity)">Editar</button>
       </div>
     </div>
-  </p-card>
+  </section>
 </div>
+
+<!-- Celular -->
+<div class="mob-only mobile">
+  <a routerLink="/projects" class="back-link"><app-icon name="chevron-left" [size]="24" [stroke]="2.2"></app-icon>Voltar</a>
+  <h1 class="page-title">{{ project.name }}</h1>
+
+  <div class="surface-card m-summary">
+    <div class="m-summary-top">
+      <app-status-chip *ngIf="project.status" [status]="project.status"></app-status-chip>
+      <span class="priority" [ngClass]="(project.priority || '').toLowerCase()">{{ priorityText }}</span>
+    </div>
+    <div class="m-summary-row"><span class="muted">Período</span><span class="num strong">{{ period(true) }}</span></div>
+    <div class="m-summary-row"><span class="muted">Horas lançadas</span><span class="num strong">{{ projectHours | hours }}</span></div>
+    <div class="m-summary-progress">
+      <span class="track"><span class="bar" [style.width.%]="completedPercent"></span></span>
+      <span class="num muted">{{ completedCount }}/{{ activities.length }}</span>
+    </div>
+  </div>
+
+  <div class="pills" role="tablist" aria-label="Filtrar atividades">
+    <button *ngFor="let tab of statusTabs" type="button" role="tab" [class.active]="statusFilter === tab.value"
+            [attr.aria-selected]="statusFilter === tab.value" (click)="setStatusFilter(tab.value)">{{ tab.label }}</button>
+  </div>
+
+  <div class="m-cards">
+    <div *ngIf="!isLoading && !filteredActivities.length" class="muted m-empty">Nenhuma atividade com esse status.</div>
+    <div *ngFor="let activity of filteredActivities" class="surface-card m-card">
+      <div class="m-card-info">
+        <span class="m-card-name">{{ activity.name }}</span>
+        <span class="m-card-meta">
+          <span class="avatar tiny">{{ initials(activity.responsible.name) }}</span>
+          <span class="num" [class.overdue]="isOverdue(activity)">{{ activityPeriod(activity) }}</span>
+        </span>
+        <span><app-status-chip [status]="activity.status" [overdue]="isOverdue(activity)"></app-status-chip></span>
+      </div>
+      <button *ngIf="canLaunch(activity)" type="button" class="m-launch" (click)="releaseHours(activity)">Lançar</button>
+    </div>
+  </div>
+</div>
+
+<app-activities-form
+  [projectId]="projectId"
+  (activityCreated)="handleActivityChanged()"
+  (activityUpdated)="handleActivityChanged()"
+  (activityDeleted)="handleActivityChanged()">
+</app-activities-form>

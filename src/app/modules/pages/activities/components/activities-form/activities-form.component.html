@@ -1,167 +1,48 @@
-<div style="max-width: 100%; overflow-x: auto;">
-    <div class="flex justify-content-between mb-2 flex-wrap">
-      <button pButton *ngIf="role === 'ADMIN'" (click)="openNewActivityDialog()" type="button" label="Criar" icon="pi pi-plus" class="p-button-primary mb-2"></button>
+<p-dialog [header]="editingActivity ? 'Editar atividade' : 'Nova atividade'" [(visible)]="isFormVisible" [modal]="true"
+          [style]="{ width: '35rem' }" [breakpoints]="{ '575px': '95vw' }" [draggable]="false">
+  <form [formGroup]="activityForm" class="dialog-form">
+    <div class="project-info">
+      <span>Projeto <b>{{ projectName || '—' }}</b><ng-container *ngIf="projectPeriod"> · período <span class="num">{{ projectPeriod }}</span></ng-container></span>
     </div>
-  </div>
-
-<!-- Modal/Dialog de criar atividade -->
-<p-dialog header="Nova Atividade" [(visible)]="isVisibleNewActivityDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
-  <div class="p-fluid">
-    <form [formGroup]="addActivityForm">
-      <!-- Projeto associado à atividade -->
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <div class="project-info p-2 bg-primary-50 border-round">
-          <span class="font-bold">Projeto: </span>
-          <span>{{projectName || 'Não especificado'}}</span>
-          <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
-            <span class="font-bold">Período do projeto: </span>
-            <span>{{displayProjectStartDate || 'Não definido'}} até {{displayProjectEndDate || 'Não definido'}}</span>
-          </div>
-          <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
-            <span class="text-yellow-500">O projeto não possui datas definidas</span>
-          </div>
-        </div>
+    <div class="p-field">
+      <label for="a-name">Nome da atividade</label>
+      <input id="a-name" pInputText formControlName="name" placeholder="Ex.: Tela de acompanhamento de entregas" />
+    </div>
+    <div class="p-field">
+      <label for="a-desc">Descrição</label>
+      <textarea id="a-desc" pInputTextarea formControlName="description" rows="2"></textarea>
+    </div>
+    <div class="dialog-grid">
+      <div class="p-field">
+        <label for="a-resp">Responsável</label>
+        <p-dropdown inputId="a-resp" [options]="responsibleOptions" formControlName="responsible" optionLabel="name" placeholder="Selecione" appendTo="body"></p-dropdown>
       </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="nome">Nome da Atividade</label>
-        <input id="nome" type="text" pInputText formControlName="name" class="p-inputtext p-component" />
+      <div class="p-field">
+        <label for="a-status">Status</label>
+        <p-dropdown inputId="a-status" [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
       </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="descricao">Descrição</label>
-        <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
+      <div class="p-field">
+        <label for="a-start">Data de início</label>
+        <p-calendar inputId="a-start" formControlName="startDate" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
       </div>
-
-      <div class="flex flex-row gap-3 align-items-center">
-        <div class="p-field flex-1" style="margin-bottom: 1rem;">
-          <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
-            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
-          </small>
-        </div>
-
-        <div class="p-field flex-1" style="margin-bottom: 1rem;">
-          <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
-            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
-          </small>
-        </div>
+      <div class="p-field">
+        <label for="a-end">Data de fim</label>
+        <p-calendar inputId="a-end" formControlName="endDate" dateFormat="dd/mm/yy" placeholder="dd/mm/aaaa" appendTo="body"></p-calendar>
       </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="status">Status</label>
-        <p-dropdown
-          id="status"
-          [options]="statusOptions"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="status"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="responsavel">Responsável</label>
-        <p-dropdown id="responsavel" [options]="responsibleOptions" formControlName="responsible" optionLabel="name" appendTo="body"></p-dropdown>
-      </div>
-    </form>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('newActivity')" [text]="true"></p-button>
-    <button pButton label="Salvar" (click)="createActivity()" icon="pi pi-check"></button>
-  </p-footer>
+    </div>
+    <span class="hint">As datas precisam estar dentro do período do projeto.</span>
+  </form>
+  <ng-template pTemplate="footer">
+    <button *ngIf="editingActivity" pButton type="button" label="Excluir" class="p-button-danger footer-start" (click)="openDeleteDialog()"></button>
+    <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="isFormVisible = false"></button>
+    <button pButton type="button" [label]="editingActivity ? 'Salvar' : 'Criar'" (click)="save()"></button>
+  </ng-template>
 </p-dialog>
 
-
-<!-- Modal/Dialog para editar projeto -->
-<p-dialog header="Editar Atividade" [(visible)]="isVisibleEditActivityDialog" [modal]="true" [style]="{ width: '50rem', 'max-height': '90vh' }">
-  <div class="p-fluid">
-    <form [formGroup]="editActivityForm">
-      <!-- Projeto associado à atividade -->
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <div class="project-info p-2 bg-primary-50 border-round">
-          <span class="font-bold">Projeto: </span>
-          <span>{{projectName || 'Não especificado'}}</span>
-          <div *ngIf="projectStartDate || projectEndDate" class="mt-2">
-            <span class="font-bold">Período do projeto: </span>
-            <span>{{displayProjectStartDate || 'Não definido'}} até {{displayProjectEndDate || 'Não definido'}}</span>
-          </div>
-          <div *ngIf="!projectStartDate && !projectEndDate" class="mt-2">
-            <span class="text-yellow-500">O projeto não possui datas definidas</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="nome">Nome da Atividade</label>
-        <input id="nome" type="text" pInputText formControlName="name" class="p-inputtext p-component" />
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="descricao">Descrição</label>
-        <input id="descricao" type="text" pInputText formControlName="description" class="p-inputtext p-component" />
-      </div>
-      <div class="flex flex-row gap-3 align-items-center">
-        <div class="p-field flex-1" style="margin-bottom: 1rem;">
-          <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
-            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
-          </small>
-        </div>
-
-        <div class="p-field flex-1" style="margin-bottom: 1rem;">
-          <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-          <small *ngIf="projectStartDate && projectEndDate" class="text-600">
-            Deve estar entre {{displayProjectStartDate}} e {{displayProjectEndDate}}
-          </small>
-        </div>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="status">Status</label>
-        <p-dropdown
-          id="status"
-          [options]="statusOptions"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="status"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="responsavel">Responsável</label>
-        <p-dropdown
-          id="responsavel"
-          [options]="responsibleOptions"
-          formControlName="responsible"
-          optionLabel="name"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-    </form>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editActivity')" [text]="true"></p-button>
-    <button pButton (click)="updateActivity()" label="Salvar" icon="pi pi-check"></button>
-  </p-footer>
-</p-dialog>
-
-<!-- Modal/Dialog para deletar projeto -->
-<p-dialog header="Deletar Atividade" [(visible)]="isVisibleDeleteActivityDialog" [modal]="true" [style]="{ width: '30rem', 'max-height': '90vh' }">
-  <div class="p-fluid">
-    <p>Tem certeza de que deseja deletar esta atividade?</p>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteActivity')" [text]="true" styleClass="text-gray-500"></p-button>
-    <button pButton (click)="deleteActivity()" label="Deletar" icon="pi pi-trash" class="p-button-danger"></button>
-  </p-footer>
+<p-dialog header="Excluir atividade" [(visible)]="isDeleteVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '575px': '95vw' }" [draggable]="false">
+  <p class="dialog-text">Excluir <b>{{ editingActivity?.name }}</b>? Essa ação não pode ser desfeita.</p>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="isDeleteVisible = false"></button>
+    <button pButton type="button" label="Excluir" class="p-button-danger" (click)="deleteActivity()"></button>
+  </ng-template>
 </p-dialog>

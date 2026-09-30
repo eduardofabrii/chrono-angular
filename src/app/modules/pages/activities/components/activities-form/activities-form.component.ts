@@ -1,5 +1,5 @@
 import { Component, EventEmitter, inject, Input, OnChanges, OnDestroy, Output } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
 import { UserService } from '../../../../../services/user/user.service';
@@ -8,298 +8,166 @@ import { DateUtilsService } from '../../../../../shared/services/date-utils.serv
 import { ActivitiesService } from './../../../../../services/activities/activities.service';
 import { PostActivityRequest } from '../../../../../models/interfaces/activities/request/PostActivityRequest';
 import { GetActivityResponse } from '../../../../../models/interfaces/activities/response/GetActivityResponse';
-import { PutActivityRequest } from '../../../../../models/interfaces/activities/request/PutActivityRequest';
 
 import { MessageService } from 'primeng/api';
+
+interface ResponsibleOption {
+  id: string;
+  name: string;
+  email: string;
+}
 
 @Component({
   selector: 'app-activities-form',
   templateUrl: './activities-form.component.html',
-  styleUrl: './activities-form.component.scss'
 })
 export class ActivitiesFormComponent implements OnChanges, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  public isVisibleNewActivityDialog = false;
-  public isVisibleEditActivityDialog = false;
-  public isVisibleDeleteActivityDialog = false;
-  public activityToDelete: GetActivityResponse | null = null;
-  public role = '';
-  public projectStartDate: string | null = null;
-  public projectEndDate: string | null = null;
-  public displayProjectStartDate: string | null = null;
-  public displayProjectEndDate: string | null = null;
-  public projectName: string | null = null;
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly userService = inject(UserService);
+  private readonly messageService = inject(MessageService);
+  private readonly activitiesService = inject(ActivitiesService);
+  private readonly dateUtils = inject(DateUtilsService);
+  private readonly projectsService = inject(ProjectsService);
 
-  @Input() activities: Array<GetActivityResponse> = [];
   @Input() projectId!: string;
 
   @Output() activityCreated = new EventEmitter<GetActivityResponse>();
   @Output() activityUpdated = new EventEmitter<GetActivityResponse>();
   @Output() activityDeleted = new EventEmitter<GetActivityResponse>();
 
-  formBuilder = inject(FormBuilder);
-  userService = inject(UserService);
-  messageService = inject(MessageService);
-  activitiesService = inject(ActivitiesService);
-  dateUtils = inject(DateUtilsService);
-  projectsService = inject(ProjectsService);
+  isFormVisible = false;
+  isDeleteVisible = false;
+  editingActivity: GetActivityResponse | null = null;
+  responsibleOptions: ResponsibleOption[] = [];
+  projectName = '';
+  projectStart: Date | null = null;
+  projectEnd: Date | null = null;
 
-  public statusOptions = [
+  readonly statusOptions = [
     { label: 'Aberta', value: 'ABERTA' },
-    { label: 'Em Andamento', value: 'EM_ANDAMENTO' },
-    { label: 'Concluída', value: 'CONCLUIDA' },
-    { label: 'Pausada', value: 'PAUSADA' }
+    { label: 'Em andamento', value: 'EM_ANDAMENTO' },
+    { label: 'Pausada', value: 'PAUSADA' },
+    { label: 'Concluída', value: 'CONCLUIDA' }
   ];
 
-  public responsibleOptions: any[] = [];
-
-  public addActivityForm: FormGroup = this.formBuilder.group({
-    id: [''],
-    name: [''],
+  activityForm = this.formBuilder.group({
+    name: ['', Validators.required],
     description: [''],
-    startDate: [''],
-    endDate: [''],
-    status: [''],
-    responsible: [null], // Changed from nested form group to simple control
+    responsible: [null as ResponsibleOption | null, Validators.required],
+    status: ['ABERTA', Validators.required],
+    startDate: [null as Date | null, Validators.required],
+    endDate: [null as Date | null, Validators.required],
   });
 
-  public editActivityForm: FormGroup = this.formBuilder.group({
-    id: [''],
-    name: [''],
-    description: [''],
-    startDate: [''],
-    endDate: [''],
-    status: [''],
-    responsible: [null], // Changed from nested form group to simple control
-  });
-
-  ngOnChanges() {
-    this.role = this.userService.getRole() ?? '';
-    this.getUsers();
-
-    if (this.projectId) {
-      this.loadProjectDetails();
-    }
+  get projectPeriod(): string {
+    return this.projectStart || this.projectEnd
+      ? `${this.dateUtils.formatDateForDisplay(this.projectStart ?? '') || '—'} – ${this.dateUtils.formatDateForDisplay(this.projectEnd ?? '') || '—'}`
+      : '';
   }
 
-  private getUsers(): void {
+  ngOnChanges(): void {
+    if (!this.projectId || !this.userService.isAdmin()) return;
     this.userService.getUsers()
-    .pipe(takeUntil(this.destroy$))
-    .subscribe((users: any[]) => {
-      this.responsibleOptions = users.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }));
-    });
-  }
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(users => this.responsibleOptions = users
+        .filter(user => user.active !== false)
+        .map(user => ({ id: String(user.id), name: user.name, email: user.email })));
 
-  private loadProjectDetails(): void {
     this.projectsService.getProjectById(this.projectId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (project) => {
-          if (project) {
-            this.projectName = project.name;
-            this.projectStartDate = project.startDate;
-            this.projectEndDate = project.endDate;
-
-            if (project.startDate) {
-              this.displayProjectStartDate = this.dateUtils.formatDateForDisplay(project.startDate);
-            }
-            if (project.endDate) {
-              this.displayProjectEndDate = this.dateUtils.formatDateForDisplay(project.endDate);
-            }
-          }
-        },
-        error: (err) => {
-          console.error('Error loading project details:', err);
-          this.showErrorMessage('Erro', 'Não foi possível carregar os detalhes do projeto');
-        }
+      .subscribe(project => {
+        this.projectName = project?.name ?? '';
+        this.projectStart = this.dateUtils.parseDate(project?.startDate ?? null);
+        this.projectEnd = this.dateUtils.parseDate(project?.endDate ?? null);
       });
   }
 
-  public openNewActivityDialog(): void {
-    this.isVisibleNewActivityDialog = true;
+  openNewActivityDialog(): void {
+    this.editingActivity = null;
+    this.activityForm.reset({ status: 'ABERTA', startDate: new Date() });
+    this.isFormVisible = true;
   }
 
-  public openEditActivityDialog(activity: GetActivityResponse): void {
-    this.isVisibleEditActivityDialog = true;
-
-    const startDate = this.dateUtils.parseDate(activity.startDate);
-    const endDate = this.dateUtils.parseDate(activity.endDate);
-
-    const responsible = this.responsibleOptions.find(user => user.id === activity.responsible.id);
-
-    this.editActivityForm.patchValue({
-      id: activity.id,
+  openEditActivityDialog(activity: GetActivityResponse): void {
+    this.editingActivity = activity;
+    this.activityForm.reset({
       name: activity.name,
       description: activity.description,
-      startDate: startDate,
-      endDate: endDate,
+      responsible: this.responsibleOptions.find(user => user.id == activity.responsible?.id) ?? null,
       status: activity.status,
-      responsible: responsible || null
+      startDate: this.dateUtils.parseDate(activity.startDate),
+      endDate: this.dateUtils.parseDate(activity.endDate),
+    });
+    this.isFormVisible = true;
+  }
+
+  save(): void {
+    if (this.activityForm.invalid) {
+      this.activityForm.markAllAsTouched();
+      this.showMessage('warn', 'Atenção', 'Preencha os campos obrigatórios.');
+      return;
+    }
+
+    const value = this.activityForm.getRawValue();
+    if (value.startDate && value.endDate && value.endDate < value.startDate) {
+      this.showMessage('warn', 'Atenção', 'A data de fim precisa ser depois do início.');
+      return;
+    }
+    if (this.projectStart && this.projectEnd && value.startDate && value.endDate &&
+        (value.startDate < this.projectStart || value.endDate > this.projectEnd)) {
+      this.showMessage('warn', 'Atenção', 'As datas precisam estar dentro do período do projeto.');
+      return;
+    }
+
+    const request: PostActivityRequest = {
+      project: { id: this.projectId },
+      name: value.name ?? '',
+      description: value.description ?? '',
+      startDate: this.dateUtils.formatDateOnly(value.startDate),
+      endDate: this.dateUtils.formatDateOnly(value.endDate),
+      status: value.status ?? 'ABERTA',
+      responsible: { id: value.responsible?.id ?? '', name: value.responsible?.name ?? '', email: value.responsible?.email ?? '' },
+    };
+
+    const editing = this.editingActivity;
+    const request$ = editing ? this.activitiesService.putActivity(editing.id, request) : this.activitiesService.postActivity(request);
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        this.showMessage('success', 'Sucesso', editing ? 'Atividade atualizada!' : 'Atividade criada!');
+        this.isFormVisible = false;
+        editing ? this.activityUpdated.emit(response) : this.activityCreated.emit(response);
+      },
+      error: () => this.showMessage('error', 'Erro', 'Não foi possível salvar a atividade.')
     });
   }
 
-  public openDeleteActivityDialog(activity: GetActivityResponse): void {
-    this.activityToDelete = activity;
-    this.isVisibleDeleteActivityDialog = true;
+  openDeleteDialog(): void {
+    this.isFormVisible = false;
+    this.isDeleteVisible = true;
   }
 
-  public createActivity(): void {
-    if (this.addActivityForm.valid) {
-      const formattedStartDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.startDate);
-      const formattedEndDate = this.dateUtils.formatDateOnly(this.addActivityForm.value.endDate);
-      const responsible = this.addActivityForm.value.responsible;
-
-      // Validar se as datas estão dentro do período do projeto
-      if (this.projectStartDate && this.projectEndDate) {
-        const startDate = new Date(this.addActivityForm.value.startDate);
-        const endDate = new Date(this.addActivityForm.value.endDate);
-        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
-        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
-
-        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
-          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
-          return;
-        }
-      }
-
-      const requestCreateActivity: PostActivityRequest = {
-        project: {
-          id: this.projectId
+  deleteActivity(): void {
+    const activity = this.editingActivity;
+    if (!activity) return;
+    this.activitiesService.deleteActivity(activity.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showMessage('success', 'Sucesso', 'Atividade excluída!');
+          this.isDeleteVisible = false;
+          this.activityDeleted.emit(activity);
         },
-        name: this.addActivityForm.value.name!,
-        description: this.addActivityForm.value.description!,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        status: this.addActivityForm.value.status!,
-        responsible: {
-          id: responsible?.id ?? '',
-          name: responsible?.name ?? '',
-          email: responsible?.email ?? ''
-        },
-      };
-
-      this.activitiesService.postActivity(requestCreateActivity)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response: any) => {
-            if (response) {
-              this.showSuccessMessage('Sucesso', 'Atividade criada com sucesso!');
-              this.addActivityForm.reset();
-              this.onCloseDialog('newActivity');
-              this.activityCreated.emit(response);
-            }
-          },
-          error: (err: any) => {
-            console.log(err);
-            this.showErrorMessage('Erro', 'Erro ao adicionar atividade!');
-          },
-        });
-    }
+        error: () => this.showMessage('error', 'Erro', 'Essa atividade provavelmente está vinculada a um lançamento de horas.')
+      });
   }
 
-  public updateActivity(): void {
-    if (this.editActivityForm.valid) {
-      const formattedStartDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.startDate);
-      const formattedEndDate = this.dateUtils.formatDateOnly(this.editActivityForm.value.endDate);
-      const responsible = this.editActivityForm.value.responsible;
-
-      // Validar se as datas estão dentro do período do projeto
-      if (this.projectStartDate && this.projectEndDate) {
-        const startDate = new Date(this.editActivityForm.value.startDate);
-        const endDate = new Date(this.editActivityForm.value.endDate);
-        const projectStartDate = this.dateUtils.parseDate(this.projectStartDate);
-        const projectEndDate = this.dateUtils.parseDate(this.projectEndDate);
-
-        if (projectStartDate && projectEndDate && (startDate < projectStartDate || endDate > projectEndDate)) {
-          this.showErrorMessage('Erro', 'As datas devem estar dentro do período do projeto.');
-          return;
-        }
-      }
-
-      const requestPutActivity: PutActivityRequest = {
-        project: {
-          id: this.projectId
-        },
-        name: this.editActivityForm.value.name!,
-        description: this.editActivityForm.value.description!,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        status: this.editActivityForm.value.status!,
-        responsible: {
-          id: responsible?.id ?? '',
-          name: responsible?.name ?? '',
-          email: responsible?.email ?? ''
-        },
-      };
-
-      this.activitiesService.putActivity(this.editActivityForm.value.id, requestPutActivity)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response: any) => {
-            if (response) {
-              this.showSuccessMessage('Sucesso', 'Atividade atualizada com sucesso!');
-              this.editActivityForm.reset();
-              this.onCloseDialog('editActivity');
-              this.activityUpdated.emit(response);
-            }
-          },
-          error: (err: any) => {
-            console.log(err);
-            this.showErrorMessage('Erro', 'Erro ao atualizar atividade!');
-          },
-        });
-    }
-  }
-
-  public deleteActivity(): void {
-    if (this.activityToDelete) {
-      this.activitiesService.deleteActivity(this.activityToDelete.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showSuccessMessage('Sucesso', 'Atividade deletada com sucesso!');
-            this.activityDeleted.emit(this.activityToDelete!);
-            this.onCloseDialog('deleteActivity');
-            this.activityToDelete = null;
-          },
-          error: (err: any) => {
-            console.log(err);
-            this.showErrorMessage('Erro', 'Essa atividade provavelmente está vinculada a um lançamento de horas!');
-          },
-        });
-    }
-  }
-
-  private showSuccessMessage(summary: string, detail: string): void {
-    this.messageService.add({
-      severity: 'success',
-      summary,
-      detail,
-      life: 2500,
-    });
-  }
-
-  private showErrorMessage(summary: string, detail: string): void {
-    this.messageService.add({
-      severity: 'error',
-      summary,
-      detail,
-      life: 2500,
-    });
-  }
-
-  public onCloseDialog(dialogType: "newActivity" | "editActivity" | "deleteActivity"): void {
-    if (dialogType === 'newActivity') this.isVisibleNewActivityDialog = false;
-    if (dialogType === 'editActivity') this.isVisibleEditActivityDialog = false;
-    if (dialogType === 'deleteActivity') this.isVisibleDeleteActivityDialog = false;
-  }
-
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private showMessage(severity: string, summary: string, detail: string): void {
+    this.messageService.add({ severity, summary, detail, life: 3000 });
   }
 }
