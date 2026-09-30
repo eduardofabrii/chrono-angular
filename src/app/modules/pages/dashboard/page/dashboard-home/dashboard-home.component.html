@@ -1,229 +1,139 @@
-<!-- Skeleton Overlay -->
-<app-skeleton-loader
-  *ngIf="isLoading"
-  [overlay]="true"
-  [width]="'360px'"
-  [height]="'240px'"
-  [pulseColor]="'#3B82F6'"
-  [showProgressBar]="true"
-  message="Carregando dashboard...">
-</app-skeleton-loader>
+<!-- Desktop -->
+<div class="desk-only page">
+  <header class="page-header">
+    <div class="titles">
+      <h1 class="page-title">Dashboard</h1>
+      <span class="page-subtitle">{{ todayLabel }} · semana {{ weekNumber }}</span>
+    </div>
+    <div class="actions">
+      <label class="search search-wide">
+        <app-icon name="search" [size]="16" [stroke]="2"></app-icon>
+        <input placeholder="Buscar projeto ou atividade" aria-label="Buscar" [(ngModel)]="search" (keydown.enter)="searchProjects()" />
+      </label>
+      <a pButton routerLink="/hours" [queryParams]="{ lancar: '1' }" label="Lançar horas"></a>
+    </div>
+  </header>
 
-<!-- Toolbar -->
-<p-toolbar>
-  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-    <i class="pi pi-home"></i>
-    <span style="font-weight: bold; font-size: 1.4rem;">
-      Dashboard
-    </span>
-    <span *ngIf="isAdminUser" class="ml-2 p-badge p-badge-info">Admin View</span>
-  </div>
+  <section class="kpis" aria-label="Resumo">
+    <div class="kpi surface-card">
+      <span class="kpi-label">Horas no mês</span>
+      <span class="kpi-value num">{{ hoursThisMonth | hours }}</span>
+      <span class="kpi-sub" [class.positive]="monthComparison.positive">{{ monthComparison.label }}</span>
+    </div>
+    <div class="kpi surface-card">
+      <span class="kpi-label">Projetos em andamento</span>
+      <span class="kpi-value num">{{ activeProjects }} <small>de {{ totalProjects }}</small></span>
+      <span class="kpi-sub">{{ projectsBreakdown }}</span>
+    </div>
+    <div class="kpi surface-card">
+      <span class="kpi-label">Atividades abertas</span>
+      <span class="kpi-value num">{{ pending.length }}</span>
+      <span class="kpi-sub">{{ dueThisWeek }} {{ dueThisWeek === 1 ? 'vence' : 'vencem' }} esta semana</span>
+    </div>
+    <a class="kpi surface-card" [routerLink]="overdueLink">
+      <span class="kpi-label">Atrasadas</span>
+      <span class="kpi-value num danger">{{ overdueCount }}</span>
+      <span class="kpi-sub link">Ver atividades</span>
+    </a>
+  </section>
 
-  <div class="flex p-toolbar-group-end">
-    <p-button
-      icon="pi pi-file-pdf"
-      styleClass="p-button-outlined p-button-info mr-2"
-      pTooltip="Gerar relatório"
-      tooltipPosition="bottom"
-      (onClick)="openReportDialog()"
-      [disabled]="isLoading"></p-button>
-    <p-button icon="pi pi-refresh" styleClass="p-button-text" (onClick)="loadDashboardData()" [loading]="isLoading"></p-button>
-  </div>
-</p-toolbar>
-
-<!-- Dashboard -->
-<div>
-  <div class="grid mt-3">
-    <div class="col-12 md:col-6" [ngClass]="{'lg:col-3': isAdminUser, 'lg:col-4': !isAdminUser}">
-      <div class="summary-card bg-blue-50">
-        <div class="card-content">
-          <span class="title">{{ isAdminUser ? 'Total de Projetos' : 'Meus Projetos' }}</span>
-          <span class="value">{{totalProjects}}</span>
-        </div>
-        <i class="pi pi-briefcase icon blue-icon"></i>
+  <section class="row">
+    <div class="surface-card panel tall">
+      <div class="panel-header">
+        <h2>Horas por projeto</h2>
+        <span class="muted small">{{ monthName }}</span>
+      </div>
+      <div *ngIf="!projectHours.length" class="empty">
+        <app-logo-clock [size]="36"></app-logo-clock>Nenhuma hora lançada neste mês.
+      </div>
+      <div *ngFor="let project of projectHours" class="hbar">
+        <span class="hbar-name">{{ project.name }}</span>
+        <span class="track"><span class="bar" [style.width.%]="barWidth(project.hours, maxProjectHours)"></span></span>
+        <span class="hbar-value num">{{ project.hours | hours }}</span>
       </div>
     </div>
 
-    <!-- Projetos ativos - ADMIN -->
-    <div class="col-12 md:col-6 lg:col-3" *ngIf="isAdminUser">
-      <div class="summary-card bg-green-50">
-        <div class="card-content">
-          <span class="title">Projetos Ativos</span>
-          <span class="value">{{ activeProjects }}</span>
+    <div class="panel dark-panel tall">
+      <div class="panel-header">
+        <h2>Esta semana</h2>
+        <span class="num week-total">{{ formatMinutes(weekMinutes) }} de {{ weeklyTarget }}h</span>
+      </div>
+      <div class="week-chart">
+        <div *ngFor="let bar of weekBars" class="week-col" [title]="formatMinutes(bar.minutes)">
+          <div class="week-bar" [class.today]="bar.isToday" [class.zero]="!bar.minutes" [style.height.px]="bar.height"></div>
+          <span [class.today-label]="bar.isToday">{{ bar.label }}</span>
         </div>
-        <i class="pi pi-bolt icon green-icon"></i>
       </div>
     </div>
+  </section>
 
-    <div class="col-12 md:col-6" [ngClass]="{'lg:col-3': isAdminUser, 'lg:col-4': !isAdminUser}">
-      <div class="summary-card bg-yellow-50">
-        <div class="card-content">
-          <span class="title">{{ isAdminUser ? 'Total de Atividades' : 'Minhas Atividades' }}</span>
-          <span class="value">{{ totalActivities }}</span>
+  <section class="row grow">
+    <div class="surface-card panel list">
+      <div class="panel-header">
+        <h2>Atividades pendentes</h2>
+        <a routerLink="/projects" class="link">Ver todas</a>
+      </div>
+      <div *ngIf="!pending.length && !isLoading" class="empty">
+        <app-logo-clock [size]="36"></app-logo-clock>Nenhuma atividade pendente.
+      </div>
+      <a *ngFor="let item of pending | slice:0:4" class="pending" [routerLink]="['/projects/activities', item.projectId]">
+        <span class="avatar">{{ item.initials }}</span>
+        <span class="pending-info">
+          <span class="pending-title">{{ item.activityName }}</span>
+          <span class="pending-sub">{{ item.projectName }} · {{ item.userName }}</span>
+        </span>
+        <app-status-chip [status]="item.status" [overdue]="item.overdue"></app-status-chip>
+        <span class="num deadline" [class.overdue]="item.overdue">{{ formatDeadline(item.deadline) }}</span>
+      </a>
+    </div>
+
+    <div class="surface-card panel">
+      <h2>Horas por pessoa</h2>
+      <div *ngIf="!peopleHours.length" class="empty">
+        <app-logo-clock [size]="36"></app-logo-clock>Nenhuma hora lançada neste mês.
+      </div>
+      <div *ngFor="let person of peopleHours" class="person">
+        <span class="avatar">{{ person.initials }}</span>
+        <div class="person-info">
+          <div class="person-row"><span>{{ person.name }}</span><span class="num strong">{{ person.hours | hours }}</span></div>
+          <span class="track"><span class="bar" [style.width.%]="barWidth(person.hours, maxPeopleHours)"></span></span>
         </div>
-        <i class="pi pi-calendar icon yellow-icon"></i>
       </div>
     </div>
-
-    <div class="col-12 md:col-6" [ngClass]="{'lg:col-3': isAdminUser, 'lg:col-4': !isAdminUser}">
-      <div class="summary-card bg-purple-50">
-        <div class="card-content">
-          <span class="title">{{ isAdminUser ? 'Horas Totais' : 'Minhas Horas' }}</span>
-          <span class="value">{{ formatHours(totalHours) }}h</span>
-        </div>
-        <i class="pi pi-clock icon purple-icon"></i>
-      </div>
-    </div>
-  </div>
-
-  <!-- Projeto Status -->
-  <div class="grid">
-    <div class="col-12 md:col-6 lg:col-6">
-      <p-card [header]="isAdminUser ? 'Status dos Projetos' : 'Status dos Meus Projetos'" styleClass="chart-card text-center standard-card">
-        <div class="chart-container">
-          <div class="percentage-container" *ngIf="isAdminUser">
-            <div class="percentage-value">{{ projectInProgressPercentage }}%</div>
-            <div class="percentage-label">Em andamento</div>
-          </div>
-          <p-chart type="doughnut" [data]="projectStatusData" [options]="chartOptions"></p-chart>
-        </div>
-      </p-card>
-    </div>
-
-    <!-- Atividades pendentes - ADMIN -->
-    <div class="col-12 md:col-6 lg:col-6" *ngIf="isAdminUser">
-      <p-card [header]="selectedUser ? 'Atividades de ' + selectedUser.userName : 'Selecione um usuário'" styleClass="chart-card pending-activities-card">
-        <div class="user-selector mb-3">
-          <p-dropdown
-            [options]="allPendingActivities"
-            [(ngModel)]="selectedUser"
-            optionLabel="userName"
-            placeholder="Selecione um usuário"
-            [style]="{'width':'100%'}"
-            (onChange)="selectUserActivities($event.value.userId)">
-            <ng-template pTemplate="selectedItem">
-              <div class="flex align-items-center gap-2" *ngIf="selectedUser">
-                <div class="user-badge" [style.background-color]="userColors[0]">{{ selectedUser.initials }}</div>
-                <div>{{ selectedUser.userName }}</div>
-              </div>
-            </ng-template>
-            <ng-template let-user pTemplate="item">
-              <div class="flex align-items-center gap-2">
-                <div class="user-badge" [style.background-color]="userColors[0]">{{ user.initials }}</div>
-                <div>{{ user.userName }}</div>
-              </div>
-            </ng-template>
-          </p-dropdown>
-        </div>
-
-        <div *ngIf="!isLoading" class="pending-activities-container">
-          <div *ngIf="!selectedUser" class="no-pending-activities">
-            <i class="pi pi-user" style="font-size: 2rem; color: var(--blue-500);"></i>
-            <p>Selecione um usuário para ver suas atividades</p>
-          </div>
-
-          <div *ngIf="selectedUser && pendingActivities.length === 0" class="no-pending-activities">
-            <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--green-500);"></i>
-            <p>Não há atividades pendentes para este usuário!</p>
-          </div>
-
-          <div *ngFor="let activity of pendingActivities" class="pending-activity-item">
-            <div class="activity-header">
-              <span class="activity-title">{{ activity.activityName }}</span>
-              <p-tag
-                [value]="getActivityStatus(activity.status)"
-                [severity]="activity.overdue ? 'danger' : 'info'"
-                [style]="{ 'font-size': '0.75rem' }">
-              </p-tag>
-            </div>
-            <div class="activity-project">
-              <i class="pi pi-briefcase" style="margin-right: 5px;"></i>
-              <span>{{activity.projectName}}</span>
-            </div>
-            <div class="activity-due-date" [ngClass]="{'overdue': activity.overdue}">
-              <i class="pi pi-calendar" style="margin-right: 5px;"></i>
-              <span>{{ formatDate(activity.deadline) }}</span>
-              <span *ngIf="activity.overdue" class="overdue-label">ATRASADA</span>
-            </div>
-          </div>
-        </div>
-      </p-card>
-    </div>
-
-    <!-- Atividades pendentes - USER -->
-    <div class="col-12 md:col-6 lg:col-6" *ngIf="!isAdminUser">
-      <p-card [header]="currentUser ? 'Atividades Pendentes - ' + currentUser.userName : 'Minhas Atividades Pendentes'" styleClass="chart-card pending-activities-card">
-        <div *ngIf="!isLoading" class="pending-activities-container">
-          <div *ngIf="pendingActivities.length === 0" class="no-pending-activities">
-            <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--green-500);"></i>
-            <p>Você não tem atividades pendentes!</p>
-          </div>
-
-          <div *ngFor="let activity of pendingActivities" class="pending-activity-item">
-            <div class="activity-header">
-              <span class="activity-title">{{ activity.activityName }}</span>
-              <p-tag
-                [value]="getActivityStatus(activity.status)"
-                [severity]="activity.overdue ? 'danger' : 'info'"
-                [style]="{ 'font-size': '0.75rem' }">
-              </p-tag>
-            </div>
-            <div class="activity-project">
-              <i class="pi pi-briefcase" style="margin-right: 5px;"></i>
-              <span>{{activity.projectName}}</span>
-            </div>
-            <div class="activity-due-date" [ngClass]="{'overdue': activity.overdue}">
-              <i class="pi pi-calendar" style="margin-right: 5px;"></i>
-              <span>{{ formatDate(activity.deadline) }}</span>
-              <span *ngIf="activity.overdue" class="overdue-label">ATRASADA</span>
-            </div>
-          </div>
-        </div>
-      </p-card>
-    </div>
-
-    <!-- Horas por projeto - visível para todos -->
-    <div class="col-12" [ngClass]="{'lg:col-6': isAdminUser, 'lg:col-12': !isAdminUser}">
-      <p-card [header]="isAdminUser ? 'Horas por Projeto' : 'Horas por Meus Projetos'" styleClass="chart-card">
-        <div class="projects-hours-container">
-          <div *ngIf="topProjects.length === 0" class="no-pending-as">
-            <i class="pi pi-folder-open" style="font-size: 2rem; color: var(--blue-500);"></i>
-            <p>Nenhum projeto com horas registradas encontrado.</p>
-          </div>
-          <div *ngFor="let project of topProjects" class="project-item">
-            <div class="project-info">
-              <div class="project-name">{{project.name}}</div>
-              <div class="project-hours">{{formatHours(project.hours)}}h</div>
-            </div>
-            <p-progressBar [value]="getProjectHoursPercentage(project.hours)" [showValue]="false"></p-progressBar>
-            <p-tag [value]="getProjectStatus(project.status)" [severity]="getProjectSeverity(project.status)" [style]="{ 'margin-top': '5px' }"></p-tag>
-          </div>
-        </div>
-      </p-card>
-    </div>
-
-    <!-- Horas por usuário - ADMIN -->
-    <div class="col-12 lg:col-6" *ngIf="isAdminUser">
-      <p-card header="Horas por Usuário" styleClass="chart-card">
-        <div class="user-hours-container">
-          <div *ngFor="let user of topUsers" class="user-item">
-            <div class="user-avatar" [style.background-color]="user.color">
-              {{user.initials}}
-            </div>
-            <div class="user-info">
-              <div class="user-name">{{user.name}}</div>
-              <p-progressBar [value]="getUserHoursPercentage(user.hours)" [showValue]="false"></p-progressBar>
-              <div class="user-hours">{{formatHours(user.hours)}}h</div>
-            </div>
-          </div>
-        </div>
-      </p-card>
-    </div>
-  </div>
+  </section>
 </div>
 
-<!-- Toast para notificações -->
-<p-toast></p-toast>
+<!-- Celular -->
+<div class="mob-only mobile">
+  <header class="m-header">
+    <img class="wordmark" src="assets/imgs/chrono-logo.png" alt="Chrono" />
+    <a routerLink="/edit-user" aria-label="Meu perfil"><span class="avatar m-avatar">{{ initialsOfMe }}</span></a>
+  </header>
 
-<!-- Relatório -->
-<app-project-report #projectReport></app-project-report>
+  <div class="m-titles">
+    <h1 class="m-title">Dashboard</h1>
+    <span class="muted m-date">{{ todayLabel }}</span>
+  </div>
+
+  <div class="m-kpis">
+    <div class="surface-card m-kpi"><span class="muted">Hoje</span><span class="num">{{ formatMinutes(todayMinutes) }}</span></div>
+    <div class="surface-card m-kpi"><span class="muted">Semana</span><span class="num">{{ formatMinutes(weekMinutes) }}</span></div>
+    <div class="surface-card m-kpi"><span class="muted">Atividades abertas</span><span class="num">{{ myPending.length }}</span></div>
+    <a class="surface-card m-kpi late" [routerLink]="overdueLink"><span>Atrasadas</span><span class="num">{{ myOverdue }}</span></a>
+  </div>
+
+  <section class="surface-card m-list">
+    <div class="m-list-header">
+      <h2>Minhas atividades</h2>
+      <a routerLink="/projects" class="m-link">Ver todas</a>
+    </div>
+    <div *ngIf="!myPending.length && !isLoading" class="m-empty muted">Nenhuma atividade pendente.</div>
+    <a *ngFor="let item of myPending | slice:0:3" class="m-item" [routerLink]="['/projects/activities', item.projectId]">
+      <span class="m-item-info">
+        <span class="m-item-title">{{ item.activityName }}</span>
+        <span class="muted m-item-sub">{{ item.projectName }} · até {{ formatDeadline(item.deadline) }}</span>
+      </span>
+      <app-status-chip [status]="item.status" [overdue]="item.overdue"></app-status-chip>
+    </a>
+  </section>
+</div>

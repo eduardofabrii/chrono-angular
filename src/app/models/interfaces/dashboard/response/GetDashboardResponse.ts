@@ -6,11 +6,14 @@ export interface GetDashboardResponse {
   }[];
   totalActivities: number;
   totalHours: number;
+  hoursThisMonth: number;
+  hoursLastMonth: number;
   projectHoursData: {
     projectId: number;
     projectName: string;
     projectStatus: string;
     totalHours: number;
+    estimatedHours: number | null;
   }[];
   userHoursData: {
     userId: number;
