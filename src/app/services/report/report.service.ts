@@ -12,82 +12,52 @@ interface JsPDFWithPlugin extends jsPDF {
 export class ReportService {
   constructor() {}
 
-  generateProjectHoursReport(projects: any[], filters: any = {}): void {
-    // Criar nova instância do PDF
+  generateProjectHoursReport(projects: { name: string; status: string; hours: number }[], filters: { period?: string } = {}): void {
     const doc = new jsPDF() as JsPDFWithPlugin;
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     const currentDate = new Date().toLocaleDateString('pt-BR');
+    const totalHours = projects.reduce((sum, project) => sum + (project.hours || 0), 0);
 
-    // Adicionar título
-    doc.setFontSize(18);
-    doc.setTextColor(40, 65, 143);
-    doc.text('Relatório de Horas por Projeto', pageWidth / 2, 20, { align: 'center' });
-
-    // Adicionar data do relatório
     doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Gerado em: ${currentDate}`, pageWidth - 20, 10, { align: 'right' });
+    doc.setTextColor(110, 110, 115);
+    doc.text('Chrono', 14, 14);
+    doc.text(`Gerado em ${currentDate}`, pageWidth - 14, 14, { align: 'right' });
 
-    // Adicionar informações de filtro
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Filtros aplicados:', 14, 30);
+    doc.setFontSize(20);
+    doc.setTextColor(29, 29, 31);
+    doc.text('Relatório de horas por projeto', 14, 30);
+
     doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
+    doc.setTextColor(110, 110, 115);
+    const period = filters.period ? `${filters.period} · ` : '';
+    doc.text(`${period}${projects.length} projeto(s) · ${this.formatHours(totalHours)} lançadas`, 14, 38);
 
-    let yPos = 35;
-
-    // Mostrar filtros aplicados
-    if (filters.selectedProjects) {
-      doc.text(`Projetos selecionados: ${filters.selectedProjects.length}`, 20, yPos);
-      yPos += 5;
-    }
-
-    // Título da tabela
-    yPos += 5;
-    doc.setFontSize(14);
-    doc.setTextColor(40, 65, 143);
-    doc.text('Horas por Projeto', 14, yPos);
-    yPos += 5;
-
-    // Preparar dados para a tabela
-    const tableData = projects.map(project => [
-      project.name,
-      this.getProjectStatus(project.status),
-      this.formatHours(project.hours)
-    ]);
-
-    // Adicionar tabela com autotable
     autoTable(doc, {
-      startY: yPos,
-      head: [['Projeto', 'Status', 'Total de Horas']],
-      body: tableData,
-      headStyles: {
-        fillColor: [67, 97, 238],
-        textColor: 255,
-        fontStyle: 'bold'
+      startY: 46,
+      head: [['Projeto', 'Status', 'Horas']],
+      body: projects.map(project => [project.name, this.getProjectStatus(project.status), this.formatHours(project.hours)]),
+      foot: [['Total', '', this.formatHours(totalHours)]],
+      theme: 'plain',
+      headStyles: { fillColor: [72, 72, 74], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [242, 242, 247], textColor: [29, 29, 31], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 247] },
+      columnStyles: { 2: { halign: 'right' } },
+      styles: { cellPadding: 4, fontSize: 10, textColor: [29, 29, 31] },
+      didParseCell: data => {
+        if (data.column.index === 2 && data.section !== 'body') data.cell.styles.halign = 'right';
       },
-      alternateRowStyles: {
-        fillColor: [245, 247, 250]
-      },
-      styles: {
-        cellPadding: 5,
-        fontSize: 10
-      }
     });
 
-    // Adicionar rodapé
-    // Usando uma abordagem alternativa para evitar usar getNumberOfPages()
     const totalPages = doc.internal.pages.length - 1;
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
-      doc.text('Chrono App - Sistema de Gestão de Projetos', 14, doc.internal.pageSize.height - 10);
+      doc.setTextColor(142, 142, 147);
+      doc.text(`Página ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 10, { align: 'right' });
+      doc.text('Chrono', 14, pageHeight - 10);
     }
 
-    // Salvar o PDF
     doc.save('relatorio-horas-projeto.pdf');
   }
 

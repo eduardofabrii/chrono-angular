@@ -1,0 +1,98 @@
+<!-- Desktop -->
+<div class="desk-only page">
+  <header class="titles">
+    <h1 class="page-title">Relatórios</h1>
+    <span class="page-subtitle">Horas por projeto, prontas para exportar em PDF</span>
+  </header>
+
+  <div class="columns">
+    <section class="surface-card filters">
+      <h2>Filtros</h2>
+      <div class="dates">
+        <div class="fld">
+          <label for="r-from">De</label>
+          <p-calendar inputId="r-from" [(ngModel)]="from" (ngModelChange)="onPeriodChange()" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        </div>
+        <div class="fld">
+          <label for="r-to">Até</label>
+          <p-calendar inputId="r-to" [(ngModel)]="to" (ngModelChange)="onPeriodChange()" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+        </div>
+      </div>
+      <div class="fld">
+        <span class="label">Projetos</span>
+        <ng-container *ngTemplateOutlet="projectOptions"></ng-container>
+      </div>
+    </section>
+
+    <section class="surface-card summary">
+      <div class="summary-header">
+        <div class="summary-titles">
+          <h2 class="big">Resumo do relatório</h2>
+          <span class="muted num">{{ periodLabel }} · {{ countLabel }}</span>
+        </div>
+        <img class="wordmark" src="assets/imgs/chrono-logo.png" alt="Chrono" />
+      </div>
+
+      <div *ngIf="!rows.length" class="none muted">
+        <app-logo-clock [size]="44"></app-logo-clock>
+        Selecione ao menos um projeto para ver o resumo.
+      </div>
+
+      <div *ngIf="rows.length" class="table">
+        <div class="t-row head"><span>Projeto</span><span>Status</span><span>Participação</span><span class="right">Horas</span></div>
+        <div *ngFor="let row of rows" class="t-row">
+          <span class="name">{{ row.name }}</span>
+          <span><app-status-chip [status]="row.status"></app-status-chip></span>
+          <span class="share">
+            <span class="track"><span class="bar" [style.width.%]="barWidth(row)"></span></span>
+            <span class="num muted">{{ share(row) }}%</span>
+          </span>
+          <span class="num right strong">{{ row.hours | hours }}</span>
+        </div>
+        <div class="total"><span>Total</span><span class="num">{{ total | hours }}</span></div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="actions">
+        <a pButton routerLink="/dashboard" class="p-button-secondary" label="Cancelar"></a>
+        <button pButton type="button" label="Gerar PDF" (click)="generatePdf()" [disabled]="!rows.length"></button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Celular -->
+<div class="mob-only mobile">
+  <a routerLink="/more" class="back-link"><app-icon name="chevron-left" [size]="24" [stroke]="2.2"></app-icon>Voltar</a>
+  <h1 class="page-title">Relatórios</h1>
+  <div class="dates">
+    <div class="fld">
+      <label for="m-from">De</label>
+      <p-calendar inputId="m-from" [(ngModel)]="from" (ngModelChange)="onPeriodChange()" dateFormat="dd/mm/yy" [touchUI]="true"></p-calendar>
+    </div>
+    <div class="fld">
+      <label for="m-to">Até</label>
+      <p-calendar inputId="m-to" [(ngModel)]="to" (ngModelChange)="onPeriodChange()" dateFormat="dd/mm/yy" [touchUI]="true"></p-calendar>
+    </div>
+  </div>
+  <div class="fld">
+    <span class="label">Projetos</span>
+    <ng-container *ngTemplateOutlet="projectOptions; context: { $implicit: true }"></ng-container>
+  </div>
+  <div class="surface-card m-total">
+    <span class="m-total-info"><span class="muted">{{ countLabel }}</span><span class="num">{{ total | hours }}</span></span>
+    <button pButton type="button" label="Gerar PDF" (click)="generatePdf()" [disabled]="!rows.length"></button>
+  </div>
+</div>
+
+<ng-template #projectOptions let-compact>
+  <div class="options" [class.compact]="compact">
+    <button *ngFor="let option of options" type="button" role="checkbox" class="option" [class.on]="selected.has(option.id)"
+            [attr.aria-checked]="selected.has(option.id)" (click)="toggle(option)">
+      <span class="box"><app-icon *ngIf="selected.has(option.id)" name="check" [size]="13" [stroke]="3"></app-icon></span>
+      <span class="option-name">{{ option.name }}</span>
+      <span class="num muted">{{ option.hours | hours }}</span>
+    </button>
+    <span *ngIf="!options.length && !isLoading" class="muted empty">Nenhum projeto cadastrado.</span>
+  </div>
+</ng-template>
