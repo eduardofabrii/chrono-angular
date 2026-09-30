@@ -1,317 +1,142 @@
-<!-- Toolbar -->
-<p-toolbar>
-  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-    <i class="pi pi-folder-open"></i>
-    <span style="font-weight: bold; font-size: 1.4rem;">
-      Projetos
-    </span>
-  </div>
-
-  <div class="p-toolbar-group-center">
-    <span class="p-input-icon-left" style="width: 100%;">
-      <i class="pi pi-search"></i>
-      <input
-        pInputText
-        placeholder="Pesquisar projeto"
-        [(ngModel)]="name"
-        (ngModelChange)="filterProjectsByName(name)"
-        style="box-shadow: 0 2px 5px rgba(0,0,0,0.1);"
-      />
-    </span>
-  </div>
-
-  <div *ngIf="role === 'ADMIN'" class="flex p-toolbar-group-end" style="gap: 1rem;">
-    <div class="flex align-items-center gap-2">
-      <p-button
-        label="Novo"
-        icon="pi pi-plus"
-        (onClick)="openNewProjectDialog()"
-        styleClass="p-button-raised p-button-primary">
-      </p-button>
-      <p-button
-        label="Editar"
-        icon="pi pi-pencil"
-        (onClick)="openEditProjectDialog()"
-        styleClass="p-button-raised p-button-secondary">
-      </p-button>
-      <p-button
-        label="Excluir"
-        icon="pi pi-trash"
-        (onClick)="openDeleteProjectDialog()"
-        styleClass="p-button-raised p-button-danger">
-      </p-button>
+<!-- Desktop -->
+<div class="desk-only page">
+  <header class="page-header">
+    <div class="titles">
+      <h1 class="page-title">Projetos</h1>
+      <span class="page-subtitle">{{ subtitle }}</span>
     </div>
+    <div class="actions">
+      <label class="search">
+        <app-icon name="search" [size]="16" [stroke]="2"></app-icon>
+        <input placeholder="Pesquisar projeto" [(ngModel)]="search" (ngModelChange)="applyFilters()" aria-label="Pesquisar projeto" />
+      </label>
+      <a pButton routerLink="/reports" class="p-button-secondary" label="Relatório"></a>
+      <button *ngIf="isAdmin" pButton type="button" label="Novo projeto" (click)="openNewProjectDialog()"></button>
+    </div>
+  </header>
+
+  <div class="segmented" role="tablist" aria-label="Filtrar por status">
+    <button *ngFor="let tab of statusTabs" type="button" role="tab" [class.active]="statusFilter === tab.value"
+            [attr.aria-selected]="statusFilter === tab.value" (click)="setStatusFilter(tab.value)">
+      {{ tab.label }}<span class="count num">{{ countByStatus(tab.value) }}</span>
+    </button>
   </div>
-</p-toolbar>
 
-<!-- Skeleton Overlay -->
-<app-skeleton-loader
-  *ngIf="isLoading"
-  [overlay]="true"
-  [width]="'360px'"
-  [height]="'240px'"
-  [pulseColor]="'#3B82F6'"
-  [showProgressBar]="true"
-  message="Carregando projetos...">
-</app-skeleton-loader>
+  <section class="table surface-card">
+    <div class="row head">
+      <span>Projeto</span><span>Responsável</span><span>Período</span><span>Prioridade</span><span>Status</span><span>Horas</span><span></span>
+    </div>
 
-<!-- Cards -->
-<div class="cards">
-  <ng-container *ngIf="filteredProjects.length > 0 && !isLoading; else noProjects">
-    <p-card *ngFor="let project of filteredProjects; let i = index" [style]="{ width: '360px' }" [ngClass]="'cascade-item cascade-delay-' + (i % 9)">
-      <ng-template pTemplate="header">
-        <div class="card-header" pTooltip="{{ project.name }}" tooltipPosition="top"
-             style="font-weight: bold; font-size: 1.2rem; padding: 0.75rem; border-bottom: 1px solid #dee2e6; text-align: center; width: 100%; box-sizing: border-box;">
-          {{ project.name | shorten: 25 }}
-        </div>
-      </ng-template>
-      <div>
-        <p><strong>Nome do Projeto: </strong> <span pTooltip="{{ project.name }}" tooltipPosition="top">{{ project.name | shorten: 15 }}</span></p>
-        <p><strong>Descrição: </strong> <span pTooltip="{{ project.description }}" tooltipPosition="top">{{ project.description | shorten: 20 }}</span></p>
-        <p><strong>Responsável: </strong> {{ project.responsible.name | shorten: 20 }}</p>
-        <p><strong>Data de Início: </strong> {{ project.startDate }}</p>
-        <p><strong>Status: </strong> {{ formatStatus(project.status) }}</p>
+    <app-skeleton-loader *ngIf="isLoading" [overlay]="false" [width]="'100%'" [height]="'160px'"
+                         [pulseColor]="'#8E8E93'" message="Carregando projetos..."></app-skeleton-loader>
+
+    <div *ngIf="!isLoading && !filteredRows.length" class="empty">
+      <app-logo-clock [size]="40"></app-logo-clock>
+      Nenhum projeto com esse status.
+    </div>
+
+    <div *ngFor="let row of filteredRows" class="row">
+      <div class="name-cell">
+        <a class="name" [routerLink]="['/projects/activities', row.project.id]">{{ row.project.name }}</a>
+        <span class="desc">{{ row.project.description }}</span>
       </div>
-      <ng-template pTemplate="footer">
-        <div class="flex gap-3 mt-3 justify-content-center">
-          <p-button label="Detalhes" icon="pi pi-info-circle" class="p-button-rounded p-button-info" (onClick)="openShowMoreDialog(project)"></p-button>
-            <p-button label="Atividades" icon="pi pi-calendar" class="p-button-rounded p-button-success" (onClick)="goToActivities(project)"></p-button>
-        </div>
-      </ng-template>
-    </p-card>
-  </ng-container>
-  <ng-template #noProjects>
-    <div *ngIf="!isLoading" class="no-projects">
-      <p>Nenhum projeto encontrado.</p>
+      <span class="person"><span class="avatar">{{ initials(row.project.responsible.name) }}</span>{{ row.project.responsible.name }}</span>
+      <span class="num period">{{ period(row.project) }}</span>
+      <span class="priority" [ngClass]="row.project.priority.toLowerCase()">{{ priorityLabel(row.project.priority) }}</span>
+      <span><app-status-chip [status]="row.project.status"></app-status-chip></span>
+      <div class="hours">
+        <div class="hours-row"><span class="num strong">{{ row.hours | hours }}</span><span class="muted">{{ row.activities }} ativ.</span></div>
+        <span class="track"><span class="bar" [ngClass]="row.project.status.toLowerCase()" [style.width.%]="row.progress"></span></span>
+      </div>
+      <div class="row-actions">
+        <a class="text-btn" [routerLink]="['/projects/activities', row.project.id]">Abrir</a>
+        <button *ngIf="isAdmin" type="button" class="text-btn" (click)="openEditProjectDialog(row.project)">Editar</button>
+      </div>
     </div>
-  </ng-template>
+  </section>
 </div>
 
-<!-- Modal/Dialog de ver mais (detalhes dos projetos) -->
-<p-dialog
-  header="Detalhes do Projeto"
-  [modal]="true"
-  [(visible)]="isVisibleShowMoreDialog"
-  [style]="{ width: '50rem', 'max-height': '90vh' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
-  (onHide)="onCloseDialog('showMore')">
-
-  <div *ngIf="selectedProject" class="project-details">
-    <div class="detail-item"><strong>Nome:</strong> {{ selectedProject.name }}</div>
-    <div class="detail-item"><strong>Descrição:</strong> {{ selectedProject.description }}</div>
-    <div class="detail-item"><strong>Data de Início:</strong> {{ selectedProject.startDate }}</div>
-    <div class="detail-item"><strong>Data de Fim:</strong> {{ selectedProject.endDate }}</div>
-    <div class="detail-item"><strong>Status:</strong> {{ formatStatus(selectedProject.status) }}</div>
-    <div class="detail-item"><strong>Responsável:</strong> {{ selectedProject.responsible.name }}</div>
-    <div class="detail-item"><strong>Prioridade:</strong> {{ selectedProject.priority }}</div>
+<!-- Celular -->
+<div class="mob-only mobile">
+  <h1 class="page-title">Projetos</h1>
+  <label class="search m-search">
+    <app-icon name="search" [size]="16" [stroke]="2"></app-icon>
+    <input placeholder="Buscar" [(ngModel)]="search" (ngModelChange)="applyFilters()" aria-label="Buscar projeto" />
+  </label>
+  <div class="pills" role="tablist" aria-label="Filtrar por status">
+    <button *ngFor="let tab of statusTabs" type="button" role="tab" [class.active]="statusFilter === tab.value"
+            [attr.aria-selected]="statusFilter === tab.value" (click)="setStatusFilter(tab.value)">
+      {{ tab.label }}<span class="count num">{{ countByStatus(tab.value) }}</span>
+    </button>
   </div>
-</p-dialog>
-
-<!-- Modal/Dialog de criar projeto -->
-<p-dialog *ngIf="role === 'ADMIN'" header="Novo Projeto"
-  [(visible)]="isVisibleNewProjectDialog"
-  [modal]="true"
-  [style]="{ width: '50rem', 'max-height': '90vh' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }">
-  <div class="p-fluid">
-    <form [formGroup]="addProjectForm">
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="nome">Nome do Projeto</label>
-        <input id="nome" type="text" pInputText formControlName="name" />
+  <div class="m-cards">
+    <div *ngIf="!isLoading && !filteredRows.length" class="muted m-empty">Nenhum projeto com esse status.</div>
+    <a *ngFor="let row of filteredRows" class="surface-card m-card" [routerLink]="['/projects/activities', row.project.id]">
+      <div class="m-card-top"><span class="m-card-name">{{ row.project.name }}</span><app-status-chip [status]="row.project.status"></app-status-chip></div>
+      <div class="m-card-meta">
+        <span class="avatar small">{{ initials(row.project.responsible.name) }}</span>{{ row.project.responsible.name }}
+        <span class="muted">·</span><span class="num">{{ period(row.project, true) }}</span>
       </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="descricao">Descrição</label>
-        <input id="descricao" type="text" pInputText formControlName="description" />
+      <div class="m-card-hours">
+        <span class="track"><span class="bar" [ngClass]="row.project.status.toLowerCase()" [style.width.%]="row.progress"></span></span>
+        <span class="num">{{ row.hours | hours }}</span>
       </div>
-
-      <div class="flex flex-row gap-3 align-items-center">
-        <div class="p-field flex-1 relative" style="margin-bottom: 1rem;">
-          <label for="dataInicio">Data de Início</label>
-          <p-calendar id="dataInicio" formControlName="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-        </div>
-
-        <div class="p-field flex-1" style="margin-bottom: 1rem;">
-          <label for="dataFim">Data de Fim</label>
-          <p-calendar id="dataFim" formControlName="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" [showOnFocus]="false" [showButtonBar]="true"></p-calendar>
-        </div>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="status">Status</label>
-        <p-dropdown
-          id="status"
-          [options]="statusOptions"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="status"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="responsavel">Responsável</label>
-        <p-dropdown id="responsavel" [options]="responsibleOptions" formControlName="responsible" optionLabel="name" appendTo="body"></p-dropdown>
-      </div>
-
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="priority">Prioridade</label>
-        <p-dropdown
-          id="priority"
-          [options]="priorityOptions"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="priority"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-    </form>
+    </a>
   </div>
+</div>
 
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('newProject')" [text]="true"></p-button>
-    <button pButton label="Salvar" (click)="createProject()" icon="pi pi-check"></button>
-  </p-footer>
-</p-dialog>
-
-<!-- Modal/Dialog de editar projeto -->
-<p-dialog *ngIf="role === 'ADMIN'"
-  header="Editar Projeto"
-  [(visible)]="isVisibleEditProjectDialog"
-  [modal]="true"
-  [style]="{ width: '50rem', 'max-height': '90vh' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
-  (onHide)="onCloseDialog('editProject')">
-  <div class="p-fluid">
-    <form [formGroup]="editProjectForm">
-      <div class="p-field" style="margin-bottom: 1rem;">
-        <label for="selectProject">Selecionar Projeto</label>
-        <p-dropdown
-          id="selectProject"
-          [options]="filteredProjects"
-          formControlName="selectedProject"
-          optionLabel="name"
-          (onChange)="onProjectSelect($event)"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-
-      <div *ngIf="isEditingProject" class="p-fluid">
-        <div class="p-field" style="margin-bottom: 1rem;">
-          <label for="editNome">Nome do Projeto</label>
-          <input id="editNome" type="text" pInputText formControlName="name" />
-        </div>
-
-        <div class="p-field" style="margin-bottom: 1rem;">
-          <label for="editDescricao">Descrição</label>
-          <input id="editDescricao" type="text" pInputText formControlName="description" />
-        </div>
-
-        <div class="flex flex-row gap-3 align-items-center">
-          <div class="p-field flex-1" style="margin-bottom: 1rem;">
-            <label for="editDataInicio">Data de Início</label>
-            <p-calendar id="editDataInicio" formControlName="startDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
-          </div>
-
-          <div class="p-field flex-1" style="margin-bottom: 1rem;">
-            <label for="editDataFim">Data de Fim</label>
-            <p-calendar id="editDataFim" formControlName="endDate" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
-          </div>
-        </div>
-
-        <div class="p-field" style="margin-bottom: 1rem;">
-          <label for="editStatus">Status</label>
-          <p-dropdown id="editStatus" [options]="statusOptions" formControlName="status" appendTo="body"></p-dropdown>
-        </div>
-
-        <div class="p-field" style="margin-bottom: 1rem;">
-          <label for="editResponsavel">Responsável</label>
-          <p-dropdown
-            id="editResponsavel"
-            [options]="responsibleOptions"
-            formControlName="responsible"
-            optionLabel="name"
-            appendTo="body">
-          </p-dropdown>
-        </div>
-
-        <div class="p-field" style="margin-bottom: 1rem;">
-          <label for="editPrioridade">Prioridade</label>
-          <p-dropdown id="editPrioridade" [options]="priorityOptions" formControlName="priority" appendTo="body"></p-dropdown>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('editProject')" [text]="true"></p-button>
-    <button pButton label="Salvar" (click)="updateProject()" icon="pi pi-check"></button>
-  </p-footer>
-</p-dialog>
-
-<!-- Modal/Dialog para excluir um projeto -->
-<p-dialog *ngIf="role === 'ADMIN'"
-  header="Excluir Projeto"
-  [(visible)]="isVisibleDeleteProjectDialog"
-  [modal]="true"
-  [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
-  (onHide)="onCloseDialog('deleteProject')">
-  <div class="p-fluid">
+<!-- Novo / editar projeto -->
+<p-dialog [header]="editingProject ? 'Editar projeto' : 'Novo projeto'" [(visible)]="isFormVisible" [modal]="true"
+          [style]="{ width: '35rem' }" [breakpoints]="{ '575px': '95vw' }" [draggable]="false">
+  <form [formGroup]="projectForm" class="dialog-form">
     <div class="p-field">
-      <label for="selectProject">Selecionar Projeto</label>
-      <p-dropdown
-        id="selectProject"
-        [options]="filteredProjects"
-        formControlName="selectedProject"
-        optionLabel="name"
-        (onChange)="onProjectSelect($event)"
-        appendTo="body">
-      </p-dropdown>
+      <label for="p-name">Nome do projeto</label>
+      <input id="p-name" pInputText formControlName="name" placeholder="Ex.: Portal do Cliente" />
     </div>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('deleteProject')" [text]="true" styleClass="p-button-secondary"></p-button>
-    <button pButton label="Excluir" (click)="openConfirmDeleteProject()" icon="pi pi-trash" class="p-button-danger"></button>
-  </p-footer>
+    <div class="p-field">
+      <label for="p-desc">Descrição</label>
+      <textarea id="p-desc" pInputTextarea formControlName="description" rows="3" placeholder="Objetivo e escopo do projeto"></textarea>
+    </div>
+    <div class="dialog-grid">
+      <div class="p-field">
+        <label for="p-resp">Responsável</label>
+        <p-dropdown inputId="p-resp" [options]="responsibleOptions" formControlName="responsible" optionLabel="name" placeholder="Selecione" appendTo="body"></p-dropdown>
+      </div>
+      <div class="p-field">
+        <label for="p-prio">Prioridade</label>
+        <p-dropdown inputId="p-prio" [options]="priorityOptions" formControlName="priority" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+      </div>
+      <div class="p-field">
+        <label for="p-start">Data de início</label>
+        <p-calendar inputId="p-start" formControlName="startDate" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
+      </div>
+      <div class="p-field">
+        <label for="p-end">Data de término</label>
+        <p-calendar inputId="p-end" formControlName="endDate" dateFormat="dd/mm/yy" placeholder="dd/mm/aaaa" appendTo="body"></p-calendar>
+      </div>
+      <div class="p-field">
+        <label for="p-status">Status</label>
+        <p-dropdown inputId="p-status" [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+      </div>
+      <div class="p-field">
+        <label for="p-hours">Horas previstas</label>
+        <input id="p-hours" type="number" min="0" pInputText formControlName="estimatedHours" placeholder="Opcional" />
+      </div>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <button *ngIf="editingProject" pButton type="button" label="Excluir" class="p-button-danger footer-start" (click)="openDeleteDialog()"></button>
+    <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="isFormVisible = false"></button>
+    <button pButton type="button" label="Salvar" (click)="saveProject()"></button>
+  </ng-template>
 </p-dialog>
 
-<!-- Modal/Dialog para confirmar exclusão de um projeto -->
-<p-dialog *ngIf="role === 'ADMIN'"
-  header="Confirmar Exclusão"
-  [(visible)]="isVisibleConfirmDeleteDialog"
-  [modal]="true"
-  [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
-  (onHide)="onCloseDialog('confirmDelete')">
-  <div class="p-fluid">
-    <div class="p-field">
-      <p>Tem certeza de que deseja excluir este projeto?</p>
-    </div>
-  </div>
-
-  <p-footer>
-    <p-button label="Cancelar" icon="pi pi-times" (onClick)="onCloseDialog('confirmDelete')" [text]="true" styleClass="p-button-secondary"></p-button>
-    <button pButton label="Excluir" (click)="selectedProject ? deleteProject() : openDeleteErrorDialog()" icon="pi pi-trash" class="p-button-danger"></button>
-  </p-footer>
-</p-dialog>
-
-<!-- Modal/Dialog erro ao excluir  -->
-<p-dialog
-  header="Erro ao Excluir"
-  [(visible)]="isVisibleDeleteErrorDialog"
-  [modal]="true"
-  [style]="{ width: '30rem' }"
-  [breakpoints]="{ '1199px': '75vw', '575px': '95vw' }"
-  (onHide)="onCloseDialog('deleteError')">
-  <div class="p-fluid">
-    <div class="p-field">
-      <p class="error-message">{{ deleteError }}</p>
-    </div>
-  </div>
-
-  <p-footer>
-    <p-button label="Fechar" icon="pi pi-times" (onClick)="onCloseDialog('deleteError')" styleClass="p-button-secondary"></p-button>
-  </p-footer>
+<!-- Excluir projeto -->
+<p-dialog header="Excluir projeto" [(visible)]="isDeleteVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '575px': '95vw' }" [draggable]="false">
+  <p class="dialog-text">Excluir <b>{{ editingProject?.name }}</b>? Essa ação não pode ser desfeita.</p>
+  <p *ngIf="deleteError" class="error-message">{{ deleteError }}</p>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="isDeleteVisible = false"></button>
+    <button pButton type="button" label="Excluir" class="p-button-danger" (click)="deleteProject()"></button>
+  </ng-template>
 </p-dialog>

@@ -7,5 +7,6 @@ export interface GetProjectResponse {
   status: string;
   responsible: { id: string; name: string; email: string };
   priority: string;
+  estimatedHours?: number | null;
   createdDate: string;
 }

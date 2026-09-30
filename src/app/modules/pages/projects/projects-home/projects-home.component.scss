@@ -1,171 +1,167 @@
-// Cards
-::ng-deep .p-card {
+:host {
   display: block;
 }
 
-// Efeito cascata
-.cascade-item {
-  opacity: 0;
-  animation-fill-mode: forwards;
-  animation-name: cascadeIn;
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-}
-
-@for $i from 0 through 8 {
-  .cascade-delay-#{$i} {
-    animation-delay: #{$i * 0.1}s;
-  }
-}
-
-@keyframes cascadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-10px) scale(1.02);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.cards {
-  margin-top: 30px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.w-full {
-  width: auto !important;
-}
-
-.no-projects {
-  text-align: center;
-  color: #e7e7e7;
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.no-projects p {
-  font-size: 1.5rem;
-}
-
-// Toolbar
-.pi-folder-open {
-  font-size: 24px;
-  font-weight: 600;
-  margin-right: 0.7rem;
-  color: #4361ee;
-  background: rgba(67, 97, 238, 0.1);
-  padding: 10px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: rgba(67, 97, 238, 0.2);
-    transform: scale(1.05);
-  }
-}
-
-// Form
-.project-details {
+.page {
+  min-height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 20px;
 }
 
-.detail-item {
-  padding: 0.5rem;
-  border-bottom: 1px solid #ccc;
+.search {
+  width: 240px;
 }
 
-.detail-item:last-child {
-  border-bottom: none;
-}
+.table {
+  flex-grow: 1;
 
-::ng-deep .p-card .p-card-footer {
-  padding: 0;
-}
+  .row {
+    grid-template-columns: 2.3fr 1.3fr 1.5fr .8fr 1.1fr 1.1fr 120px;
+    min-height: 72px;
 
-// Button animations
-::ng-deep .p-button {
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
+    &.head {
+      min-height: 46px;
+    }
   }
 }
 
-// Celulares
-@media screen and (max-width: 768px) {
-  .cards {
-    display: block;
-    justify-content: center;
-  }
-
-  ::ng-deep .p-card {
-    width: 100% !important;
-    margin-bottom: 1rem;
-  }
-
-  ::ng-deep .p-toolbar {
-    flex-wrap: wrap;
-  }
-
-  ::ng-deep .p-toolbar-group-start,
-  ::ng-deep .p-toolbar-group-center,
-  ::ng-deep .p-toolbar-group-end {
-    margin: 0.5rem 0;
-  }
-
-  ::ng-deep .p-toolbar-group-center {
-    width: 100%;
-  }
-
-  ::ng-deep .p-toolbar-group-center .p-input-icon-left {
-    width: 100%;
-  }
-
-  ::ng-deep .p-toolbar-group-center input {
-    width: 100%;
-  }
-
-  .flex.p-toolbar-group-end {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .flex.align-items-center.gap-2 {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem !important;
-  }
-
-  .flex.flex-row {
-    flex-direction: column !important;
-  }
-
-  .p-field.flex-1 {
-    width: 100% !important;
-  }
-
-  // Remove the mobile-specific skeleton styles since we're using overlay
+.name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
+.name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--c-text);
+}
 
+.desc {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  min-width: 0;
+}
+
+.period {
+  font-size: 13.5px;
+  color: var(--c-text-2);
+}
+
+.hours {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hours-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+
+  .strong {
+    font-weight: 600;
+  }
+}
+
+.bar {
+  &.concluido {
+    background: #34C759;
+  }
+
+  &.cancelado {
+    background: #C7C7CC;
+  }
+}
+
+.error-message {
+  color: var(--c-danger);
+  font-size: 13.5px;
+}
+
+// ---------- Celular ----------
+.mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-search {
+  width: 100%;
+  background: var(--c-secondary);
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+.m-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-empty {
+  font-size: 14px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.m-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--c-text);
+}
+
+.m-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.m-card-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.m-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--c-text-2);
+}
+
+.avatar.small {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.m-card-hours {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .track {
+    flex-grow: 1;
+  }
+
+  .num {
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+}

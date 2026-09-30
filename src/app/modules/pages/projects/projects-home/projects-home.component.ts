@@ -1,16 +1,25 @@
-import { Component, inject, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Subject, forkJoin, of, catchError, takeUntil } from 'rxjs';
 
 import { MessageService } from 'primeng/api';
-import { Router } from '@angular/router';
 
 import { GetProjectResponse } from '../../../../models/interfaces/projects/response/GetProjectResponse';
 import { PostProjectRequest } from '../../../../models/interfaces/projects/request/PostProjectRequest';
-import { PutProjectRequest } from '../../../../models/interfaces/projects/request/PutProjectRequest';
+import { GetActivityResponse } from '../../../../models/interfaces/activities/response/GetActivityResponse';
 import { DateUtilsService } from '../../../../shared/services/date-utils.service';
 import { ProjectsService } from '../../../../services/projects/projects.service';
+import { ActivitiesService } from '../../../../services/activities/activities.service';
+import { DashboardService } from '../../../../services/dashboard/dashboard.service';
 import { UserService } from '../../../../services/user/user.service';
+
+interface ProjectRow {
+  project: GetProjectResponse;
+  hours: number;
+  activities: number;
+  progress: number;
+}
 
 @Component({
   selector: 'app-projects-home',
@@ -19,399 +28,226 @@ import { UserService } from '../../../../services/user/user.service';
 })
 export class ProjectsHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  public projects: GetProjectResponse[] = [];
-  public filteredProjects: GetProjectResponse[] = [];
-  public selectedProject!: GetProjectResponse;
-  public isVisibleShowMoreDialog: boolean = false;
-  public isVisibleNewProjectDialog: boolean = false;
-  public isVisibleEditProjectDialog: boolean = false;
-  public isEditingProject: boolean = false;
-  public isVisibleDeleteProjectDialog: boolean = false;
-  public isVisibleConfirmDeleteDialog: boolean = false;
-  public isVisibleDeleteErrorDialog: boolean = false;
-  public name: string = '';
-  public role: string | null = '';
-  public deleteError: string = 'Não é possível excluir um projeto que possui tarefas associadas.';
-  public isLoading: boolean = true;
+  private readonly projectsService = inject(ProjectsService);
+  private readonly activitiesService = inject(ActivitiesService);
+  private readonly dashboardService = inject(DashboardService);
+  private readonly userService = inject(UserService);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly messageService = inject(MessageService);
+  private readonly dateUtils = inject(DateUtilsService);
+  private readonly route = inject(ActivatedRoute);
 
-  projectsService = inject(ProjectsService);
-  userService = inject(UserService);
-  formBuilder = inject(FormBuilder);
-  messageService = inject(MessageService);
-  dateUtils = inject(DateUtilsService);
-  router = inject(Router);
-  private readonly cdr = inject(ChangeDetectorRef);
+  rows: ProjectRow[] = [];
+  filteredRows: ProjectRow[] = [];
+  responsibleOptions: { id: string; name: string; email: string }[] = [];
+  isAdmin = false;
+  isLoading = true;
+  search = '';
+  statusFilter = 'TODOS';
 
-  public priorityOptions = [
-    { label: 'Baixa', value: 'BAIXA' },
-    { label: 'Média', value: 'MEDIA' },
-    { label: 'Alta', value: 'ALTA' }
+  isFormVisible = false;
+  isDeleteVisible = false;
+  editingProject: GetProjectResponse | null = null;
+  deleteError = '';
+
+  readonly statusTabs = [
+    { value: 'TODOS', label: 'Todos' },
+    { value: 'EM_ANDAMENTO', label: 'Em andamento' },
+    { value: 'PLANEJADO', label: 'Planejados' },
+    { value: 'CONCLUIDO', label: 'Concluídos' },
+    { value: 'CANCELADO', label: 'Cancelados' },
   ];
 
-  public statusOptions = [
-    { label: 'Concluído', value: 'CONCLUIDO' },
-    { label: 'Em andamento', value: 'EM_ANDAMENTO' },
+  readonly priorityOptions = [
+    { label: 'Alta', value: 'ALTA' },
+    { label: 'Média', value: 'MEDIA' },
+    { label: 'Baixa', value: 'BAIXA' }
+  ];
+
+  readonly statusOptions = [
     { label: 'Planejado', value: 'PLANEJADO' },
+    { label: 'Em andamento', value: 'EM_ANDAMENTO' },
+    { label: 'Concluído', value: 'CONCLUIDO' },
     { label: 'Cancelado', value: 'CANCELADO' }
   ];
 
-  public responsibleOptions: any[] = [];
+  private readonly priorityLabels: Record<string, string> = { ALTA: 'Alta', MEDIA: 'Média', BAIXA: 'Baixa' };
 
-  public addProjectForm: FormGroup = this.formBuilder.group({
-    id: [''],
-    name: [''],
+  projectForm = this.formBuilder.group({
+    name: ['', Validators.required],
     description: [''],
-    startDate: [''],
-    endDate: [''],
-    status: [''],
-    responsible: this.formBuilder.group({
-      id: [''],
-      name: [''],
-      email: ['']
-    }),
-    creationDate: [''],
-    priority: ['']
-  });
-
-  public editProjectForm: FormGroup = this.formBuilder.group({
-    id: [''],
-    name: [''],
-    description: [''],
-    startDate: [''],
-    endDate: [''],
-    status: [''],
-    responsible: this.formBuilder.group({
-      id: [''],
-      name: [''],
-      email: ['']
-    }),
-    priority: ['']
+    responsible: [null as { id: string; name: string; email: string } | null, Validators.required],
+    priority: ['MEDIA', Validators.required],
+    startDate: [null as Date | null, Validators.required],
+    endDate: [null as Date | null, Validators.required],
+    status: ['PLANEJADO', Validators.required],
+    estimatedHours: [null as number | null, Validators.min(0)],
   });
 
   ngOnInit(): void {
-    this.role = this.userService.getRole();
-    setTimeout(() => {
-      this.getUsersAdmin();
-      this.loadProjectsBasedOnRole();
-    }, 300);
-  }
-
-  private loadProjectsBasedOnRole(): void {
-    if (this.role === 'ADMIN') {
-      this.getAllProjects();
-    } else {
-      this.getProjectsByActivityUserId();
+    this.isAdmin = this.userService.isAdmin();
+    this.search = this.route.snapshot.queryParamMap.get('busca') ?? '';
+    if (this.isAdmin) {
+      this.userService.getUsersAdmin()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(users => this.responsibleOptions = users.map(u => ({ id: String(u.id), name: u.name, email: u.email })));
     }
+    this.loadProjects();
   }
 
-  goToActivities(project: GetProjectResponse) {
-    if (!project?.id) {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get subtitle(): string {
+    return `${this.rows.length} ${this.rows.length === 1 ? 'projeto' : 'projetos'} · ${this.countByStatus('EM_ANDAMENTO')} em andamento`;
+  }
+
+  countByStatus(status: string): number {
+    return status === 'TODOS' ? this.rows.length : this.rows.filter(r => r.project.status === status).length;
+  }
+
+  setStatusFilter(status: string): void {
+    this.statusFilter = status;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const term = this.search.trim().toLowerCase();
+    this.filteredRows = this.rows.filter(({ project }) =>
+      (this.statusFilter === 'TODOS' || project.status === this.statusFilter) &&
+      (!term || project.name.toLowerCase().includes(term) || project.description?.toLowerCase().includes(term)));
+  }
+
+  priorityLabel(priority: string): string {
+    return this.priorityLabels[priority] ?? priority ?? '—';
+  }
+
+  period(project: GetProjectResponse, short = false): string {
+    if (!project.startDate && !project.endDate) return short ? 'Sem datas' : 'Sem datas definidas';
+    const format = (value: string) => {
+      const display = this.dateUtils.formatDateForDisplay(value) || '—';
+      return short ? display.slice(0, 5) : display;
+    };
+    return `${format(project.startDate)} – ${format(project.endDate)}`;
+  }
+
+  initials(name?: string): string {
+    return (name ?? '').split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  openNewProjectDialog(): void {
+    this.editingProject = null;
+    this.projectForm.reset({ priority: 'MEDIA', status: 'PLANEJADO', startDate: new Date() });
+    this.isFormVisible = true;
+  }
+
+  openEditProjectDialog(project: GetProjectResponse): void {
+    this.editingProject = project;
+    this.projectForm.reset({
+      name: project.name,
+      description: project.description,
+      responsible: this.responsibleOptions.find(u => u.id == project.responsible?.id) ?? null,
+      priority: project.priority,
+      startDate: this.dateUtils.parseDate(project.startDate),
+      endDate: this.dateUtils.parseDate(project.endDate),
+      status: project.status,
+      estimatedHours: project.estimatedHours ?? null,
+    });
+    this.isFormVisible = true;
+  }
+
+  saveProject(): void {
+    if (this.projectForm.invalid) {
+      this.projectForm.markAllAsTouched();
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha os campos obrigatórios.' });
       return;
     }
 
-    const navigateUrl = `/projects/activities/${project.id}`;
-    this.router.navigate([navigateUrl]);
-  }
-
-  private getUsersAdmin(): void {
-    this.userService.getUsersAdmin()
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (users: any[]) => {
-        this.responsibleOptions = users.map(user => ({
-          id: user.id,
-          name: user.name,
-          email: user.email
-        }));
-      },
-      error: () => {
-        this.isLoading = false;
-      }
-    });
-  }
-
-  private getAllProjects(): void {
-    this.projectsService.getAllProjects()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (projects) => {
-          this.projects = [...projects]; // Cria uma nova referência de array
-          this.filteredProjects = [...projects]; // Cria uma nova referência de array
-          // Aguarda receber uma promise para atualizar a view
-          // Adiciona um pequeno delay antes de esconder o skeleton para uma transição mais suave
-          setTimeout(() => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          }, 500);
-        },
-        error: (error) => {
-          console.error('Error fetching all projects:', error);
-          this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
-          this.isLoading = false;
-        }
-      });
-  }
-
-  private getProjectsByActivityUserId(): void {
-    const userId = this.userService.getCurrentUserId();
-    if (userId) {
-      this.projectsService.findProjectsByActivityUserId(userId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (projects) => {
-            //formata as datas para exibição
-            const formattedProjects = projects.map(project => ({
-              ...project,
-              startDate: this.dateUtils.formatDateForDisplay(project.startDate),
-              endDate: this.dateUtils.formatDateForDisplay(project.endDate)
-            }));
-
-            this.projects = [...formattedProjects];
-            this.filteredProjects = [...formattedProjects];
-            // Adiciona um pequeno delay antes de esconder o skeleton para uma transição mais suave
-            setTimeout(() => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-            }, 500);
-          },
-          error: (error) => {
-            console.error('Error fetching user projects:', error);
-            this.showErrorMessage('Erro', 'Não foi possível carregar os projetos.');
-            this.isLoading = false;
-          }
-        });
-    }
-  }
-
-  public filterProjectsByName(name: string): void {
-    if (name.trim()) {
-      this.filteredProjects = this.projects.filter(project =>
-        project.name.toLowerCase().includes(name.toLowerCase())
-      );
-    } else {
-      this.filteredProjects = this.projects;
-    }
-  }
-
-  public openShowMoreDialog(project: GetProjectResponse): void {
-    this.selectedProject = project;
-    this.isVisibleShowMoreDialog = true;
-  }
-
-  public openNewProjectDialog(): void {
-    this.isVisibleNewProjectDialog = true;
-  }
-
-  public openEditProjectDialog(): void {
-    this.isVisibleEditProjectDialog = true;
-  }
-
-  public openDeleteProjectDialog(): void {
-    this.isVisibleDeleteProjectDialog = true;
-  }
-
-  public openConfirmDeleteProject(): void {
-    this.isVisibleConfirmDeleteDialog = true;
-  }
-
-  public openDeleteErrorDialog(): void {
-    this.isVisibleDeleteErrorDialog = true;
-  }
-
-  public onProjectSelect(event: any): void {
-    this.selectedProject = event.value;
-    if (!this.selectedProject) return;
-
-    this.editProjectForm.patchValue({
-      ...this.selectedProject,
-      responsible: this.responsibleOptions.find(user => user.id === this.selectedProject.responsible.id) || { id: '', name: '', email: '' }
-    });
-
-    this.isEditingProject = true;
-  }
-
-  public createProject(): void {
-    console.log(this.addProjectForm.value);
-    if (this.addProjectForm.valid) {
-      const formattedStartDate = this.dateUtils.formatDateOnly(this.addProjectForm.value.startDate);
-      const formattedEndDate = this.dateUtils.formatDateOnly(this.addProjectForm.value.endDate);
-      const formattedCreatedDate = this.dateUtils.formatDateTime(new Date());
-
-      const requestCreateProject: PostProjectRequest = {
-        name: this.addProjectForm.value.name!,
-        description: this.addProjectForm.value.description!,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        status: this.addProjectForm.value.status!,
-        responsible: {
-          id: this.addProjectForm.value.responsible?.id ?? '',
-          name: this.addProjectForm.value.responsible?.name ?? '',
-          email: this.addProjectForm.value.responsible?.email ?? ''
-        },
-        priority: this.addProjectForm.value.priority!,
-        createdDate: formattedCreatedDate,
-      };
-
-      this.projectsService.postProject(requestCreateProject)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            if (response) {
-              this.showSuccessMessage('Sucesso', 'Projeto criado com sucesso!');
-              this.addProjectForm.reset();
-              this.onCloseDialog('newProject');
-
-              // Adiciona o novo projeto no início do array
-              if (response) {
-                this.projects = [response, ...this.projects];
-                this.filteredProjects = [response, ...this.filteredProjects];
-                setTimeout(() => this.cdr.detectChanges(), 0);
-              } else {
-                this.loadProjectsBasedOnRole();
-              }
-            }
-          },
-          error: (err) => {
-            console.log(err);
-            this.showErrorMessage('Erro', 'Erro ao adicionar projeto!');
-          },
-        });
-    }
-  }
-
-  public updateProject(): void {
-    if (this.editProjectForm.invalid) return;
-
-    const { id, name, description, startDate, endDate, status, priority, responsible } = this.editProjectForm.value;
-    const formattedStartDate = this.dateUtils.formatDateOnly(this.dateUtils.parseDate(startDate));
-    const formattedEndDate = this.dateUtils.formatDateOnly(this.dateUtils.parseDate(endDate));
-
-    const requestPutProject: PutProjectRequest = {
-      id: id!,
-      name: name!,
-      description: description!,
-      startDate: formattedStartDate,
-      endDate: formattedEndDate,
-      status: status!,
-      responsible: {
-        id: responsible?.id ?? '',
-        name: responsible?.name ?? '',
-        email: responsible?.email ?? ''
-      },
-      priority: priority!,
+    const value = this.projectForm.getRawValue();
+    const request: PostProjectRequest = {
+      name: value.name ?? '',
+      description: value.description ?? '',
+      startDate: this.dateUtils.formatDateOnly(value.startDate),
+      endDate: this.dateUtils.formatDateOnly(value.endDate),
+      status: value.status ?? 'PLANEJADO',
+      responsible: { id: value.responsible?.id ?? '', name: value.responsible?.name ?? '', email: value.responsible?.email ?? '' },
+      priority: value.priority ?? 'MEDIA',
+      estimatedHours: value.estimatedHours || null,
+      createdDate: this.dateUtils.formatDateTime(new Date()),
     };
 
-    this.projectsService.putProject(requestPutProject.id, requestPutProject)
+    const request$ = this.editingProject
+      ? this.projectsService.putProject(this.editingProject.id, { ...request, id: this.editingProject.id })
+      : this.projectsService.postProject(request);
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.editingProject ? 'Projeto atualizado!' : 'Projeto criado!' });
+        this.isFormVisible = false;
+        this.loadProjects();
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar o projeto.' })
+    });
+  }
+
+  openDeleteDialog(): void {
+    this.deleteError = '';
+    this.isFormVisible = false;
+    this.isDeleteVisible = true;
+  }
+
+  deleteProject(): void {
+    if (!this.editingProject) return;
+    this.projectsService.deleteProject(this.editingProject.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (updatedProject) => {
-          this.showSuccessMessage('Sucesso', 'Projeto atualizado com sucesso!');
-          this.editProjectForm.reset();
-          this.isEditingProject = false;
-          this.onCloseDialog('editProject');
-
-          // Remove o projeto atual das listas
-          this.projects = this.projects.filter(p => p.id !== requestPutProject.id);
-          this.filteredProjects = this.filteredProjects.filter(p => p.id !== requestPutProject.id);
-
-          // Adiciona o projeto atualizado no início dos arrays
-          if (updatedProject) {
-            this.projects = [updatedProject, ...this.projects];
-            this.filteredProjects = [updatedProject, ...this.filteredProjects];
-          } else {
-            // Se não receber o projeto atualizado, busca todos novamente
-            this.loadProjectsBasedOnRole();
-          }
-
-          setTimeout(() => this.cdr.detectChanges(), 0);
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Projeto excluído!' });
+          this.isDeleteVisible = false;
+          this.loadProjects();
         },
-        error: () => this.showErrorMessage('Erro', 'Erro ao atualizar projeto!')
+        error: () => this.deleteError = 'Não é possível excluir um projeto que possui atividades.'
       });
   }
 
-  public deleteProject(): void {
-    try {
-      if (!this.selectedProject) return;
-
-      this.projectsService.deleteProject(this.selectedProject.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showSuccessMessage('Sucesso', 'Projeto excluído com sucesso!');
-            this.onCloseDialog('deleteProject');
-            this.onCloseDialog('confirmDelete');
-            this.loadProjectsBasedOnRole();
-          },
-          error: (err) => {
-            console.error("Erro ao excluir projeto:", err);
-            this.showErrorMessage('Erro', 'Erro ao excluir projeto!');
-            this.openDeleteErrorDialog();
-          }
-        });
-
-    } catch (error) {
-      console.error("Erro inesperado:", error);
-      this.showErrorMessage('Erro', 'Erro inesperado ao excluir o projeto!');
-      this.openDeleteErrorDialog();
+  /** Abre a edição quando a tela de atividades pede (?editar=id). */
+  private openRequestedEdit(): void {
+    const id = this.route.snapshot.queryParamMap.get('editar');
+    const row = id ? this.rows.find(r => String(r.project.id) === id) : undefined;
+    if (row && this.isAdmin) {
+      this.openEditProjectDialog(row.project);
     }
   }
 
-  public formatStatus(status: string): string {
-    switch (status) {
-      case 'EM_ANDAMENTO':
-        return 'Em andamento';
-      case 'CONCLUIDO':
-        return 'Concluído';
-      case 'PLANEJADO':
-        return 'Planejado';
-      case 'CANCELADO':
-        return 'Cancelado';
-      default:
-        return status;
-    }
-  }
+  private loadProjects(): void {
+    const userId = this.userService.getCurrentUserId() ?? '';
+    const projects$ = this.isAdmin ? this.projectsService.getAllProjects() : this.projectsService.findProjectsByActivityUserId(userId);
 
-  private showSuccessMessage(summary: string, detail: string): void {
-    this.messageService.add({
-      severity: 'success',
-      summary,
-      detail,
-      life: 2500,
-    });
-  }
-
-  private showErrorMessage(summary: string, detail: string): void {
-    this.messageService.add({
-      severity: 'error',
-      summary,
-      detail,
-      life: 2500,
-    });
-  }
-
-  public onCloseDialog(dialogType: "showMore" | "newProject" | "editProject" | "deleteProject" | "confirmDelete" | "deleteError" ): void {
-    if (dialogType === "showMore") this.isVisibleShowMoreDialog = false;
-    if (dialogType === "newProject") this.isVisibleNewProjectDialog = false;
-    if (dialogType === "editProject") {
-      this.isVisibleEditProjectDialog = false;
-      this.isEditingProject = false;
-    }
-    if (dialogType === "deleteProject") {
-      this.isVisibleDeleteProjectDialog = false;
-    }
-    if (dialogType === "confirmDelete") {
-      this.isVisibleConfirmDeleteDialog = false;
-      this.isVisibleDeleteProjectDialog = false;
-    }
-    if (dialogType === "deleteError") {
-      this.isVisibleDeleteErrorDialog = false;
-      this.isVisibleConfirmDeleteDialog = false;
-      this.isVisibleDeleteProjectDialog = false;
-    }
-  }
-
-  public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    forkJoin({
+      projects: projects$,
+      activities: this.activitiesService.getAllActivities().pipe(catchError(() => of([] as GetActivityResponse[]))),
+      dashboard: this.dashboardService.getDashboardDatas().pipe(catchError(() => of(null))),
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ projects, activities, dashboard }) => {
+          const hoursById = new Map((dashboard?.projectHoursData ?? []).map(p => [String(p.projectId), p.totalHours ?? 0]));
+          this.rows = (projects ?? []).map(project => {
+            const own = (activities ?? []).filter(a => String(a.project?.id) === String(project.id));
+            const done = own.filter(a => a.status === 'CONCLUIDA').length;
+            const progress = project.status === 'CONCLUIDO' ? 100 : own.length ? Math.round(done / own.length * 100) : 0;
+            return { project, hours: hoursById.get(String(project.id)) ?? 0, activities: own.length, progress };
+          });
+          this.applyFilters();
+          this.isLoading = false;
+          this.openRequestedEdit();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os projetos.' });
+        }
+      });
   }
 }
