@@ -1,0 +1,62 @@
+<ng-container *ngIf="timer.snapshot$ | async as t">
+  <div class="launch">
+    <h1 class="page-title">Lançar horas</h1>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" [class.active]="mode === 'timer'" [attr.aria-selected]="mode === 'timer'" (click)="mode = 'timer'">Timer</button>
+      <button type="button" role="tab" [class.active]="mode === 'manual'" [attr.aria-selected]="mode === 'manual'" (click)="mode = 'manual'">Manual</button>
+    </div>
+
+    <div class="fld">
+      <label for="l-activity">Atividade</label>
+      <select id="l-activity" class="select" [ngModel]="mode === 'timer' && t.state ? t.state.activityId : selectedActivityId"
+              (ngModelChange)="onActivityChange($event)" [disabled]="mode === 'timer' && !!t.state">
+        <option *ngIf="!(launch.activities$ | async)?.length" [ngValue]="null">Nenhuma atividade atribuída a você</option>
+        <option *ngFor="let activity of launch.activities$ | async" [ngValue]="activity.id">{{ activity.name }}</option>
+      </select>
+      <span class="hint">{{ launch.activityHint(mode === 'timer' && t.state ? t.state.activityId : selectedActivityId) }}</span>
+    </div>
+
+    <ng-container *ngIf="mode === 'timer'; else manual">
+      <div class="surface-card clock-card">
+        <div class="clock-top">
+          <span class="muted">{{ stateLabel(t.state?.running, t.elapsed) }}</span>
+          <app-logo-clock [size]="24"></app-logo-clock>
+        </div>
+        <span class="clock num">{{ t.clock }}</span>
+        <div class="progress">
+          <span class="track"><span class="bar" [class.paused]="!t.state?.running" [style.width.%]="todayPercent(t.elapsed)"></span></span>
+          <div class="progress-row"><span class="muted">Hoje</span><span class="num strong">{{ formatMinutes(todaySavedMinutes + t.elapsed / 60) }} de 8h</span></div>
+        </div>
+      </div>
+      <div class="timer-actions">
+        <button type="button" class="amber" (click)="toggleTimer()" [disabled]="!t.state && !selectedActivityId">
+          {{ t.state ? (t.state.running ? 'Pausar' : 'Retomar') : 'Iniciar' }}
+        </button>
+        <button type="button" class="secondary" (click)="resetTimer()" [disabled]="!t.state">Zerar</button>
+      </div>
+    </ng-container>
+
+    <ng-template #manual>
+      <div class="manual">
+        <div class="fld">
+          <label for="l-start">Início</label>
+          <input id="l-start" class="input num" [(ngModel)]="manualStart" placeholder="dd/mm hh:mm" />
+        </div>
+        <div class="fld">
+          <label for="l-end">Fim</label>
+          <input id="l-end" class="input num" [(ngModel)]="manualEnd" placeholder="dd/mm hh:mm" />
+        </div>
+      </div>
+      <div class="duration"><span class="muted">Duração</span><span class="num">{{ formatMinutes(manualMinutes) }}</span></div>
+    </ng-template>
+
+    <div class="fld">
+      <label for="l-desc">Descrição</label>
+      <textarea id="l-desc" class="textarea" rows="2" [ngModel]="mode === 'timer' && t.state ? t.state.description : description"
+                (ngModelChange)="onDescriptionChange($event)"></textarea>
+    </div>
+
+    <button type="button" class="save" (click)="save()" [disabled]="saving || (mode === 'timer' && !t.state)">Salvar lançamento</button>
+  </div>
+</ng-container>

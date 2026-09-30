@@ -1,43 +1,145 @@
-<!-- Toolbar -->
-<p-toolbar>
-  <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-    <i class="pi pi-clock"></i>
-    <span style="font-weight: bold; font-size: 1.4rem;">
-      Horas lançadas
-    </span>
-  </div>
+<ng-container *ngIf="timer.snapshot$ | async as t">
+  <ng-container *ngIf="launch.activities$ | async as activities">
 
-  <div class="flex p-toolbar-group-end" style="gap: 1rem;">
-  <span style="font-weight: bold; font-size: 1rem;"></span>
-  </div>
-</p-toolbar>
+  <!-- Desktop -->
+  <div class="desk-only page">
+    <header class="page-header">
+      <div class="titles">
+        <h1 class="page-title">Registro de horas</h1>
+        <span class="page-subtitle">{{ weekLabel }} · <span class="num">{{ formatMinutes(weekMinutes) }}</span> lançadas</span>
+      </div>
+      <div class="week-nav">
+        <button type="button" class="icon-btn" (click)="previousWeek()" aria-label="Semana anterior"><app-icon name="chevron-left" [size]="18" [stroke]="2.2"></app-icon></button>
+        <button type="button" pButton class="p-button-secondary today" label="Hoje" (click)="goToToday()"></button>
+        <button type="button" class="icon-btn" (click)="nextWeek()" aria-label="Próxima semana"><app-icon name="chevron-right" [size]="18" [stroke]="2.2"></app-icon></button>
+      </div>
+    </header>
 
-<!-- Skeleton Overlay -->
-<app-skeleton-loader
-  *ngIf="isLoading"
-  [overlay]="true"
-  [width]="'360px'"
-  [height]="'240px'"
-  [pulseColor]="'#3B82F6'"
-  [showProgressBar]="true"
-  message="Carregando horas lançadas...">
-</app-skeleton-loader>
+    <section class="launch-bar" aria-label="Lançar horas">
+      <div class="bar-tabs" role="tablist">
+        <button type="button" role="tab" [class.active]="mode === 'timer'" [attr.aria-selected]="mode === 'timer'" (click)="mode = 'timer'">Timer</button>
+        <button type="button" role="tab" [class.active]="mode === 'manual'" [attr.aria-selected]="mode === 'manual'" (click)="mode = 'manual'">Manual</button>
+      </div>
 
-<div class="cards">
-  <p-card styleClass="shadow-3 mt-5" *ngIf="!isLoading">
-    <div style="max-width: 100%; overflow-x: auto;">
-      <app-release-time-form
-        [releaseTimes]="releaseTimeEntries"
-        (releaseTimeCreated)="handleReleaseTimeCreated($event)"
-        (releaseTimeUpdated)="handleReleaseTimeUpdated($event)"
-        (releaseTimeDeleted)="handleReleaseTimeDeleted()">
-      </app-release-time-form>
+      <select #activitySelect class="bar-input activity" aria-label="Atividade"
+              [ngModel]="mode === 'timer' && t.state ? t.state.activityId : selectedActivityId"
+              (ngModelChange)="selectedActivityId = $event" [disabled]="mode === 'timer' && !!t.state">
+        <option *ngIf="!activities.length" [ngValue]="null">Nenhuma atividade atribuída a você</option>
+        <option *ngFor="let activity of activities" [ngValue]="activity.id">{{ activity.name }}</option>
+      </select>
+      <input class="bar-input grow" aria-label="Descrição" placeholder="No que você está trabalhando?"
+             [ngModel]="mode === 'timer' && t.state ? t.state.description : description" (ngModelChange)="onDescriptionChange($event)" />
 
-      <app-release-time-table
-        [releaseTimes]="releaseTimeEntries"
-        (editReleaseTime)="openEditReleaseTimeDialog($event)"
-        (deleteReleaseTime)="openDeleteReleaseTimeDialog($event)">
-      </app-release-time-table>
+      <ng-container *ngIf="mode === 'timer'; else manualBar">
+        <span class="bar-clock"><app-logo-clock [size]="28"></app-logo-clock><span class="num" [class.idle]="!t.state">{{ t.clock }}</span></span>
+        <ng-container *ngIf="t.state; else idleTimer">
+          <button type="button" class="bar-btn amber" (click)="timer.toggle()">{{ t.state.running ? 'Pausar' : 'Retomar' }}</button>
+          <button type="button" class="bar-btn light" (click)="stopAndSave()" [disabled]="saving">Parar e salvar</button>
+        </ng-container>
+        <ng-template #idleTimer>
+          <button type="button" class="bar-btn amber" (click)="startTimer()" [disabled]="!selectedActivityId">Iniciar</button>
+        </ng-template>
+      </ng-container>
+
+      <ng-template #manualBar>
+        <input class="bar-input time num" aria-label="Início" [(ngModel)]="manualStart" placeholder="dd/mm hh:mm" />
+        <span class="dash">–</span>
+        <input class="bar-input time num" aria-label="Fim" [(ngModel)]="manualEnd" placeholder="dd/mm hh:mm" />
+        <span class="bar-duration num">{{ formatMinutes(manualMinutes) }}</span>
+        <button type="button" class="bar-btn light" (click)="saveManual()" [disabled]="saving || !selectedActivityId">Salvar</button>
+      </ng-template>
+    </section>
+
+    <div class="week">
+      <div *ngFor="let day of weekDays" class="day" [class.today]="day.isToday" [class.empty]="!day.minutes && !day.isToday">
+        <span class="day-label">{{ day.label }}{{ day.isToday ? ' · hoje' : '' }}</span>
+        <span class="day-total num">{{ formatMinutes(day.minutes) }}</span>
+      </div>
     </div>
-  </p-card>
-</div>
+
+    <section class="entries surface-card">
+      <app-skeleton-loader *ngIf="isLoading" [overlay]="false" [width]="'100%'" [height]="'160px'"
+                           [pulseColor]="'#8E8E93'" message="Carregando horas lançadas..."></app-skeleton-loader>
+
+      <div *ngIf="!isLoading && !dayGroups.length" class="empty-state">
+        <app-logo-clock [size]="44"></app-logo-clock>
+        <span>Nenhum lançamento nesta semana.</span>
+      </div>
+
+      <div *ngFor="let group of dayGroups; let first = first" class="day-group">
+        <div class="group-header" [class.first]="first">
+          <h2>{{ group.title }}</h2>
+          <span class="num muted">{{ formatMinutes(group.minutes) }}</span>
+        </div>
+
+        <div *ngIf="group.isToday && t.state" class="entry">
+          <span class="entry-time num">{{ formatTime(runningStart(t.elapsed)) }} – <span class="now"><span class="dot"></span>agora</span></span>
+          <div class="entry-info">
+            <span class="entry-title">{{ t.state.description || t.state.activityName }}</span>
+            <span class="entry-sub">{{ t.state.projectName ? t.state.projectName + ' · ' : '' }}{{ t.state.activityName }}</span>
+          </div>
+          <span class="entry-duration num">{{ formatMinutes(t.elapsed / 60) }}</span>
+          <span></span>
+        </div>
+
+        <div *ngFor="let entry of group.entries; trackBy: trackById" class="entry">
+          <span class="entry-time num">{{ formatTime(entry.start) }} – {{ formatTime(entry.end) }}</span>
+          <div class="entry-info">
+            <span class="entry-title">{{ entry.source.description || entry.source.activity.name }}</span>
+            <span class="entry-sub">
+              {{ entry.source.activity.project?.name ? entry.source.activity.project?.name + ' · ' : '' }}{{ entry.source.activity.name }}<ng-container *ngIf="!isMine(entry.source) && entry.source.user?.name"> · {{ entry.source.user.name }}</ng-container>
+            </span>
+          </div>
+          <span class="entry-duration num">{{ formatMinutes(entry.minutes) }}</span>
+          <button *ngIf="canEdit(entry.source); else noEdit" type="button" class="text-btn" (click)="editEntry(entry)">Editar</button>
+          <ng-template #noEdit><span></span></ng-template>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Celular -->
+  <div class="mob-only mobile">
+    <h1 class="page-title">Registro de horas</h1>
+    <div class="m-week-row"><span class="m-week-label">{{ weekLabel }}</span><span class="num muted">{{ formatMinutes(weekMinutes) }}</span></div>
+    <div class="m-days">
+      <button *ngFor="let day of weekDays" type="button" class="m-day" [class.selected]="day.date.getTime() === selectedDay.getTime()" (click)="selectDay(day)">
+        <span class="m-day-name">{{ day.short }}</span>
+        <span class="m-day-number num">{{ day.number }}</span>
+        <span class="m-day-total num">{{ formatMinutes(day.minutes) }}</span>
+      </button>
+    </div>
+
+    <section class="surface-card m-entries">
+      <div class="m-entries-header"><h2>{{ selectedDayTitle }}</h2><span class="num muted">{{ formatMinutes(selectedDayGroup?.minutes ?? 0) }}</span></div>
+
+      <div *ngIf="!selectedDayEntries.length && !(selectedDayGroup?.isToday && t.state)" class="m-empty muted">Nenhum lançamento neste dia.</div>
+
+      <button *ngFor="let entry of selectedDayEntries; trackBy: trackById" type="button" class="m-entry" (click)="editEntry(entry)">
+        <span class="m-entry-info">
+          <span class="m-entry-title">{{ entry.source.description || entry.source.activity.name }}</span>
+          <span class="muted m-entry-sub">{{ entry.source.activity.project?.name || entry.source.activity.name }}</span>
+          <span class="num m-entry-time">{{ formatTime(entry.start) }} – {{ formatTime(entry.end) }}</span>
+        </span>
+        <span class="num m-entry-duration">{{ formatMinutes(entry.minutes) }}</span>
+      </button>
+
+      <a *ngIf="selectedDayGroup?.isToday && t.state" routerLink="/launch" class="m-entry">
+        <span class="m-entry-info">
+          <span class="m-entry-title">{{ t.state.description || t.state.activityName }}</span>
+          <span class="muted m-entry-sub">{{ t.state.projectName || t.state.activityName }} · em andamento</span>
+          <span class="num m-entry-time now"><span class="dot"></span>{{ formatTime(runningStart(t.elapsed)) }} – agora</span>
+        </span>
+        <span class="num m-entry-duration">{{ formatMinutes(t.elapsed / 60) }}</span>
+      </a>
+    </section>
+  </div>
+
+  </ng-container>
+</ng-container>
+
+<app-release-time-form
+  [releaseTimes]="releaseTimeEntries"
+  (releaseTimeUpdated)="handleReleaseTimeChanged()"
+  (releaseTimeDeleted)="handleReleaseTimeChanged()">
+</app-release-time-form>

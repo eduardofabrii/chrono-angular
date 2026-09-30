@@ -21,6 +21,7 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   public isVisibleEditReleaseTime = false;
   public isVisibleDeleteReleaseTimeDialog = false;
   public releaseTimeToDelete: any = null;
+  public editingReleaseTime: any = null;
   public responsibleOptions: any[] = [];
   public activities: GetActivityResponse[] = [];
   public role = '';
@@ -76,6 +77,11 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   }
 
   private getUsers(): void {
+    // Só o admin lança para outras pessoas; os demais editam apenas os próprios lançamentos
+    if (this.role !== 'ADMIN') {
+      this.responsibleOptions = [{ id: this.userService.getCurrentUserId(), name: this.userService.getUsername(), email: '' }];
+      return;
+    }
     this.userService.getUsers()
     .pipe(takeUntil(this.destroy$))
     .subscribe((users: any[]) => {
@@ -106,6 +112,7 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   }
 
   public openEditReleaseTimeDialog(releaseTime: any): void {
+    this.editingReleaseTime = releaseTime;
     this.isVisibleEditReleaseTime = true;
 
     let startDate = this.parseDate(releaseTime.startDate);
@@ -313,6 +320,7 @@ export class ReleaseTimeFormComponent implements OnChanges, OnDestroy {
   }
 
   public openDeleteReleaseTimeDialog(releaseTime: any): void {
+    this.isVisibleEditReleaseTime = false;
     this.releaseTimeToDelete = releaseTime;
     this.isVisibleDeleteReleaseTimeDialog = true;
   }
