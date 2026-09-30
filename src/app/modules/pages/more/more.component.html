@@ -1,0 +1,41 @@
+<div class="more">
+  <h1 class="page-title">Mais</h1>
+
+  <a routerLink="/edit-user" class="surface-card profile">
+    <span class="avatar big">{{ initials }}</span>
+    <span class="profile-text">
+      <span class="name">{{ username }}</span>
+      <span class="muted">{{ isAdmin ? 'Administrador' : 'Usuário' }} · Editar perfil</span>
+    </span>
+    <app-icon name="chevron-right" [size]="18" [stroke]="2" class="chevron"></app-icon>
+  </a>
+
+  <section class="surface-card menu">
+    <a routerLink="/reports" class="item">
+      <span class="item-icon graphite"><app-icon name="chart" [size]="18" [stroke]="1.8"></app-icon></span>
+      <span class="item-text"><span class="item-title">Relatórios</span><span class="muted">Horas por projeto em PDF</span></span>
+      <app-icon name="chevron-right" [size]="18" [stroke]="2" class="chevron"></app-icon>
+    </a>
+    <a *ngIf="isAdmin" routerLink="/register" class="item">
+      <span class="item-icon green"><app-icon name="user-plus" [size]="18" [stroke]="1.8"></app-icon></span>
+      <span class="item-text"><span class="item-title">Usuários</span><span class="muted">Cadastro e permissões</span></span>
+      <app-icon name="chevron-right" [size]="18" [stroke]="2" class="chevron"></app-icon>
+    </a>
+    <a routerLink="/hours" class="item">
+      <span class="item-icon amber"><app-icon name="history" [size]="18" [stroke]="1.8"></app-icon></span>
+      <span class="item-text"><span class="item-title">Registro de horas</span></span>
+      <app-icon name="chevron-right" [size]="18" [stroke]="2" class="chevron"></app-icon>
+    </a>
+  </section>
+
+  <section *ngIf="!isInstalled" class="install">
+    <img src="assets/imgs/chrono-logo-c.png" alt="" />
+    <span class="install-text">
+      <span class="install-title">Instale o Chrono</span>
+      <span class="install-sub">Abre como app, direto da tela inicial.</span>
+    </span>
+    <button type="button" class="install-btn" (click)="install()">Instalar</button>
+  </section>
+
+  <button type="button" class="logout" (click)="logout()">Sair</button>
+</div>

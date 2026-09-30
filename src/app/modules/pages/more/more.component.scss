@@ -1,0 +1,152 @@
+.more {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.muted {
+  font-size: 13px;
+}
+
+.chevron {
+  color: var(--c-subtle);
+}
+
+.profile {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--c-text);
+}
+
+.avatar.big {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.profile-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.menu {
+  padding: 0 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--c-line-soft);
+  color: var(--c-text);
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.graphite {
+    background: #48484A;
+  }
+
+  &.green {
+    background: #34C759;
+  }
+
+  &.amber {
+    background: var(--c-amber);
+  }
+}
+
+.item-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.item-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.install {
+  border-radius: 16px;
+  background: var(--c-dark);
+  color: #fff;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  img {
+    width: 40px;
+    height: auto;
+    box-sizing: content-box;
+    background: #FFFFFE;
+    border-radius: 10px;
+    padding: 6px;
+  }
+}
+
+.install-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-title {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.install-sub {
+  font-size: 12.5px;
+  color: #C7C7CC;
+}
+
+.install-btn {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-amber);
+  color: #1D1D1F;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logout {
+  height: 48px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}

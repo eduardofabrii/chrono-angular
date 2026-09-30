@@ -12,6 +12,9 @@ import { DashboardHomeComponent } from './modules/pages/dashboard/page/dashboard
 import { RegisterHomeComponent } from './modules/pages/register/page/register-home/register-home.component';
 import { UserService } from './services/user/user.service';
 import { EditUserComponent } from './modules/pages/edit-user/page/edit-user/edit-user.component';
+import { ReportsHomeComponent } from './modules/pages/reports/reports-home/reports-home.component';
+import { LaunchComponent } from './modules/pages/release-time/page/launch/launch.component';
+import { MoreComponent } from './modules/pages/more/more.component';
 
 
 const routes: Routes = [
@@ -24,7 +27,10 @@ const routes: Routes = [
       { path: 'dashboard', component: DashboardHomeComponent, title: 'Chrono | Dashboard' },
       { path: 'projects', component: ProjectsHomeComponent, title: 'Chrono | Projetos'},
       { path: 'projects/activities/:id', component: ActivitiesHomeComponent, title: 'Chrono | Atividades' },
-      { path: 'hours', component: ReleaseTimeHomeComponent, title: 'Chrono | Lançamento de Horas' },
+      { path: 'hours', component: ReleaseTimeHomeComponent, title: 'Chrono | Registro de horas' },
+      { path: 'launch', component: LaunchComponent, title: 'Chrono | Lançar horas' },
+      { path: 'reports', component: ReportsHomeComponent, title: 'Chrono | Relatórios' },
+      { path: 'more', component: MoreComponent, title: 'Chrono | Mais' },
       { path: 'edit-user', component: EditUserComponent, title: 'Chrono | Editar Usuário' },
       {
         path: 'register',

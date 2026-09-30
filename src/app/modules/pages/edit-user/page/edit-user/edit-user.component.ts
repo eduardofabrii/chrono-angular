@@ -1,179 +1,140 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+
 import { UserService } from '../../../../../services/user/user.service';
 import { User } from '../../../../../models/interfaces/register/User';
-import { finalize } from 'rxjs/operators';
+import { ReleaseTimeService } from '../../../../../services/release-time/release-time.service';
+import { ActivitiesService } from '../../../../../services/activities/activities.service';
+import { DateUtilsService } from '../../../../../shared/services/date-utils.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-edit-user',
   templateUrl: './edit-user.component.html',
   styleUrl: './edit-user.component.scss',
-  providers: [MessageService]
 })
 export class EditUserComponent implements OnInit {
-  userForm!: FormGroup;
-  roles: { label: string, value: string }[] = [];
-  loading = false;
-  currentUser?: User;
-  currentUserId: number | null = null;
-  loadingUser = true;
-  authService: any;
-
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
+  private readonly releaseTimeService = inject(ReleaseTimeService);
+  private readonly activitiesService = inject(ActivitiesService);
+  private readonly dateUtils = inject(DateUtilsService);
   private readonly router = inject(Router);
 
+  currentUser?: User;
+  currentUserId: string | null = null;
+  loading = false;
+  loadingUser = true;
+  monthHours = 0;
+  openActivities = 0;
+
+  userForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.minLength(6)]],
+    confirmPassword: [''],
+  }, {
+    validators: this.passwordMatchValidator()
+  });
+
   ngOnInit(): void {
-    const userIdFromService = this.userService.getCurrentUserId();
-    this.currentUserId = userIdFromService ? parseInt(userIdFromService, 10) : null;
-    this.initRoles();
+    this.currentUserId = this.userService.getCurrentUserId();
     this.loadCurrentUser();
-  }
-  private loadCurrentUser(): void {
-    this.loadingUser = true;
-    const userId = this.userService.getCurrentUserId();
-
-    if (userId) {
-      this.userService.getUserById(userId).pipe(
-        finalize(() => this.loadingUser = false)
-      ).subscribe({
-        next: (user: User) => {
-          this.currentUser = user;
-          this.initForm();
-        },
-        error: (error: any) => {
-          console.error('Erro ao carregar dados do usuário:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Não foi possível carregar os dados do usuário.',
-            life: 5000
-          });
-          this.initForm();
-        }
-      });
-    } else {
-      this.loadingUser = false;
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'ID do usuário não encontrado.',
-        life: 5000
-      });
-      this.initForm();
-    }
+    this.loadStats();
   }
 
-  private initForm(): void {
-    this.userForm = this.fb.group<any>({
-      name: [this.currentUser?.name || '', [Validators.required]],
-      email: [this.currentUser?.email || '', [Validators.required, Validators.email]],
-      password: ['', [Validators.minLength(6)]], // Senha com no mínimo 6 caracteres
-      confirmPassword: [''],
-      role: [this.currentUser?.role || 'USER', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator()
+  get formControls() {
+    return this.userForm.controls;
+  }
+
+  get initials(): string {
+    return (this.currentUser?.name ?? '').split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  cancel(): void {
+    this.resetForm();
+    void this.router.navigate(['/dashboard']);
+  }
+
+  resetForm(): void {
+    this.userForm.reset({
+      name: this.currentUser?.name ?? '',
+      email: this.currentUser?.email ?? '',
+      password: '',
+      confirmPassword: '',
     });
   }
 
-  private initRoles(): void {
-    this.roles = this.userService.getUserRoles();
+  onSubmit(): void {
+    if (!this.userForm.valid || !this.currentUserId) {
+      this.userForm.markAllAsTouched();
+      this.showMessage('warn', 'Atenção', 'Por favor, preencha corretamente todos os campos');
+      return;
+    }
+
+    this.loading = true;
+    const { name, email, password } = this.userForm.value;
+    const userData: Partial<User> = { name, email, role: this.currentUser?.role };
+    if (password) {
+      userData.password = password;
+    }
+
+    this.userService.putUserById(this.currentUserId, userData).subscribe({
+      next: () => {
+        this.showMessage('success', 'Sucesso', 'Dados atualizados. Faça login novamente.');
+        setTimeout(() => this.userService.logout(), 1500);
+      },
+      error: () => {
+        this.showMessage('error', 'Erro', 'Ocorreu um erro ao atualizar os dados. Tente novamente.');
+        this.loading = false;
+      }
+    });
+  }
+
+  private loadCurrentUser(): void {
+    if (!this.currentUserId) {
+      this.loadingUser = false;
+      this.showMessage('error', 'Erro', 'ID do usuário não encontrado.');
+      return;
+    }
+
+    this.userService.getUserById(this.currentUserId)
+      .pipe(finalize(() => this.loadingUser = false))
+      .subscribe({
+        next: user => {
+          this.currentUser = user;
+          this.resetForm();
+        },
+        error: () => this.showMessage('error', 'Erro', 'Não foi possível carregar os dados do usuário.')
+      });
+  }
+
+  private loadStats(): void {
+    if (!this.currentUserId) return;
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    this.releaseTimeService.getReleaseTimesByUserId(this.currentUserId).subscribe(entries => {
+      this.monthHours = (entries ?? [])
+        .filter(entry => (this.dateUtils.parseDateTime(entry.startDate) ?? 0) >= monthStart)
+        .reduce((sum, entry) => sum + this.dateUtils.entryMinutes(entry.startDate, entry.endDate), 0) / 60;
+    });
+    this.activitiesService.getActivityByResponsibleId(this.currentUserId).subscribe(activities => {
+      this.openActivities = (activities ?? []).filter(activity => activity.status !== 'CONCLUIDA').length;
+    });
   }
 
   private passwordMatchValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const password = control.get('password')?.value;
       const confirmPassword = control.get('confirmPassword')?.value;
-
       if (!password && !confirmPassword) return null;
       return password === confirmPassword ? null : { mismatch: true };
     };
   }
 
-  onSubmit(): void {
-    if (this.userForm.valid) {
-      this.loading = true;
-
-      // Valida se a senha foi preenchida e se as senhas coincidem
-      const userData: Partial<User> = {
-        name: this.userForm.value.name,
-        email: this.userForm.value.email,
-        role: this.userForm.value.role
-      };
-
-      if (this.userForm.value.password) {
-        userData.password = this.userForm.value.password;
-      }
-
-      if (this.currentUserId === null) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'ID do usuário não encontrado.',
-          life: 5000
-        });
-        this.loading = false;
-        return;
-      }
-
-      this.userService.putUserById(this.currentUserId.toString(), userData).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Dados do usuário atualizados com sucesso!',
-            life: 3000
-          });
-
-          setTimeout(() => {
-            this.userService.logout();
-          }, 2000);
-        },
-        error: (error: any) => {
-          console.error('Erro ao atualizar usuário:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Ocorreu um erro ao atualizar os dados. Tente novamente.',
-            life: 5000
-          });
-          this.loading = false;
-        }
-      });
-    } else {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Por favor, preencha corretamente todos os campos',
-        life: 3000
-      });
-      this.markFormGroupTouched(this.userForm);
-    }
-  }
-
-  resetForm(): void {
-    this.userForm.reset();
-    this.userForm.patchValue({ role: 'USER' });
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Informação',
-      detail: 'Formulário limpo',
-      life: 2000
-    });
-  }
-
-  // Marca todos os campos do formulário como preenchidos/tocados
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  get formControls() {
-    return this.userForm.controls;
+  private showMessage(severity: string, summary: string, detail: string): void {
+    this.messageService.add({ severity, summary, detail, life: severity === 'error' ? 5000 : 3000 });
   }
 }

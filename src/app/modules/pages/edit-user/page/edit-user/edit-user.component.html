@@ -1,91 +1,85 @@
-<div class="register-container">
-  <!-- Toolbar -->
-  <p-toolbar>
-    <div class="p-toolbar-group-start" style="display: flex; align-items: center;">
-      <i class="pi pi-user-edit"></i>
-      <span class="register-title">
-        Editar Perfil
-      </span>
-    </div>
-  </p-toolbar>
+<!-- Desktop -->
+<div class="desk-only page">
+  <header class="titles">
+    <h1 class="page-title">Meu perfil</h1>
+    <span class="page-subtitle">Dados de acesso à sua conta</span>
+  </header>
 
-  <div class="register-card">
-    <div class="form-container">
-      <h2 class="form-title">Dados do Perfil</h2>
+  <app-skeleton-loader *ngIf="loadingUser" [overlay]="false" [width]="'100%'" [height]="'240px'"
+                       [pulseColor]="'#8E8E93'" message="Carregando dados do usuário..."></app-skeleton-loader>
 
-      <p-card *ngIf="loadingUser" styleClass="loading-card">
-        <div class="loading-container">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-          <p>Carregando dados do usuário...</p>
+  <div *ngIf="!loadingUser" class="cards">
+    <section class="surface-card identity">
+      <span class="avatar big">{{ initials }}</span>
+      <span class="name">{{ currentUser?.name }}</span>
+      <span class="muted email">{{ currentUser?.email }}</span>
+      <span class="role-chip">{{ currentUser?.role === 'ADMIN' ? 'Administrador' : 'Usuário' }}</span>
+      <span class="divider"></span>
+      <div class="fact"><span class="muted">Horas no mês</span><span class="num">{{ monthHours | hours }}</span></div>
+      <div class="fact"><span class="muted">Atividades abertas</span><span class="num">{{ openActivities }}</span></div>
+    </section>
+
+    <section class="surface-card profile">
+      <h2>Dados do perfil</h2>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="form">
+        <div class="form-grid">
+          <div class="p-field">
+            <label for="name">Nome</label>
+            <input id="name" type="text" pInputText formControlName="name" />
+            <small *ngIf="formControls['name'].invalid && formControls['name'].touched" class="error-message">Nome é obrigatório</small>
+          </div>
+          <div class="p-field">
+            <label for="email">Email</label>
+            <input id="email" type="email" pInputText formControlName="email" />
+            <small *ngIf="formControls['email'].invalid && formControls['email'].touched" class="error-message">Email inválido</small>
+          </div>
+          <div class="p-field">
+            <label for="password">Nova senha</label>
+            <input id="password" type="password" pInputText formControlName="password" placeholder="Deixe em branco para manter a atual" />
+            <small *ngIf="formControls['password'].invalid && formControls['password'].touched" class="error-message">A senha deve ter no mínimo 6 caracteres</small>
+          </div>
+          <div class="p-field">
+            <label for="confirmPassword">Confirmar senha</label>
+            <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword" placeholder="Repita a senha" />
+            <small *ngIf="userForm.hasError('mismatch')" class="error-message">As senhas não coincidem</small>
+          </div>
         </div>
-      </p-card>
-
-      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" *ngIf="!loadingUser">
-        <div class="grid">
-          <div class="col-12 md:col-6 field-container">
-            <label for="name" class="required-field">Nome</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-user"></i>
-              <input id="name" type="text" pInputText formControlName="name"
-                    placeholder="Digite o nome completo"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['name'].invalid && formControls['name'].touched}">
-            </span>
-            <small *ngIf="formControls['name'].invalid && formControls['name'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> Nome é obrigatório
-            </small>
-          </div>
-
-          <div class="col-12 md:col-6 field-container">
-            <label for="email" class="required-field">Email</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-envelope"></i>
-              <input id="email" type="email" pInputText formControlName="email"
-                    placeholder="Digite o email"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['email'].invalid && formControls['email'].touched}">
-            </span>
-            <small *ngIf="formControls['email'].invalid && formControls['email'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> Email inválido
-            </small>
-          </div>
-
-          <div class="col-12 md:col-6 field-container">
-            <label for="password">Senha (deixe em branco para manter atual)</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-lock"></i>
-              <input id="password" type="password" pInputText formControlName="password"
-                    placeholder="Digite uma nova senha"
-                    [ngClass]="{'ng-invalid ng-dirty': formControls['password'].invalid && formControls['password'].touched}">
-            </span>
-            <small *ngIf="formControls['password'].invalid && formControls['password'].touched" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> A senha deve ter no mínimo 6 caracteres
-            </small>
-          </div>
-
-          <div class="col-12 md:col-6 field-container">
-            <label for="confirmPassword">Confirmar Senha</label>
-            <span class="p-input-icon-left">
-              <i class="pi pi-lock-open"></i>
-              <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword"
-                    placeholder="Repita a senha"
-                    [ngClass]="{'ng-invalid ng-dirty': userForm.hasError('mismatch')}">
-            </span>
-            <small *ngIf="userForm.hasError('mismatch')" class="error-message">
-              <i class="pi pi-exclamation-circle"></i> As senhas não coincidem
-            </small>
-          </div>
-
-            <span style="color: gray;">Ao editar algum dado você será redirecionado para fazer o login novamente!</span>
-        </div>
-
-        <div class="submit-button-container">
-          <p-button type="button" label="Cancelar" icon="pi pi-times" styleClass="p-button-text"
-                   [style]="{'margin-right': '1rem'}" (onClick)="resetForm()"></p-button>
-          <p-button type="submit" label="Salvar Alterações" icon="pi pi-save"
-                   [loading]="loading" styleClass="p-button-primary"></p-button>
+        <p class="warning">Ao salvar, você será redirecionado para fazer login novamente.</p>
+        <div class="form-actions">
+          <button pButton type="button" label="Cancelar" class="p-button-secondary" (click)="cancel()"></button>
+          <button pButton type="submit" label="Salvar alterações" [loading]="loading"></button>
         </div>
       </form>
-    </div>
+    </section>
   </div>
 </div>
 
-<p-toast position="bottom-right"></p-toast>
+<!-- Celular -->
+<div class="mob-only mobile">
+  <a routerLink="/more" class="back-link"><app-icon name="chevron-left" [size]="24" [stroke]="2.2"></app-icon>Voltar</a>
+  <h1 class="page-title">Meu perfil</h1>
+  <div class="m-identity">
+    <span class="avatar m-avatar">{{ initials }}</span>
+    <span class="m-name">{{ currentUser?.name }}</span>
+    <span class="muted">{{ currentUser?.role === 'ADMIN' ? 'Administrador' : 'Usuário' }}</span>
+  </div>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="m-form">
+    <div class="m-group">
+      <span class="m-group-label">Dados</span>
+      <div class="surface-card m-rows">
+        <div class="m-row"><label for="m-name">Nome</label><input id="m-name" type="text" formControlName="name" /></div>
+        <div class="m-row"><label for="m-email">Email</label><input id="m-email" type="email" formControlName="email" /></div>
+      </div>
+    </div>
+    <div class="m-group">
+      <span class="m-group-label">Senha</span>
+      <div class="surface-card m-rows">
+        <div class="m-row"><label for="m-pass">Nova</label><input id="m-pass" type="password" formControlName="password" placeholder="Manter atual" /></div>
+        <div class="m-row"><label for="m-pass2">Confirmar</label><input id="m-pass2" type="password" formControlName="confirmPassword" placeholder="Repita a senha" /></div>
+      </div>
+      <span class="m-note">Ao salvar, você será redirecionado para o login.</span>
+    </div>
+    <button type="submit" class="m-save" [disabled]="loading">Salvar alterações</button>
+  </form>
+</div>
