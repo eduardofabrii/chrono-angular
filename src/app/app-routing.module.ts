@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Router, RouterModule, Routes } from '@angular/router';
 
 import { LoginComponent } from './modules/pages/login/login.component';
 import { LayoutComponent } from './shared/layout/layout.component';
@@ -38,7 +38,7 @@ const routes: Routes = [
         title: 'Chrono | Registro de Usuários',
         canActivate: [() => {
           const userService = inject(UserService);
-          return userService.isAdmin();
+          return userService.isAdmin() || inject(Router).createUrlTree(['/dashboard']);
         }]
       },
     ]
